@@ -1,0 +1,3608 @@
+[
+  {
+    "id": "ab-wheel-rollout",
+    "name": "Rueda Abdominal",
+    "muscle": "Recto Abdominal",
+    "image": "ab-wheel-rollout-start.webp"
+  },
+  {
+    "id": "air-bike",
+    "name": "Bicicleta de Aire",
+    "muscle": "Isquiotibiales",
+    "image": "air-bike-main.webp"
+  },
+  {
+    "id": "archer-pull-ups",
+    "name": "Dominadas Arquero",
+    "muscle": "Dorsal Ancho",
+    "image": "archer-pull-ups-start.webp"
+  },
+  {
+    "id": "archer-push-ups",
+    "name": "Push-Ups Arquero",
+    "muscle": "Pectoral Mayor",
+    "image": "archer-push-ups-start.webp"
+  },
+  {
+    "id": "arnold-press",
+    "name": "Press Arnold",
+    "muscle": "Deltoides Anterior",
+    "image": "arnold-press-start.webp"
+  },
+  {
+    "id": "assisted-dips",
+    "name": "Fondos en Máquina Asistida",
+    "muscle": "Pectoral Mayor",
+    "image": "assisted-dips-start.webp"
+  },
+  {
+    "id": "assisted-pull-ups",
+    "name": "Dominadas Asistidas",
+    "muscle": "Dorsal Ancho",
+    "image": "assisted-pull-ups-start.webp"
+  },
+  {
+    "id": "back-extension",
+    "name": "Extensión de Espalda",
+    "muscle": "Erector Espinal",
+    "image": "back-extension-start.webp"
+  },
+  {
+    "id": "back-lever",
+    "name": "Back lever",
+    "muscle": "Erector Espinal",
+    "image": "back-lever-main.webp"
+  },
+  {
+    "id": "ball-leg-curl",
+    "name": "Curl de Piernas con Pelota de Estabilidad",
+    "muscle": "Isquiotibiales",
+    "image": "ball-leg-curl-start.webp"
+  },
+  {
+    "id": "ball-pike",
+    "name": "Pike con Pelota",
+    "muscle": "Oblicuos",
+    "image": "ball-pike-start.webp"
+  },
+  {
+    "id": "band-assisted-pull-ups",
+    "name": "Dominadas Asistidas con Banda",
+    "muscle": "Dorsal Ancho",
+    "image": "band-assisted-pull-ups-start.webp"
+  },
+  {
+    "id": "band-pull-apart",
+    "name": "Separación de Banda Elástica",
+    "muscle": "Deltoides Posterior",
+    "image": "band-pull-apart-start.webp"
+  },
+  {
+    "id": "banded-adductor-stretch",
+    "name": "Estiramiento de Aductores con Banda",
+    "muscle": "Aductores",
+    "image": "banded-adductor-stretch-main.webp"
+  },
+  {
+    "id": "banded-ankle-stretch",
+    "name": "Estiramiento de Tobillo con Banda",
+    "muscle": "Gemelos",
+    "image": "banded-ankle-stretch-main.webp"
+  },
+  {
+    "id": "banded-calf-stretch",
+    "name": "Estiramiento de Pantorrilla con Banda",
+    "muscle": "Gemelos",
+    "image": "banded-calf-stretch-main.webp"
+  },
+  {
+    "id": "banded-chest-stretch",
+    "name": "Estiramiento de Pecho con Banda",
+    "muscle": "Pectoral Mayor",
+    "image": "banded-chest-stretch-main.webp"
+  },
+  {
+    "id": "banded-clamshell",
+    "name": "Almeja con Banda",
+    "muscle": "Glúteo Medio",
+    "image": "banded-clamshell-start.webp"
+  },
+  {
+    "id": "banded-figure-4-stretch",
+    "name": "Estiramiento Figura 4 con Banda",
+    "muscle": "Glúteo Mayor",
+    "image": "banded-figure-4-stretch-main.webp"
+  },
+  {
+    "id": "banded-fire-hydrant",
+    "name": "Hidrante de Fuego con Banda",
+    "muscle": "Glúteo Medio",
+    "image": "banded-fire-hydrant-start.webp"
+  },
+  {
+    "id": "banded-glute-bridge",
+    "name": "Puente de Glúteos con Banda",
+    "muscle": "Glúteo Mayor",
+    "image": "banded-glute-bridge-start.webp"
+  },
+  {
+    "id": "banded-good-morning",
+    "name": "Buenos Días con Banda",
+    "muscle": "Glúteo Mayor",
+    "image": "banded-good-morning-start.webp"
+  },
+  {
+    "id": "banded-hamstring-stretch",
+    "name": "Estiramiento de Isquiotibiales con Banda",
+    "muscle": "Isquiotibiales",
+    "image": "banded-hamstring-stretch-main.webp"
+  },
+  {
+    "id": "banded-hip-thrust",
+    "name": "Empuje de Cadera con Banda",
+    "muscle": "Glúteo Mayor",
+    "image": "banded-hip-thrust-start.webp"
+  },
+  {
+    "id": "banded-it-band-stretch",
+    "name": "Estiramiento de Banda Iliotibial con Banda",
+    "muscle": "Abductores",
+    "image": "banded-it-band-stretch-main.webp"
+  },
+  {
+    "id": "banded-kneeling-hip-thrust",
+    "name": "Empuje de Cadera Arrodillado con Banda",
+    "muscle": "Glúteo Mayor",
+    "image": "banded-kneeling-hip-thrust-start.webp"
+  },
+  {
+    "id": "banded-lat-stretch",
+    "name": "Estiramiento de Dorsales con Banda",
+    "muscle": "Dorsal Ancho",
+    "image": "banded-lat-stretch-main.webp"
+  },
+  {
+    "id": "banded-lateral-walk",
+    "name": "Caminata Lateral con Banda",
+    "muscle": "Glúteo Medio",
+    "image": "banded-lateral-walk-start.webp"
+  },
+  {
+    "id": "banded-rear-delt-stretch",
+    "name": "Estiramiento de Deltoides Posterior con Banda",
+    "muscle": "Deltoides Posterior",
+    "image": "banded-rear-delt-stretch-main.webp"
+  },
+  {
+    "id": "banded-romanian-deadlift",
+    "name": "Peso Muerto Rumano con Banda",
+    "muscle": "Glúteo Mayor",
+    "image": "banded-romanian-deadlift-start.webp"
+  },
+  {
+    "id": "banded-seated-hip-abduction",
+    "name": "Abducción de Cadera Sentado con Banda",
+    "muscle": "Glúteo Medio",
+    "image": "banded-seated-hip-abduction-start.webp"
+  },
+  {
+    "id": "banded-shoulder-stretch",
+    "name": "Estiramiento de Hombros con Banda",
+    "muscle": "Deltoides Anterior",
+    "image": "banded-shoulder-stretch-main.webp"
+  },
+  {
+    "id": "banded-squat",
+    "name": "Sentadilla con Banda",
+    "muscle": "Glúteo Mayor",
+    "image": "banded-squat-start.webp"
+  },
+  {
+    "id": "banded-standing-curl",
+    "name": "Curl de Pierna de Pie con Banda",
+    "muscle": "Isquiotibiales",
+    "image": "banded-standing-curl-start.webp"
+  },
+  {
+    "id": "banded-standing-hip-abduction",
+    "name": "Abducción de Cadera de Pie con Banda",
+    "muscle": "Glúteo Medio",
+    "image": "banded-standing-hip-abduction-start.webp"
+  },
+  {
+    "id": "banded-standing-hip-adduction",
+    "name": "Aducción de Cadera de Pie con Banda",
+    "muscle": "Aductores",
+    "image": "banded-standing-hip-adduction-start.webp"
+  },
+  {
+    "id": "banded-sumo-walk",
+    "name": "Caminata Sumo con Banda",
+    "muscle": "Glúteo Mayor",
+    "image": "banded-sumo-walk-start.webp"
+  },
+  {
+    "id": "banded-terminal-knee-extension",
+    "name": "Extensión Terminal de Rodilla con Banda",
+    "muscle": "Cuádriceps",
+    "image": "banded-terminal-knee-extension-start.webp"
+  },
+  {
+    "id": "banded-triceps-stretch",
+    "name": "Estiramiento de Tríceps con Banda",
+    "muscle": "Tríceps",
+    "image": "banded-triceps-stretch-main.webp"
+  },
+  {
+    "id": "barbell-ab-rollout",
+    "name": "Rueda Abdominal con Barra",
+    "muscle": "Recto Abdominal",
+    "image": "barbell-ab-rollout-start.webp"
+  },
+  {
+    "id": "barbell-calf-raise",
+    "name": "Elevación de Talones con Barra",
+    "muscle": "Gemelos",
+    "image": "barbell-calf-raise-start.webp"
+  },
+  {
+    "id": "barbell-curl",
+    "name": "Curl con Barra",
+    "muscle": "Bíceps",
+    "image": "barbell-curl-start.webp"
+  },
+  {
+    "id": "barbell-front-raise",
+    "name": "Elevación Frontal con Barra",
+    "muscle": "Deltoides Anterior",
+    "image": "barbell-front-raise-start.webp"
+  },
+  {
+    "id": "barbell-glute-bridge",
+    "name": "Puente de Glúteos con Barra",
+    "muscle": "Glúteo Mayor",
+    "image": "barbell-glute-bridge-start.webp"
+  },
+  {
+    "id": "barbell-lunge",
+    "name": "Zancada con Barra",
+    "muscle": "Glúteo Mayor",
+    "image": "barbell-lunge-start.webp"
+  },
+  {
+    "id": "barbell-overhead-extension",
+    "name": "Extensión de Barra por Encima de la Cabeza",
+    "muscle": "Tríceps",
+    "image": "barbell-overhead-extension-start.webp"
+  },
+  {
+    "id": "barbell-preacher-curl",
+    "name": "Curl Predicador con Barra",
+    "muscle": "Bíceps",
+    "image": "barbell-preacher-curl-start.webp"
+  },
+  {
+    "id": "barbell-pullover",
+    "name": "Pullover con Barra",
+    "muscle": "Dorsal Ancho",
+    "image": "barbell-pullover-start.webp"
+  },
+  {
+    "id": "barbell-rear-delt-row",
+    "name": "Remo con Barra para Deltoides Posterior",
+    "muscle": "Deltoides Posterior",
+    "image": "barbell-rear-delt-row-start.webp"
+  },
+  {
+    "id": "barbell-reverse-lunge",
+    "name": "Zancada Inversa con Barra",
+    "muscle": "Glúteo Mayor",
+    "image": "barbell-reverse-lunge-start.webp"
+  },
+  {
+    "id": "barbell-row",
+    "name": "Remo con Barra Inclinado",
+    "muscle": "Dorsal Ancho",
+    "image": "barbell-row-start.webp"
+  },
+  {
+    "id": "barbell-wrist-curl",
+    "name": "Curl de Muñeca con Barra",
+    "muscle": "Flexores del Antebrazo",
+    "image": "barbell-wrist-curl-start.webp"
+  },
+  {
+    "id": "battle-rope-double-slam",
+    "name": "Golpe Doble con Cuerdas de Batalla",
+    "muscle": "Deltoides Anterior",
+    "image": "battle-rope-double-slam-start.webp"
+  },
+  {
+    "id": "battle-ropes",
+    "name": "Cuerdas de Batalla",
+    "muscle": "Deltoides Anterior",
+    "image": "battle-ropes-main.webp"
+  },
+  {
+    "id": "bear-crawl",
+    "name": "Caminata del Oso",
+    "muscle": "Deltoides Anterior",
+    "image": "bear-crawl-start.webp"
+  },
+  {
+    "id": "behind-the-back-barbell-shrug",
+    "name": "Encogimiento de Hombros con Barra Detrás de la Espalda",
+    "muscle": "Trapecio",
+    "image": "behind-the-back-barbell-shrug-start.webp"
+  },
+  {
+    "id": "behind-the-neck-lat-pulldown",
+    "name": "Jalón al Cuello Detrás de la Cabeza",
+    "muscle": "Dorsal Ancho",
+    "image": "behind-the-neck-lat-pulldown-start.webp"
+  },
+  {
+    "id": "behind-the-neck-press",
+    "name": "Press Detrás del Cuello",
+    "muscle": "Deltoides Anterior",
+    "image": "behind-the-neck-press-start.webp"
+  },
+  {
+    "id": "behind-the-neck-pull-ups",
+    "name": "Dominada tras nuca",
+    "muscle": "Dorsal Ancho",
+    "image": "behind-the-neck-pull-ups-start.webp"
+  },
+  {
+    "id": "bench-adductor-stretch",
+    "name": "Estiramiento de Aductores en Banco",
+    "muscle": "Aductores",
+    "image": "bench-adductor-stretch-main.webp"
+  },
+  {
+    "id": "bench-ankle-stretch",
+    "name": "Estiramiento de Tobillo en Banco",
+    "muscle": "Gemelos",
+    "image": "bench-ankle-stretch-main.webp"
+  },
+  {
+    "id": "bench-bulgarian-split-stretch",
+    "name": "Estiramiento Búlgaro en Banco",
+    "muscle": "Flexores de Cadera",
+    "image": "bench-bulgarian-split-stretch-main.webp"
+  },
+  {
+    "id": "bench-calf-stretch",
+    "name": "Estiramiento de Pantorrilla en Banco",
+    "muscle": "Gemelos",
+    "image": "bench-calf-stretch-main.webp"
+  },
+  {
+    "id": "bench-chest-stretch",
+    "name": "Estiramiento de Pecho en Banco",
+    "muscle": "Pectoral Mayor",
+    "image": "bench-chest-stretch-main.webp"
+  },
+  {
+    "id": "bench-childs-pose",
+    "name": "Postura del Niño en Banco",
+    "muscle": "Erector Espinal",
+    "image": "bench-childs-pose-main.webp"
+  },
+  {
+    "id": "bench-couch-stretch",
+    "name": "Estiramiento Couch en Banco",
+    "muscle": "Flexores de Cadera",
+    "image": "bench-couch-stretch-main.webp"
+  },
+  {
+    "id": "bench-dips",
+    "name": "Fondos en Banco",
+    "muscle": "Tríceps",
+    "image": "bench-dips-start.webp"
+  },
+  {
+    "id": "bench-figure-4-glute-stretch",
+    "name": "Estiramiento Figura 4 de Glúteos en Banco",
+    "muscle": "Glúteo Mayor",
+    "image": "bench-figure-4-glute-stretch-main.webp"
+  },
+  {
+    "id": "bench-hamstring-stretch",
+    "name": "Estiramiento de Isquiotibiales en Banco",
+    "muscle": "Isquiotibiales",
+    "image": "bench-hamstring-stretch-main.webp"
+  },
+  {
+    "id": "bench-lat-stretch",
+    "name": "Estiramiento de Dorsales en Banco",
+    "muscle": "Dorsal Ancho",
+    "image": "bench-lat-stretch-main.webp"
+  },
+  {
+    "id": "bench-leg-pull-in",
+    "name": "Encogimiento de Piernas en Banco",
+    "muscle": "Recto Abdominal",
+    "image": "bench-leg-pull-in-start.webp"
+  },
+  {
+    "id": "bench-press",
+    "name": "Press de Banca con Barra",
+    "muscle": "Pectoral Mayor",
+    "image": "bench-press-start.webp"
+  },
+  {
+    "id": "bench-pull",
+    "name": "Remo en Banco",
+    "muscle": "Dorsal Ancho",
+    "image": "bench-pull-start.webp"
+  },
+  {
+    "id": "bent-arm-barbell-pullover",
+    "name": "Pullover con Barra y Brazos Flexionados",
+    "muscle": "Dorsal Ancho",
+    "image": "bent-arm-barbell-pullover-start.webp"
+  },
+  {
+    "id": "bent-arm-ez-bar-pullover",
+    "name": "Pullover con Barra Z y Brazos Flexionados",
+    "muscle": "Dorsal Ancho",
+    "image": "bent-arm-ez-bar-pullover-start.webp"
+  },
+  {
+    "id": "bent-over-db-row",
+    "name": "Remo con Mancuernas Inclinado",
+    "muscle": "Dorsal Ancho",
+    "image": "bent-over-db-row-start.webp"
+  },
+  {
+    "id": "bent-over-ez-bar-row",
+    "name": "Remo con Barra Z Inclinado",
+    "muscle": "Dorsal Ancho",
+    "image": "bent-over-ez-bar-row-start.webp"
+  },
+  {
+    "id": "bicep-curl",
+    "name": "Curl de Bíceps con Mancuernas",
+    "muscle": "Bíceps",
+    "image": "bicep-curl-start.webp"
+  },
+  {
+    "id": "bicycle-crunch",
+    "name": "Crunch de Bicicleta",
+    "muscle": "Oblicuos",
+    "image": "bicycle-crunch-start.webp"
+  },
+  {
+    "id": "bird-dog",
+    "name": "Bird-Dog",
+    "muscle": "Erector Espinal",
+    "image": "bird-dog-start.webp"
+  },
+  {
+    "id": "bird-dog-hold",
+    "name": "Bird-Dog Isométrico",
+    "muscle": "Erector Espinal",
+    "image": "bird-dog-hold-main.webp"
+  },
+  {
+    "id": "boat-pose",
+    "name": "Postura del Barco",
+    "muscle": "Flexores de Cadera",
+    "image": "boat-pose-main.webp"
+  },
+  {
+    "id": "bodyweight-calf-raise",
+    "name": "Elevación de Talones con Peso Corporal",
+    "muscle": "Gemelos",
+    "image": "bodyweight-calf-raise-start.webp"
+  },
+  {
+    "id": "bodyweight-good-morning",
+    "name": "Buenos Días con Peso Corporal",
+    "muscle": "Erector Espinal",
+    "image": "bodyweight-good-morning-start.webp"
+  },
+  {
+    "id": "bodyweight-lateral-raise",
+    "name": "Elevación Lateral con Peso Corporal",
+    "muscle": "Deltoides Lateral",
+    "image": "bodyweight-lateral-raise-start.webp"
+  },
+  {
+    "id": "bodyweight-overhead-press",
+    "name": "Press por Encima de la Cabeza con Peso Corporal",
+    "muscle": "Deltoides Anterior",
+    "image": "bodyweight-overhead-press-start.webp"
+  },
+  {
+    "id": "bodyweight-reverse-lunge",
+    "name": "Zancada Inversa con Peso Corporal",
+    "muscle": "Glúteo Mayor",
+    "image": "bodyweight-reverse-lunge-start.webp"
+  },
+  {
+    "id": "bodyweight-squat",
+    "name": "Sentadilla con Peso Corporal",
+    "muscle": "Glúteo Mayor",
+    "image": "bodyweight-squat-start.webp"
+  },
+  {
+    "id": "bow-pose",
+    "name": "Postura del Arco",
+    "muscle": "Erector Espinal",
+    "image": "bow-pose-main.webp"
+  },
+  {
+    "id": "box-jump",
+    "name": "Salto al Cajón",
+    "muscle": "Glúteo Mayor",
+    "image": "box-jump-start.webp"
+  },
+  {
+    "id": "box-squat",
+    "name": "Sentadilla en Caja",
+    "muscle": "Glúteo Mayor",
+    "image": "box-squat-start.webp"
+  },
+  {
+    "id": "bulgarian-split-squat",
+    "name": "Sentadilla Búlgara",
+    "muscle": "Glúteo Mayor",
+    "image": "bulgarian-split-squat-start.webp"
+  },
+  {
+    "id": "burpees",
+    "name": "Burpees",
+    "muscle": "Glúteo Mayor",
+    "image": "burpees-main.webp"
+  },
+  {
+    "id": "butterfly-stretch",
+    "name": "Estiramiento de Mariposa",
+    "muscle": "Aductores",
+    "image": "butterfly-stretch-main.webp"
+  },
+  {
+    "id": "cable-bent-over-row",
+    "name": "Remo Inclinado con Cable",
+    "muscle": "Dorsal Ancho",
+    "image": "cable-bent-over-row-start.webp"
+  },
+  {
+    "id": "cable-chest-press",
+    "name": "Press de Pecho con Cable",
+    "muscle": "Pectoral Mayor",
+    "image": "cable-chest-press-start.webp"
+  },
+  {
+    "id": "cable-crunch",
+    "name": "Crunch con Cable",
+    "muscle": "Recto Abdominal",
+    "image": "cable-crunch-start.webp"
+  },
+  {
+    "id": "cable-curl",
+    "name": "Curl con Cable",
+    "muscle": "Bíceps",
+    "image": "cable-curl-start.webp"
+  },
+  {
+    "id": "cable-external-rotation",
+    "name": "Rotación Externa con Cable",
+    "muscle": "Deltoides Posterior",
+    "image": "cable-external-rotation-start.webp"
+  },
+  {
+    "id": "cable-fly",
+    "name": "Aperturas con Cable",
+    "muscle": "Pectoral Mayor",
+    "image": "cable-fly-start.webp"
+  },
+  {
+    "id": "cable-front-raise",
+    "name": "Elevación Frontal con Cable",
+    "muscle": "Deltoides Anterior",
+    "image": "cable-front-raise-start.webp"
+  },
+  {
+    "id": "cable-hammer-curl",
+    "name": "Curl de Martillo en Cable",
+    "muscle": "Bíceps",
+    "image": "cable-hammer-curl-start.webp"
+  },
+  {
+    "id": "cable-kickback",
+    "name": "Patada Trasera de Glúteos en Cable",
+    "muscle": "Glúteo Mayor",
+    "image": "cable-kickback-start.webp"
+  },
+  {
+    "id": "cable-lateral-raise",
+    "name": "Elevación Lateral en Polea",
+    "muscle": "Deltoides Lateral",
+    "image": "cable-lateral-raise-start.webp"
+  },
+  {
+    "id": "cable-pallof-press",
+    "name": "Press Pallof en Polea",
+    "muscle": "Oblicuos",
+    "image": "cable-pallof-press-start.webp"
+  },
+  {
+    "id": "cable-tricep-kickback",
+    "name": "Patada de Tríceps con Cable",
+    "muscle": "Tríceps",
+    "image": "cable-tricep-kickback-start.webp"
+  },
+  {
+    "id": "cable-upright-row",
+    "name": "Remo al Mentón con Cable",
+    "muscle": "Deltoides Lateral",
+    "image": "cable-upright-row-start.webp"
+  },
+  {
+    "id": "cable-wrist-curl",
+    "name": "Curl de Muñeca con Cable",
+    "muscle": "Flexores del Antebrazo",
+    "image": "cable-wrist-curl-start.webp"
+  },
+  {
+    "id": "camel-pose",
+    "name": "Postura del Camello",
+    "muscle": "Erector Espinal",
+    "image": "camel-pose-main.webp"
+  },
+  {
+    "id": "captains-chair-knee-raise",
+    "name": "Elevación de Rodillas en Silla Romana",
+    "muscle": "Flexores de Cadera",
+    "image": "captains-chair-knee-raise-start.webp"
+  },
+  {
+    "id": "captains-chair-leg-raise",
+    "name": "Elevación de Piernas en Silla Romana",
+    "muscle": "Flexores de Cadera",
+    "image": "captains-chair-leg-raise-start.webp"
+  },
+  {
+    "id": "cat-cow",
+    "name": "Gato-Vaca",
+    "muscle": "Erector Espinal",
+    "image": "cat-cow-main.webp"
+  },
+  {
+    "id": "cat-stretch",
+    "name": "Estiramiento del Gato",
+    "muscle": "Erector Espinal",
+    "image": "cat-stretch-main.webp"
+  },
+  {
+    "id": "chair-pose",
+    "name": "Postura de la Silla",
+    "muscle": "Glúteo Mayor",
+    "image": "chair-pose-main.webp"
+  },
+  {
+    "id": "cheat-curl",
+    "name": "Curl con Impulso",
+    "muscle": "Bíceps",
+    "image": "cheat-curl-start.webp"
+  },
+  {
+    "id": "chest-press-machine",
+    "name": "Press de Pecho en Máquina",
+    "muscle": "Pectoral Mayor",
+    "image": "chest-press-machine-start.webp"
+  },
+  {
+    "id": "chest-supported-db-row",
+    "name": "Remo con Mancuernas con Apoyo en el Pecho",
+    "muscle": "Dorsal Ancho",
+    "image": "chest-supported-db-row-start.webp"
+  },
+  {
+    "id": "chest-supported-dumbbell-shrug",
+    "name": "Encogimiento de Hombros con Mancuernas y Apoyo en el Pecho",
+    "muscle": "Trapecio",
+    "image": "chest-supported-dumbbell-shrug-start.webp"
+  },
+  {
+    "id": "chest-supported-kettlebell-row",
+    "name": "Remo con Kettlebell Apoyado en el Pecho",
+    "muscle": "Dorsal Ancho",
+    "image": "chest-supported-kettlebell-row-start.webp"
+  },
+  {
+    "id": "chest-supported-smith-machine-row",
+    "name": "Remo con Apoyo en el Pecho en Máquina Smith",
+    "muscle": "Dorsal Ancho",
+    "image": "chest-supported-smith-machine-row-start.webp"
+  },
+  {
+    "id": "childs-pose",
+    "name": "Postura del Niño",
+    "muscle": "Erector Espinal",
+    "image": "childs-pose-main.webp"
+  },
+  {
+    "id": "chin-tuck-hold",
+    "name": "Retracción de Mentón Sostenida",
+    "muscle": "Trapecio",
+    "image": "chin-tuck-hold-main.webp"
+  },
+  {
+    "id": "chin-ups",
+    "name": "Dominadas en Supinación",
+    "muscle": "Bíceps",
+    "image": "chin-ups-start.webp"
+  },
+  {
+    "id": "clamshells",
+    "name": "Almejas",
+    "muscle": "Abductores",
+    "image": "clamshells-start.webp"
+  },
+  {
+    "id": "clamshells-hold",
+    "name": "Almejas Isométricas",
+    "muscle": "Abductores",
+    "image": "clamshells-hold-main.webp"
+  },
+  {
+    "id": "clap-push-ups",
+    "name": "Flexiones con Palmada",
+    "muscle": "Pectoral Mayor",
+    "image": "clap-push-ups-start.webp"
+  },
+  {
+    "id": "clean",
+    "name": "Clean",
+    "muscle": "Glúteo Mayor",
+    "image": "clean-start.webp"
+  },
+  {
+    "id": "clean-and-jerk",
+    "name": "Clean and Jerk",
+    "muscle": "Deltoides Anterior",
+    "image": "clean-and-jerk-start.webp"
+  },
+  {
+    "id": "close-grip-barbell-curl",
+    "name": "Curl de Barra con Agarre Cerrado",
+    "muscle": "Bíceps",
+    "image": "close-grip-barbell-curl-start.webp"
+  },
+  {
+    "id": "close-grip-bench-press",
+    "name": "Press de Banca con Agarre Cerrado",
+    "muscle": "Tríceps",
+    "image": "close-grip-bench-press-start.webp"
+  },
+  {
+    "id": "close-grip-db-bench-press",
+    "name": "Press de Banca con Mancuernas y Agarre Cerrado",
+    "muscle": "Tríceps",
+    "image": "close-grip-db-bench-press-start.webp"
+  },
+  {
+    "id": "close-grip-ez-bar-bench-press",
+    "name": "Press de Banca con Barra Z y Agarre Cerrado",
+    "muscle": "Tríceps",
+    "image": "close-grip-ez-bar-bench-press-start.webp"
+  },
+  {
+    "id": "close-grip-ez-bar-curl",
+    "name": "Curl con Barra Z y Agarre Cerrado",
+    "muscle": "Bíceps",
+    "image": "close-grip-ez-bar-curl-start.webp"
+  },
+  {
+    "id": "close-grip-incline-bench",
+    "name": "Press de Banca Inclinado con Agarre Cerrado",
+    "muscle": "Tríceps",
+    "image": "close-grip-incline-bench-start.webp"
+  },
+  {
+    "id": "close-grip-lat-pulldown",
+    "name": "Jalón al Pecho con Agarre Cerrado",
+    "muscle": "Dorsal Ancho",
+    "image": "close-grip-lat-pulldown-start.webp"
+  },
+  {
+    "id": "close-grip-pull-ups",
+    "name": "Dominadas con Agarre Cerrado",
+    "muscle": "Bíceps",
+    "image": "close-grip-pull-ups-start.webp"
+  },
+  {
+    "id": "close-grip-push-ups",
+    "name": "Flexiones con Agarre Cerrado",
+    "muscle": "Pectoral Mayor",
+    "image": "close-grip-push-ups-start.webp"
+  },
+  {
+    "id": "close-stance-leg-press",
+    "name": "Prensa de piernas con postura cerrada",
+    "muscle": "Cuádriceps",
+    "image": "close-stance-leg-press-start.webp"
+  },
+  {
+    "id": "cobra-stretch",
+    "name": "Estiramiento de la Cobra",
+    "muscle": "Recto Abdominal",
+    "image": "cobra-stretch-main.webp"
+  },
+  {
+    "id": "cocoons",
+    "name": "Cocoons",
+    "muscle": "Recto Abdominal",
+    "image": "cocoons-start.webp"
+  },
+  {
+    "id": "concentration-curl",
+    "name": "Curl de Concentración",
+    "muscle": "Bíceps",
+    "image": "concentration-curl-start.webp"
+  },
+  {
+    "id": "cossack-squat",
+    "name": "Sentadilla cosaca",
+    "muscle": "Glúteo Mayor",
+    "image": "cossack-squat-start.webp"
+  },
+  {
+    "id": "cow-face-pose",
+    "name": "Postura de la Cara de Vaca",
+    "muscle": "Glúteo Mayor",
+    "image": "cow-face-pose-main.webp"
+  },
+  {
+    "id": "crab-dips",
+    "name": "Fondos de Cangrejo",
+    "muscle": "Tríceps",
+    "image": "crab-dips-start.webp"
+  },
+  {
+    "id": "crescent-lunge",
+    "name": "Zancada Alta",
+    "muscle": "Glúteo Mayor",
+    "image": "crescent-lunge-main.webp"
+  },
+  {
+    "id": "cross-body-crunch",
+    "name": "Crunch Cruzado",
+    "muscle": "Oblicuos",
+    "image": "cross-body-crunch-start.webp"
+  },
+  {
+    "id": "cross-body-hammer-curl",
+    "name": "Curl Martillo Cruzado",
+    "muscle": "Braquial",
+    "image": "cross-body-hammer-curl-start.webp"
+  },
+  {
+    "id": "cross-body-shoulder-stretch",
+    "name": "Estiramiento de Hombro Cruzado",
+    "muscle": "Deltoides Posterior",
+    "image": "cross-body-shoulder-stretch-main.webp"
+  },
+  {
+    "id": "crow-pose",
+    "name": "Postura del Cuervo",
+    "muscle": "Deltoides Anterior",
+    "image": "crow-pose-main.webp"
+  },
+  {
+    "id": "crunches",
+    "name": "Crunches",
+    "muscle": "Recto Abdominal",
+    "image": "crunches-start.webp"
+  },
+  {
+    "id": "dancer-pose",
+    "name": "Postura del Bailarín",
+    "muscle": "Glúteo Mayor",
+    "image": "dancer-pose-main.webp"
+  },
+  {
+    "id": "db-bench-press",
+    "name": "Press de Banca con Mancuernas",
+    "muscle": "Pectoral Mayor",
+    "image": "db-bench-press-start.webp"
+  },
+  {
+    "id": "db-fly",
+    "name": "Aperturas con Mancuernas",
+    "muscle": "Pectoral Mayor",
+    "image": "db-fly-start.webp"
+  },
+  {
+    "id": "db-kickstand-deadlift",
+    "name": "Peso Muerto Kickstand con Mancuerna",
+    "muscle": "Glúteo Mayor",
+    "image": "db-kickstand-deadlift-start.webp"
+  },
+  {
+    "id": "db-lunge",
+    "name": "Zancada con Mancuernas",
+    "muscle": "Glúteo Mayor",
+    "image": "db-lunge-start.webp"
+  },
+  {
+    "id": "db-overhead-carry",
+    "name": "Paseo con Mancuerna sobre la Cabeza",
+    "muscle": "Deltoides Anterior",
+    "image": "db-overhead-carry-main.webp"
+  },
+  {
+    "id": "db-pullover",
+    "name": "Pullover con Mancuerna",
+    "muscle": "Dorsal Ancho",
+    "image": "db-pullover-start.webp"
+  },
+  {
+    "id": "db-reverse-curl",
+    "name": "Curl Inverso con Mancuernas",
+    "muscle": "Braquial",
+    "image": "db-reverse-curl-start.webp"
+  },
+  {
+    "id": "db-reverse-wrist-curl",
+    "name": "Curl de Muñeca Inverso con Mancuerna",
+    "muscle": "Extensores del Antebrazo",
+    "image": "db-reverse-wrist-curl-start.webp"
+  },
+  {
+    "id": "db-shrug",
+    "name": "Encogimiento de Hombros con Mancuernas",
+    "muscle": "Trapecio",
+    "image": "db-shrug-start.webp"
+  },
+  {
+    "id": "db-skull-crusher",
+    "name": "Skull Crusher con Mancuernas",
+    "muscle": "Tríceps",
+    "image": "db-skull-crusher-start.webp"
+  },
+  {
+    "id": "db-somersault-squat",
+    "name": "Sentadilla Somersault con Mancuerna",
+    "muscle": "Glúteo Mayor",
+    "image": "db-somersault-squat-start.webp"
+  },
+  {
+    "id": "db-squat",
+    "name": "Sentadilla con Mancuernas",
+    "muscle": "Glúteo Mayor",
+    "image": "db-squat-start.webp"
+  },
+  {
+    "id": "db-sumo-squat",
+    "name": "Sentadilla Sumo con Mancuernas",
+    "muscle": "Glúteo Mayor",
+    "image": "db-sumo-squat-start.webp"
+  },
+  {
+    "id": "db-svend-press",
+    "name": "Press Svend con Mancuernas",
+    "muscle": "Pectoral Mayor",
+    "image": "db-svend-press-start.webp"
+  },
+  {
+    "id": "dead-bug",
+    "name": "Dead Bug",
+    "muscle": "Recto Abdominal",
+    "image": "dead-bug-start.webp"
+  },
+  {
+    "id": "dead-bug-hold",
+    "name": "Dead Bug Isométrico",
+    "muscle": "Recto Abdominal",
+    "image": "dead-bug-hold-main.webp"
+  },
+  {
+    "id": "dead-hang",
+    "name": "Colgado Pasivo",
+    "muscle": "Flexores del Antebrazo",
+    "image": "dead-hang-main.webp"
+  },
+  {
+    "id": "deadlift",
+    "name": "Peso Muerto con Barra",
+    "muscle": "Erector Espinal",
+    "image": "deadlift-start.webp"
+  },
+  {
+    "id": "decline-bench-press",
+    "name": "Press de Banca Declinado",
+    "muscle": "Pectoral Mayor",
+    "image": "decline-bench-press-start.webp"
+  },
+  {
+    "id": "decline-bench-press-barbell",
+    "name": "Press de Banca Declinado con Barra",
+    "muscle": "Pectoral Mayor",
+    "image": "decline-bench-press-barbell-start.webp"
+  },
+  {
+    "id": "decline-bench-press-ez-bar",
+    "name": "Press de Banca Declinado con Barra Z",
+    "muscle": "Pectoral Mayor",
+    "image": "decline-bench-press-ez-bar-start.webp"
+  },
+  {
+    "id": "decline-crunch",
+    "name": "Crunch Declinado",
+    "muscle": "Recto Abdominal",
+    "image": "decline-crunch-start.webp"
+  },
+  {
+    "id": "decline-db-fly",
+    "name": "Aperturas con Mancuernas en Banco Declinado",
+    "muscle": "Pectoral Mayor",
+    "image": "decline-db-fly-start.webp"
+  },
+  {
+    "id": "decline-push-up",
+    "name": "Flexión Declinada",
+    "muscle": "Pectoral Mayor",
+    "image": "decline-push-up-start.webp"
+  },
+  {
+    "id": "deficit-deadlift",
+    "name": "Peso Muerto en Déficit",
+    "muscle": "Erector Espinal",
+    "image": "deficit-deadlift-start.webp"
+  },
+  {
+    "id": "deficit-push-ups",
+    "name": "Flexiones en Déficit",
+    "muscle": "Pectoral Mayor",
+    "image": "deficit-push-ups-start.webp"
+  },
+  {
+    "id": "diamond-push-ups",
+    "name": "Flexiones en Diamante",
+    "muscle": "Pectoral Mayor",
+    "image": "diamond-push-ups-start.webp"
+  },
+  {
+    "id": "dips",
+    "name": "Fondos para Pecho",
+    "muscle": "Pectoral Mayor",
+    "image": "dips-start.webp"
+  },
+  {
+    "id": "dolphin-pose",
+    "name": "Postura del Delfín",
+    "muscle": "Deltoides Anterior",
+    "image": "dolphin-pose-main.webp"
+  },
+  {
+    "id": "donkey-calf-raise",
+    "name": "Elevación de Pantorrilla a la Burra",
+    "muscle": "Gemelos",
+    "image": "donkey-calf-raise-start.webp"
+  },
+  {
+    "id": "doorway-chest-stretch",
+    "name": "Estiramiento de Pecho en el Marco",
+    "muscle": "Pectoral Mayor",
+    "image": "doorway-chest-stretch-main.webp"
+  },
+  {
+    "id": "double-db-kickstand-deadlift",
+    "name": "Peso Muerto Kickstand con Doble Mancuerna",
+    "muscle": "Glúteo Mayor",
+    "image": "double-db-kickstand-deadlift-start.webp"
+  },
+  {
+    "id": "double-db-overhead-carry",
+    "name": "Paseo con Dos Mancuernas sobre la Cabeza",
+    "muscle": "Deltoides Anterior",
+    "image": "double-db-overhead-carry-main.webp"
+  },
+  {
+    "id": "double-kettlebell-bicep-curl",
+    "name": "Curl de Bíceps con Dos Pesas Rusas",
+    "muscle": "Bíceps",
+    "image": "double-kettlebell-bicep-curl-start.webp"
+  },
+  {
+    "id": "double-kettlebell-clean",
+    "name": "Clean con Dos Pesas Rusas",
+    "muscle": "Glúteo Mayor",
+    "image": "double-kettlebell-clean-start.webp"
+  },
+  {
+    "id": "double-kettlebell-clean-and-press",
+    "name": "Clean and press con doble kettlebell",
+    "muscle": "Deltoides Anterior",
+    "image": "double-kettlebell-clean-and-press-start.webp"
+  },
+  {
+    "id": "double-kettlebell-dead-clean",
+    "name": "Dead Clean con Dos Pesas Rusas",
+    "muscle": "Glúteo Mayor",
+    "image": "double-kettlebell-dead-clean-start.webp"
+  },
+  {
+    "id": "double-kettlebell-dead-split-snatch",
+    "name": "Dead Split Snatch con Dos Pesas Rusas",
+    "muscle": "Deltoides Anterior",
+    "image": "double-kettlebell-dead-split-snatch-start.webp"
+  },
+  {
+    "id": "double-kettlebell-jerk",
+    "name": "Jerk con Dos Pesas Rusas",
+    "muscle": "Deltoides Anterior",
+    "image": "double-kettlebell-jerk-start.webp"
+  },
+  {
+    "id": "double-kettlebell-overhead-carry",
+    "name": "Paseo con Dos Kettlebells sobre la Cabeza",
+    "muscle": "Deltoides Anterior",
+    "image": "double-kettlebell-overhead-carry-main.webp"
+  },
+  {
+    "id": "double-kettlebell-overhead-press",
+    "name": "Press por Encima de la Cabeza con Dos Pesas Rusas",
+    "muscle": "Deltoides Anterior",
+    "image": "double-kettlebell-overhead-press-start.webp"
+  },
+  {
+    "id": "double-kettlebell-push-press",
+    "name": "Push Press con Dos Pesas Rusas",
+    "muscle": "Deltoides Anterior",
+    "image": "double-kettlebell-push-press-start.webp"
+  },
+  {
+    "id": "double-kettlebell-rear-delt-row",
+    "name": "Remo con Dos Pesas Rusas para Deltoides Posterior",
+    "muscle": "Deltoides Posterior",
+    "image": "double-kettlebell-rear-delt-row-start.webp"
+  },
+  {
+    "id": "double-kettlebell-row",
+    "name": "Remo con Dos Pesas Rusas",
+    "muscle": "Dorsal Ancho",
+    "image": "double-kettlebell-row-start.webp"
+  },
+  {
+    "id": "double-kettlebell-split-jerk",
+    "name": "Split Jerk con Dos Pesas Rusas",
+    "muscle": "Deltoides Anterior",
+    "image": "double-kettlebell-split-jerk-start.webp"
+  },
+  {
+    "id": "double-kettlebell-swing-snatch",
+    "name": "Swing Snatch con Dos Pesas Rusas",
+    "muscle": "Glúteo Mayor",
+    "image": "double-kettlebell-swing-snatch-start.webp"
+  },
+  {
+    "id": "downward-dog",
+    "name": "Perro Boca Abajo",
+    "muscle": "Gemelos",
+    "image": "downward-dog-main.webp"
+  },
+  {
+    "id": "downward-dog-knee-tuck",
+    "name": "Rodilla al Pecho en Perro Boca Abajo",
+    "muscle": "Flexores de Cadera",
+    "image": "downward-dog-knee-tuck-start.webp"
+  },
+  {
+    "id": "downward-dog-pedal",
+    "name": "Pedaleo en Perro Boca Abajo",
+    "muscle": "Gemelos",
+    "image": "downward-dog-pedal-start.webp"
+  },
+  {
+    "id": "downward-dog-to-knee-drive",
+    "name": "Rodilla al Codo desde Perro de Tres Patas",
+    "muscle": "Flexores de Cadera",
+    "image": "downward-dog-to-knee-drive-start.webp"
+  },
+  {
+    "id": "downward-dog-to-low-lunge",
+    "name": "Perro Boca Abajo a Zancada Baja",
+    "muscle": "Flexores de Cadera",
+    "image": "downward-dog-to-low-lunge-start.webp"
+  },
+  {
+    "id": "downward-dog-to-plank",
+    "name": "Perro Boca Abajo a Plancha",
+    "muscle": "Deltoides Anterior",
+    "image": "downward-dog-to-plank-start.webp"
+  },
+  {
+    "id": "downward-dog-to-upward-dog",
+    "name": "Perro Boca Abajo a Perro Boca Arriba",
+    "muscle": "Deltoides Anterior",
+    "image": "downward-dog-to-upward-dog-start.webp"
+  },
+  {
+    "id": "drag-curl",
+    "name": "Drag Curl",
+    "muscle": "Bíceps",
+    "image": "drag-curl-start.webp"
+  },
+  {
+    "id": "dragon-flag",
+    "name": "Dragon Flag",
+    "muscle": "Recto Abdominal",
+    "image": "dragon-flag-start.webp"
+  },
+  {
+    "id": "dumbbell-bench-pull",
+    "name": "Remo en Banco con Mancuernas",
+    "muscle": "Dorsal Ancho",
+    "image": "dumbbell-bench-pull-start.webp"
+  },
+  {
+    "id": "dumbbell-calf-raise",
+    "name": "Elevación de Talones con Mancuernas",
+    "muscle": "Gemelos",
+    "image": "dumbbell-calf-raise-start.webp"
+  },
+  {
+    "id": "dumbbell-deadlift",
+    "name": "Peso Muerto con Mancuernas",
+    "muscle": "Erector Espinal",
+    "image": "dumbbell-deadlift-start.webp"
+  },
+  {
+    "id": "dumbbell-face-pull",
+    "name": "Face Pull con Mancuernas",
+    "muscle": "Deltoides Posterior",
+    "image": "dumbbell-face-pull-start.webp"
+  },
+  {
+    "id": "dumbbell-farmers-walk",
+    "name": "Caminata del Granjero con Mancuernas",
+    "muscle": "Flexores del Antebrazo",
+    "image": "dumbbell-farmers-walk-main.webp"
+  },
+  {
+    "id": "dumbbell-floor-press",
+    "name": "Press de Suelo con Mancuernas",
+    "muscle": "Pectoral Mayor",
+    "image": "dumbbell-floor-press-start.webp"
+  },
+  {
+    "id": "dumbbell-front-raise",
+    "name": "Elevación Frontal con Mancuernas",
+    "muscle": "Deltoides Anterior",
+    "image": "dumbbell-front-raise-start.webp"
+  },
+  {
+    "id": "dumbbell-front-squat",
+    "name": "Sentadilla Frontal con Mancuernas",
+    "muscle": "Glúteo Mayor",
+    "image": "dumbbell-front-squat-start.webp"
+  },
+  {
+    "id": "dumbbell-hip-thrust",
+    "name": "Empuje de Cadera con Mancuerna",
+    "muscle": "Glúteo Mayor",
+    "image": "dumbbell-hip-thrust-start.webp"
+  },
+  {
+    "id": "dumbbell-pistol-squat",
+    "name": "Sentadilla Pistola con Mancuerna",
+    "muscle": "Glúteo Mayor",
+    "image": "dumbbell-pistol-squat-start.webp"
+  },
+  {
+    "id": "dumbbell-push-press",
+    "name": "Press de Empuje con Mancuernas",
+    "muscle": "Deltoides Anterior",
+    "image": "dumbbell-push-press-start.webp"
+  },
+  {
+    "id": "dumbbell-reverse-fly",
+    "name": "Pájaro Invertido con Mancuernas",
+    "muscle": "Deltoides Posterior",
+    "image": "dumbbell-reverse-fly-start.webp"
+  },
+  {
+    "id": "dumbbell-romanian-deadlift",
+    "name": "Peso Muerto Rumano con Mancuernas",
+    "muscle": "Glúteo Mayor",
+    "image": "dumbbell-romanian-deadlift-start.webp"
+  },
+  {
+    "id": "dumbbell-shoulder-press",
+    "name": "Press de Hombros con Mancuernas",
+    "muscle": "Deltoides Anterior",
+    "image": "dumbbell-shoulder-press-start.webp"
+  },
+  {
+    "id": "dumbbell-side-bend",
+    "name": "Flexión Lateral con Mancuerna",
+    "muscle": "Oblicuos",
+    "image": "dumbbell-side-bend-start.webp"
+  },
+  {
+    "id": "dumbbell-snatch",
+    "name": "Snatch con Mancuerna",
+    "muscle": "Deltoides Anterior",
+    "image": "dumbbell-snatch-start.webp"
+  },
+  {
+    "id": "dumbbell-split-squat",
+    "name": "Sentadilla en Postura Dividida con Mancuernas",
+    "muscle": "Glúteo Mayor",
+    "image": "dumbbell-split-squat-start.webp"
+  },
+  {
+    "id": "dumbbell-tricep-extension",
+    "name": "Extensión de Tríceps con Mancuerna",
+    "muscle": "Tríceps",
+    "image": "dumbbell-tricep-extension-start.webp"
+  },
+  {
+    "id": "dumbbell-upright-row",
+    "name": "Remo al Mentón con Mancuernas",
+    "muscle": "Deltoides Lateral",
+    "image": "dumbbell-upright-row-start.webp"
+  },
+  {
+    "id": "dumbbell-windmill",
+    "name": "Molino con Mancuerna",
+    "muscle": "Deltoides Lateral",
+    "image": "dumbbell-windmill-start.webp"
+  },
+  {
+    "id": "dumbbell-wrist-curl",
+    "name": "Curl de Muñeca con Mancuerna",
+    "muscle": "Flexores del Antebrazo",
+    "image": "dumbbell-wrist-curl-start.webp"
+  },
+  {
+    "id": "eagle-pose",
+    "name": "Postura del Águila",
+    "muscle": "Glúteo Medio",
+    "image": "eagle-pose-main.webp"
+  },
+  {
+    "id": "easy-pose",
+    "name": "Postura Fácil",
+    "muscle": "Erector Espinal",
+    "image": "easy-pose-main.webp"
+  },
+  {
+    "id": "elliptical-trainer",
+    "name": "Elíptica",
+    "muscle": "Glúteo Mayor",
+    "image": "elliptical-trainer-main.webp"
+  },
+  {
+    "id": "extended-side-angle",
+    "name": "Ángulo Lateral Extendido",
+    "muscle": "Oblicuos",
+    "image": "extended-side-angle-main.webp"
+  },
+  {
+    "id": "ez-bar-bench-press",
+    "name": "Press de Banca con Barra Z",
+    "muscle": "Pectoral Mayor",
+    "image": "ez-bar-bench-press-start.webp"
+  },
+  {
+    "id": "ez-bar-curl",
+    "name": "Curl con Barra Z",
+    "muscle": "Bíceps",
+    "image": "ez-bar-curl-start.webp"
+  },
+  {
+    "id": "ez-bar-front-raise",
+    "name": "Elevación Frontal con Barra Z",
+    "muscle": "Deltoides Anterior",
+    "image": "ez-bar-front-raise-start.webp"
+  },
+  {
+    "id": "ez-bar-lying-tricep-extension",
+    "name": "Extensión de Tríceps Tumbado con Barra Z",
+    "muscle": "Tríceps",
+    "image": "ez-bar-lying-tricep-extension-start.webp"
+  },
+  {
+    "id": "ez-bar-overhead-extension",
+    "name": "Extensión de Tríceps por Encima de la Cabeza con Barra Z",
+    "muscle": "Tríceps",
+    "image": "ez-bar-overhead-extension-start.webp"
+  },
+  {
+    "id": "ez-bar-pullover",
+    "name": "Pullover con Barra EZ",
+    "muscle": "Dorsal Ancho",
+    "image": "ez-bar-pullover-start.webp"
+  },
+  {
+    "id": "ez-bar-reverse-curl",
+    "name": "Curl Inverso con Barra Z",
+    "muscle": "Braquial",
+    "image": "ez-bar-reverse-curl-start.webp"
+  },
+  {
+    "id": "ez-bar-reverse-grip-row",
+    "name": "Remo con Barra EZ y Agarre Supino",
+    "muscle": "Bíceps",
+    "image": "ez-bar-reverse-grip-row-start.webp"
+  },
+  {
+    "id": "ez-bar-romanian-deadlift",
+    "name": "Peso Muerto Rumano con Barra Z",
+    "muscle": "Glúteo Mayor",
+    "image": "ez-bar-romanian-deadlift-start.webp"
+  },
+  {
+    "id": "ez-bar-shrug",
+    "name": "Encogimiento de Hombros con Barra Z",
+    "muscle": "Trapecio",
+    "image": "ez-bar-shrug-start.webp"
+  },
+  {
+    "id": "ez-bar-spider-curl",
+    "name": "Spider Curl con Barra Z",
+    "muscle": "Bíceps",
+    "image": "ez-bar-spider-curl-start.webp"
+  },
+  {
+    "id": "ez-bar-upright-row",
+    "name": "Remo al Mentón con Barra Z",
+    "muscle": "Deltoides Lateral",
+    "image": "ez-bar-upright-row-start.webp"
+  },
+  {
+    "id": "ez-bar-wrist-curl",
+    "name": "Curl de Muñeca con Barra Z",
+    "muscle": "Flexores del Antebrazo",
+    "image": "ez-bar-wrist-curl-start.webp"
+  },
+  {
+    "id": "face-pull",
+    "name": "Face Pull en Polea",
+    "muscle": "Deltoides Posterior",
+    "image": "face-pull-start.webp"
+  },
+  {
+    "id": "fish-pose",
+    "name": "Postura del Pez",
+    "muscle": "Erector Espinal",
+    "image": "fish-pose-main.webp"
+  },
+  {
+    "id": "floor-ez-bar-press",
+    "name": "Press en Suelo con Barra Z",
+    "muscle": "Pectoral Mayor",
+    "image": "floor-ez-bar-press-start.webp"
+  },
+  {
+    "id": "floor-kettlebell-pullover",
+    "name": "Pullover con Pesa Rusa en Suelo",
+    "muscle": "Dorsal Ancho",
+    "image": "floor-kettlebell-pullover-start.webp"
+  },
+  {
+    "id": "floor-press",
+    "name": "Press en Suelo",
+    "muscle": "Pectoral Mayor",
+    "image": "floor-press-start.webp"
+  },
+  {
+    "id": "flutter-kicks",
+    "name": "Flutter Kicks",
+    "muscle": "Flexores de Cadera",
+    "image": "flutter-kicks-start.webp"
+  },
+  {
+    "id": "front-lever",
+    "name": "Front Lever",
+    "muscle": "Dorsal Ancho",
+    "image": "front-lever-main.webp"
+  },
+  {
+    "id": "front-squat",
+    "name": "Sentadilla Frontal",
+    "muscle": "Glúteo Mayor",
+    "image": "front-squat-start.webp"
+  },
+  {
+    "id": "garland-pose",
+    "name": "Postura de la Guirnalda",
+    "muscle": "Aductores",
+    "image": "garland-pose-main.webp"
+  },
+  {
+    "id": "glute-bridge",
+    "name": "Puente de Glúteos",
+    "muscle": "Glúteo Mayor",
+    "image": "glute-bridge-start.webp"
+  },
+  {
+    "id": "glute-bridge-hold",
+    "name": "Puente de Glúteos Isométrico",
+    "muscle": "Glúteo Mayor",
+    "image": "glute-bridge-hold-main.webp"
+  },
+  {
+    "id": "glute-kickback",
+    "name": "Patada de Glúteo",
+    "muscle": "Glúteo Mayor",
+    "image": "glute-kickback-start.webp"
+  },
+  {
+    "id": "glute-kickback-hold",
+    "name": "Patada de Glúteo Isométrica",
+    "muscle": "Glúteo Mayor",
+    "image": "glute-kickback-hold-main.webp"
+  },
+  {
+    "id": "goblet-squat",
+    "name": "Sentadilla Goblet",
+    "muscle": "Glúteo Mayor",
+    "image": "goblet-squat-start.webp"
+  },
+  {
+    "id": "good-morning",
+    "name": "Buenos Días",
+    "muscle": "Erector Espinal",
+    "image": "good-morning-start.webp"
+  },
+  {
+    "id": "hack-squat",
+    "name": "Hack Squat",
+    "muscle": "Glúteo Mayor",
+    "image": "hack-squat-start.webp"
+  },
+  {
+    "id": "hack-squat-calf-raise",
+    "name": "Elevación de Talones en Máquina Hack Squat",
+    "muscle": "Gemelos",
+    "image": "hack-squat-calf-raise-start.webp"
+  },
+  {
+    "id": "half-kneeling-hip-flexor-rock",
+    "name": "Balanceo de Flexor de Cadera en Media Rodilla",
+    "muscle": "Flexores de Cadera",
+    "image": "half-kneeling-hip-flexor-rock-start.webp"
+  },
+  {
+    "id": "half-moon-pose",
+    "name": "Postura de la Media Luna",
+    "muscle": "Glúteo Medio",
+    "image": "half-moon-pose-main.webp"
+  },
+  {
+    "id": "hammer-curl",
+    "name": "Curl de Martillo con Mancuernas",
+    "muscle": "Bíceps",
+    "image": "hammer-curl-start.webp"
+  },
+  {
+    "id": "handstand-push-ups",
+    "name": "Flexiones en Pino",
+    "muscle": "Deltoides Anterior",
+    "image": "handstand-push-ups-start.webp"
+  },
+  {
+    "id": "hang-clean",
+    "name": "Cargada desde Colgante",
+    "muscle": "Glúteo Mayor",
+    "image": "hang-clean-start.webp"
+  },
+  {
+    "id": "hang-power-clean",
+    "name": "Power Clean desde Colgante",
+    "muscle": "Glúteo Mayor",
+    "image": "hang-power-clean-start.webp"
+  },
+  {
+    "id": "hanging-knee-raise",
+    "name": "Elevación de Rodillas Colgado",
+    "muscle": "Flexores de Cadera",
+    "image": "hanging-knee-raise-start.webp"
+  },
+  {
+    "id": "hanging-leg-raise",
+    "name": "Elevación de Piernas Colgado",
+    "muscle": "Flexores de Cadera",
+    "image": "hanging-leg-raise-start.webp"
+  },
+  {
+    "id": "hanging-pike",
+    "name": "Pike Colgado",
+    "muscle": "Recto Abdominal",
+    "image": "hanging-pike-start.webp"
+  },
+  {
+    "id": "happy-baby",
+    "name": "Postura del Bebé Feliz",
+    "muscle": "Aductores",
+    "image": "happy-baby-main.webp"
+  },
+  {
+    "id": "head-to-knee-pose",
+    "name": "Postura de Cabeza a la Rodilla",
+    "muscle": "Erector Espinal",
+    "image": "head-to-knee-pose-main.webp"
+  },
+  {
+    "id": "heel-elevated-squat",
+    "name": "Sentadilla con Talones Elevados",
+    "muscle": "Glúteo Mayor",
+    "image": "heel-elevated-squat-start.webp"
+  },
+  {
+    "id": "heel-to-toe-walk",
+    "name": "Marcha en Tándem",
+    "muscle": "Glúteo Medio",
+    "image": "heel-to-toe-walk-main.webp"
+  },
+  {
+    "id": "hero-pose",
+    "name": "Postura del Héroe",
+    "muscle": "Cuádriceps",
+    "image": "hero-pose-main.webp"
+  },
+  {
+    "id": "hex-bar-deadlift",
+    "name": "Peso Muerto con Barra Hexagonal",
+    "muscle": "Erector Espinal",
+    "image": "hex-bar-deadlift-start.webp"
+  },
+  {
+    "id": "high-foot-leg-press",
+    "name": "Prensa de piernas con pies altos",
+    "muscle": "Glúteo Mayor",
+    "image": "high-foot-leg-press-start.webp"
+  },
+  {
+    "id": "high-knees",
+    "name": "Rodillas Altas",
+    "muscle": "Flexores de Cadera",
+    "image": "high-knees-main.webp"
+  },
+  {
+    "id": "high-plank",
+    "name": "Plancha Alta",
+    "muscle": "Recto Abdominal",
+    "image": "high-plank-main.webp"
+  },
+  {
+    "id": "hip-abduction",
+    "name": "Abducción de Cadera en Máquina",
+    "muscle": "Glúteo Medio",
+    "image": "hip-abduction-start.webp"
+  },
+  {
+    "id": "hip-adduction",
+    "name": "Aducción de cadera",
+    "muscle": "Aductores",
+    "image": "hip-adduction-start.webp"
+  },
+  {
+    "id": "hip-thrust",
+    "name": "Hip thrust con barra",
+    "muscle": "Glúteo Mayor",
+    "image": "hip-thrust-start.webp"
+  },
+  {
+    "id": "hollow-body-hold",
+    "name": "Mantenimiento del Cuerpo Hueco",
+    "muscle": "Recto Abdominal",
+    "image": "hollow-body-hold-main.webp"
+  },
+  {
+    "id": "horizontal-leg-press",
+    "name": "Prensa de piernas horizontal",
+    "muscle": "Glúteo Mayor",
+    "image": "horizontal-leg-press-start.webp"
+  },
+  {
+    "id": "human-flag",
+    "name": "Human Flag",
+    "muscle": "Dorsal Ancho",
+    "image": "human-flag-main.webp"
+  },
+  {
+    "id": "incline-bench-ez-bar-press",
+    "name": "Press en banco inclinado con barra Z",
+    "muscle": "Pectoral Mayor",
+    "image": "incline-bench-ez-bar-press-start.webp"
+  },
+  {
+    "id": "incline-bench-press",
+    "name": "Press en banco inclinado con barra",
+    "muscle": "Pectoral Mayor",
+    "image": "incline-bench-press-start.webp"
+  },
+  {
+    "id": "incline-db-curl",
+    "name": "Curl con mancuernas en banco inclinado",
+    "muscle": "Bíceps",
+    "image": "incline-db-curl-start.webp"
+  },
+  {
+    "id": "incline-db-press",
+    "name": "Press con mancuernas en banco inclinado",
+    "muscle": "Pectoral Mayor",
+    "image": "incline-db-press-start.webp"
+  },
+  {
+    "id": "incline-dumbbell-fly",
+    "name": "Apertura con mancuernas en banco inclinado",
+    "muscle": "Pectoral Mayor",
+    "image": "incline-dumbbell-fly-start.webp"
+  },
+  {
+    "id": "incline-hammer-curl",
+    "name": "Curl martillo en banco inclinado",
+    "muscle": "Bíceps",
+    "image": "incline-hammer-curl-start.webp"
+  },
+  {
+    "id": "incline-push-ups",
+    "name": "Push-up inclinado",
+    "muscle": "Pectoral Mayor",
+    "image": "incline-push-ups-start.webp"
+  },
+  {
+    "id": "incline-treadmill-walk",
+    "name": "Caminata en Cinta Inclinada",
+    "muscle": "Glúteo Mayor",
+    "image": "incline-treadmill-walk-main.webp"
+  },
+  {
+    "id": "inverted-row",
+    "name": "Remo invertido",
+    "muscle": "Dorsal Ancho",
+    "image": "inverted-row-start.webp"
+  },
+  {
+    "id": "isometric-neck-side",
+    "name": "Flexión Lateral Isométrica de Cuello",
+    "muscle": "Trapecio",
+    "image": "isometric-neck-side-main.webp"
+  },
+  {
+    "id": "jackknife-sit-up",
+    "name": "Abdominal navaja",
+    "muscle": "Recto Abdominal",
+    "image": "jackknife-sit-up-start.webp"
+  },
+  {
+    "id": "jefferson-curl",
+    "name": "Jefferson curl",
+    "muscle": "Erector Espinal",
+    "image": "jefferson-curl-start.webp"
+  },
+  {
+    "id": "jump-rope",
+    "name": "Saltar la Cuerda",
+    "muscle": "Gemelos",
+    "image": "jump-rope-main.webp"
+  },
+  {
+    "id": "jump-squat",
+    "name": "Sentadilla con Salto",
+    "muscle": "Glúteo Mayor",
+    "image": "jump-squat-start.webp"
+  },
+  {
+    "id": "jumping-jacks",
+    "name": "Saltos de Tijera",
+    "muscle": "Gemelos",
+    "image": "jumping-jacks-start.webp"
+  },
+  {
+    "id": "kettlebell-bulgarian-split-squat",
+    "name": "Sentadilla Búlgara con Kettlebell",
+    "muscle": "Glúteo Mayor",
+    "image": "kettlebell-bulgarian-split-squat-start.webp"
+  },
+  {
+    "id": "kettlebell-close-grip-floor-press",
+    "name": "Press de Suelo con Agarre Cerrado con Pesa Rusa",
+    "muscle": "Tríceps",
+    "image": "kettlebell-close-grip-floor-press-start.webp"
+  },
+  {
+    "id": "kettlebell-concentration-curl",
+    "name": "Curl de concentración con kettlebell",
+    "muscle": "Bíceps",
+    "image": "kettlebell-concentration-curl-start.webp"
+  },
+  {
+    "id": "kettlebell-deadlift",
+    "name": "Peso muerto con pesa rusa",
+    "muscle": "Erector Espinal",
+    "image": "kettlebell-deadlift-start.webp"
+  },
+  {
+    "id": "kettlebell-farmers-walk",
+    "name": "Paseo del Granjero con Pesa Rusa",
+    "muscle": "Flexores del Antebrazo",
+    "image": "kettlebell-farmers-walk-main.webp"
+  },
+  {
+    "id": "kettlebell-floor-press",
+    "name": "Press de suelo con pesas rusas",
+    "muscle": "Pectoral Mayor",
+    "image": "kettlebell-floor-press-start.webp"
+  },
+  {
+    "id": "kettlebell-goblet-lunge",
+    "name": "Zancada Goblet con Kettlebell",
+    "muscle": "Glúteo Mayor",
+    "image": "kettlebell-goblet-lunge-start.webp"
+  },
+  {
+    "id": "kettlebell-halo",
+    "name": "Halo con pesa rusa",
+    "muscle": "Deltoides Lateral",
+    "image": "kettlebell-halo-start.webp"
+  },
+  {
+    "id": "kettlebell-hammer-curl",
+    "name": "Curl martillo con pesa rusa",
+    "muscle": "Bíceps",
+    "image": "kettlebell-hammer-curl-start.webp"
+  },
+  {
+    "id": "kettlebell-hip-thrust",
+    "name": "Empuje de Cadera con Kettlebell",
+    "muscle": "Glúteo Mayor",
+    "image": "kettlebell-hip-thrust-start.webp"
+  },
+  {
+    "id": "kettlebell-kickstand-deadlift",
+    "name": "Peso Muerto Kickstand con Kettlebell",
+    "muscle": "Glúteo Mayor",
+    "image": "kettlebell-kickstand-deadlift-start.webp"
+  },
+  {
+    "id": "kettlebell-lunge-press",
+    "name": "Zancada con press de pesa rusa",
+    "muscle": "Deltoides Anterior",
+    "image": "kettlebell-lunge-press-start.webp"
+  },
+  {
+    "id": "kettlebell-offset-reverse-lunge-and-press",
+    "name": "Zancada inversa con press desequilibrado de pesa rusa",
+    "muscle": "Deltoides Anterior",
+    "image": "kettlebell-offset-reverse-lunge-and-press-start.webp"
+  },
+  {
+    "id": "kettlebell-overhead-carry",
+    "name": "Paseo con Kettlebell sobre la Cabeza",
+    "muscle": "Deltoides Anterior",
+    "image": "kettlebell-overhead-carry-main.webp"
+  },
+  {
+    "id": "kettlebell-overhead-tricep-extension",
+    "name": "Extensión de tríceps por encima de la cabeza con pesa rusa",
+    "muscle": "Tríceps",
+    "image": "kettlebell-overhead-tricep-extension-start.webp"
+  },
+  {
+    "id": "kettlebell-pistol-squat",
+    "name": "Sentadilla pistola con pesa rusa",
+    "muscle": "Glúteo Mayor",
+    "image": "kettlebell-pistol-squat-start.webp"
+  },
+  {
+    "id": "kettlebell-pullover",
+    "name": "Pullover con pesa rusa",
+    "muscle": "Dorsal Ancho",
+    "image": "kettlebell-pullover-start.webp"
+  },
+  {
+    "id": "kettlebell-reverse-lunge",
+    "name": "Zancada Inversa con Kettlebell",
+    "muscle": "Glúteo Mayor",
+    "image": "kettlebell-reverse-lunge-start.webp"
+  },
+  {
+    "id": "kettlebell-reverse-wrist-curl",
+    "name": "Curl de Muñeca Inverso con Kettlebell",
+    "muscle": "Extensores del Antebrazo",
+    "image": "kettlebell-reverse-wrist-curl-start.webp"
+  },
+  {
+    "id": "kettlebell-rotational-lunge",
+    "name": "Zancada rotacional con pesa rusa",
+    "muscle": "Glúteo Mayor",
+    "image": "kettlebell-rotational-lunge-start.webp"
+  },
+  {
+    "id": "kettlebell-russian-twist",
+    "name": "Giro ruso con pesa rusa",
+    "muscle": "Oblicuos",
+    "image": "kettlebell-russian-twist-start.webp"
+  },
+  {
+    "id": "kettlebell-shrug",
+    "name": "Encogimiento de Hombros con Kettlebell",
+    "muscle": "Trapecio",
+    "image": "kettlebell-shrug-start.webp"
+  },
+  {
+    "id": "kettlebell-single-leg-deadlift",
+    "name": "Peso muerto a una pierna con pesa rusa",
+    "muscle": "Glúteo Mayor",
+    "image": "kettlebell-single-leg-deadlift-start.webp"
+  },
+  {
+    "id": "kettlebell-skull-crusher",
+    "name": "Skull crusher con pesa rusa",
+    "muscle": "Tríceps",
+    "image": "kettlebell-skull-crusher-start.webp"
+  },
+  {
+    "id": "kettlebell-squat",
+    "name": "Sentadilla con Kettlebell",
+    "muscle": "Cuádriceps",
+    "image": "kettlebell-squat-start.webp"
+  },
+  {
+    "id": "kettlebell-sumo-deadlift",
+    "name": "Peso muerto sumo con pesa rusa",
+    "muscle": "Glúteo Mayor",
+    "image": "kettlebell-sumo-deadlift-start.webp"
+  },
+  {
+    "id": "kettlebell-sumo-high-pull",
+    "name": "Jalón sumo al mentón con pesa rusa",
+    "muscle": "Aductores",
+    "image": "kettlebell-sumo-high-pull-start.webp"
+  },
+  {
+    "id": "kettlebell-svend-press",
+    "name": "Press Svend con Kettlebells",
+    "muscle": "Pectoral Mayor",
+    "image": "kettlebell-svend-press-start.webp"
+  },
+  {
+    "id": "kettlebell-swing",
+    "name": "Swing con pesa rusa",
+    "muscle": "Glúteo Mayor",
+    "image": "kettlebell-swing-start.webp"
+  },
+  {
+    "id": "kettlebell-swing-clean",
+    "name": "Swing y cargada con pesa rusa",
+    "muscle": "Glúteo Mayor",
+    "image": "kettlebell-swing-clean-start.webp"
+  },
+  {
+    "id": "kettlebell-turkish-get-ups",
+    "name": "Levantamiento Turco con Kettlebell",
+    "muscle": "Deltoides Anterior",
+    "image": "kettlebell-turkish-get-ups-start.webp"
+  },
+  {
+    "id": "kettlebell-windmills",
+    "name": "Molino de Viento con Pesa Rusa",
+    "muscle": "Aductores",
+    "image": "kettlebell-windmills-start.webp"
+  },
+  {
+    "id": "kettlebell-wrist-curl",
+    "name": "Curl de Muñeca con Kettlebell",
+    "muscle": "Flexores del Antebrazo",
+    "image": "kettlebell-wrist-curl-start.webp"
+  },
+  {
+    "id": "knee-push-ups",
+    "name": "Push-Up en Rodillas",
+    "muscle": "Pectoral Mayor",
+    "image": "knee-push-ups-start.webp"
+  },
+  {
+    "id": "knee-to-chest-stretch",
+    "name": "Estiramiento Rodilla al Pecho",
+    "muscle": "Glúteo Mayor",
+    "image": "knee-to-chest-stretch-main.webp"
+  },
+  {
+    "id": "kneeling-cable-row",
+    "name": "Remo en Polea Arrodillado",
+    "muscle": "Dorsal Ancho",
+    "image": "kneeling-cable-row-start.webp"
+  },
+  {
+    "id": "kneeling-hip-flexor-stretch",
+    "name": "Estiramiento de Flexores de Cadera Arrodillado",
+    "muscle": "Flexores de Cadera",
+    "image": "kneeling-hip-flexor-stretch-main.webp"
+  },
+  {
+    "id": "kneeling-wrist-stretch",
+    "name": "Estiramiento de Muñecas Arrodillado",
+    "muscle": "Flexores del Antebrazo",
+    "image": "kneeling-wrist-stretch-main.webp"
+  },
+  {
+    "id": "l-sit",
+    "name": "L-Sit",
+    "muscle": "Flexores de Cadera",
+    "image": "l-sit-main.webp"
+  },
+  {
+    "id": "landmine-press",
+    "name": "Press Landmine",
+    "muscle": "Deltoides Anterior",
+    "image": "landmine-press-start.webp"
+  },
+  {
+    "id": "lat-pulldown",
+    "name": "Jalón al Pecho",
+    "muscle": "Dorsal Ancho",
+    "image": "lat-pulldown-start.webp"
+  },
+  {
+    "id": "lateral-raise",
+    "name": "Elevación Lateral con Mancuernas",
+    "muscle": "Deltoides Lateral",
+    "image": "lateral-raise-start.webp"
+  },
+  {
+    "id": "leg-curl",
+    "name": "Curl de Piernas Tumbado",
+    "muscle": "Isquiotibiales",
+    "image": "leg-curl-start.webp"
+  },
+  {
+    "id": "leg-extension",
+    "name": "Extensión de Piernas",
+    "muscle": "Cuádriceps",
+    "image": "leg-extension-start.webp"
+  },
+  {
+    "id": "leg-press",
+    "name": "Prensa de Piernas",
+    "muscle": "Glúteo Mayor",
+    "image": "leg-press-start.webp"
+  },
+  {
+    "id": "legs-up-the-wall",
+    "name": "Piernas en la Pared",
+    "muscle": "Isquiotibiales",
+    "image": "legs-up-the-wall-main.webp"
+  },
+  {
+    "id": "lizard-stretch",
+    "name": "Estiramiento del Lagarto",
+    "muscle": "Aductores",
+    "image": "lizard-stretch-main.webp"
+  },
+  {
+    "id": "locust-pose",
+    "name": "Postura del Saltamontes",
+    "muscle": "Erector Espinal",
+    "image": "locust-pose-main.webp"
+  },
+  {
+    "id": "low-lunge",
+    "name": "Zancada Baja",
+    "muscle": "Flexores de Cadera",
+    "image": "low-lunge-main.webp"
+  },
+  {
+    "id": "low-lunge-to-half-split",
+    "name": "Zancada Baja a Medio Split",
+    "muscle": "Isquiotibiales",
+    "image": "low-lunge-to-half-split-start.webp"
+  },
+  {
+    "id": "lunge",
+    "name": "Zancada",
+    "muscle": "Glúteo Mayor",
+    "image": "lunge-start.webp"
+  },
+  {
+    "id": "lying-leg-raise",
+    "name": "Elevación de Piernas Acostado",
+    "muscle": "Flexores de Cadera",
+    "image": "lying-leg-raise-start.webp"
+  },
+  {
+    "id": "lying-tricep-extension",
+    "name": "Extensión de Tríceps Tumbado",
+    "muscle": "Tríceps",
+    "image": "lying-tricep-extension-start.webp"
+  },
+  {
+    "id": "machine-back-extension",
+    "name": "Extensión de Espalda en Máquina",
+    "muscle": "Erector Espinal",
+    "image": "machine-back-extension-start.webp"
+  },
+  {
+    "id": "machine-bicep-curl",
+    "name": "Curl de Bíceps en Máquina",
+    "muscle": "Bíceps",
+    "image": "machine-bicep-curl-start.webp"
+  },
+  {
+    "id": "machine-calf-raise",
+    "name": "Elevación de Pantorrillas en Máquina",
+    "muscle": "Gemelos",
+    "image": "machine-calf-raise-start.webp"
+  },
+  {
+    "id": "machine-chest-fly",
+    "name": "Aperturas en Máquina",
+    "muscle": "Pectoral Mayor",
+    "image": "machine-chest-fly-start.webp"
+  },
+  {
+    "id": "machine-preacher-curl",
+    "name": "Curl en Máquina de Predicador",
+    "muscle": "Bíceps",
+    "image": "machine-preacher-curl-start.webp"
+  },
+  {
+    "id": "machine-seated-crunch",
+    "name": "Abdominales en Máquina Sentado",
+    "muscle": "Recto Abdominal",
+    "image": "machine-seated-crunch-start.webp"
+  },
+  {
+    "id": "machine-shoulder-press",
+    "name": "Press de Hombros en Máquina",
+    "muscle": "Deltoides Anterior",
+    "image": "machine-shoulder-press-start.webp"
+  },
+  {
+    "id": "machine-triceps-extension",
+    "name": "Extensión de Tríceps en Máquina",
+    "muscle": "Tríceps",
+    "image": "machine-triceps-extension-start.webp"
+  },
+  {
+    "id": "medicine-ball-slam",
+    "name": "Golpe con Balón Medicinal",
+    "muscle": "Recto Abdominal",
+    "image": "medicine-ball-slam-start.webp"
+  },
+  {
+    "id": "mountain-climbers",
+    "name": "Mountain Climbers",
+    "muscle": "Flexores de Cadera",
+    "image": "mountain-climbers-start.webp"
+  },
+  {
+    "id": "mountain-pose",
+    "name": "Postura de la Montaña",
+    "muscle": "Erector Espinal",
+    "image": "mountain-pose-main.webp"
+  },
+  {
+    "id": "muscle-snatch",
+    "name": "Muscle Snatch",
+    "muscle": "Deltoides Lateral",
+    "image": "muscle-snatch-start.webp"
+  },
+  {
+    "id": "muscle-ups",
+    "name": "Muscle-Ups",
+    "muscle": "Dorsal Ancho",
+    "image": "muscle-ups-start.webp"
+  },
+  {
+    "id": "neck-side-stretch",
+    "name": "Estiramiento Lateral de Cuello",
+    "muscle": "Trapecio",
+    "image": "neck-side-stretch-main.webp"
+  },
+  {
+    "id": "negative-pull-ups",
+    "name": "Dominadas Negativas",
+    "muscle": "Dorsal Ancho",
+    "image": "negative-pull-ups-start.webp"
+  },
+  {
+    "id": "neutral-grip-pull-ups",
+    "name": "Dominadas en Agarre Neutro",
+    "muscle": "Dorsal Ancho",
+    "image": "neutral-grip-pull-ups-start.webp"
+  },
+  {
+    "id": "nordic-hamstring-curl",
+    "name": "Curl Nórdico de Isquiotibiales",
+    "muscle": "Isquiotibiales",
+    "image": "nordic-hamstring-curl-start.webp"
+  },
+  {
+    "id": "ohp",
+    "name": "Press Militar con Barra",
+    "muscle": "Deltoides Anterior",
+    "image": "ohp-start.webp"
+  },
+  {
+    "id": "one-arm-dumbbell-push-press",
+    "name": "Push Press con Mancuerna a Un Brazo",
+    "muscle": "Deltoides Anterior",
+    "image": "one-arm-dumbbell-push-press-start.webp"
+  },
+  {
+    "id": "one-arm-dumbbell-swing",
+    "name": "Swing con Mancuerna a un Brazo",
+    "muscle": "Glúteo Mayor",
+    "image": "one-arm-dumbbell-swing-start.webp"
+  },
+  {
+    "id": "one-arm-kettlebell-bicep-curl",
+    "name": "Curl de Bíceps con Pesa Rusa a Un Brazo",
+    "muscle": "Bíceps",
+    "image": "one-arm-kettlebell-bicep-curl-start.webp"
+  },
+  {
+    "id": "one-arm-kettlebell-bottoms-up-press",
+    "name": "Press Strict con Pesa Rusa Invertida a Un Brazo",
+    "muscle": "Deltoides Anterior",
+    "image": "one-arm-kettlebell-bottoms-up-press-start.webp"
+  },
+  {
+    "id": "one-arm-kettlebell-floor-glute-bridge-press",
+    "name": "Press en Puente de Glúteos en Suelo con Pesa Rusa a Un Brazo",
+    "muscle": "Glúteo Mayor",
+    "image": "one-arm-kettlebell-floor-glute-bridge-press-start.webp"
+  },
+  {
+    "id": "one-arm-kettlebell-floor-press",
+    "name": "Press en Suelo con Pesa Rusa a Un Brazo",
+    "muscle": "Pectoral Mayor",
+    "image": "one-arm-kettlebell-floor-press-start.webp"
+  },
+  {
+    "id": "one-arm-kettlebell-front-squat",
+    "name": "Sentadilla Frontal con Pesa Rusa a Un Brazo",
+    "muscle": "Glúteo Mayor",
+    "image": "one-arm-kettlebell-front-squat-start.webp"
+  },
+  {
+    "id": "one-arm-kettlebell-push-press",
+    "name": "Push Press con Pesa Rusa a Un Brazo",
+    "muscle": "Deltoides Anterior",
+    "image": "one-arm-kettlebell-push-press-start.webp"
+  },
+  {
+    "id": "one-arm-kettlebell-row",
+    "name": "Remo con Pesa Rusa a Un Brazo",
+    "muscle": "Dorsal Ancho",
+    "image": "one-arm-kettlebell-row-start.webp"
+  },
+  {
+    "id": "one-arm-kettlebell-shoulder-press",
+    "name": "Press de Hombro con Pesa Rusa a Un Brazo",
+    "muscle": "Deltoides Anterior",
+    "image": "one-arm-kettlebell-shoulder-press-start.webp"
+  },
+  {
+    "id": "one-arm-kettlebell-swing",
+    "name": "Swing con Pesa Rusa a Un Brazo",
+    "muscle": "Glúteo Mayor",
+    "image": "one-arm-kettlebell-swing-start.webp"
+  },
+  {
+    "id": "one-arm-kettlebell-tricep-kickback",
+    "name": "Extensión de Tríceps a Un Brazo con Pesa Rusa",
+    "muscle": "Tríceps",
+    "image": "one-arm-kettlebell-tricep-kickback-start.webp"
+  },
+  {
+    "id": "one-arm-landmine-press",
+    "name": "Press Landmine con Un Brazo",
+    "muscle": "Deltoides Anterior",
+    "image": "one-arm-landmine-press-start.webp"
+  },
+  {
+    "id": "one-arm-lat-pulldown",
+    "name": "Jalón al Pecho con Un Brazo",
+    "muscle": "Dorsal Ancho",
+    "image": "one-arm-lat-pulldown-start.webp"
+  },
+  {
+    "id": "one-arm-single-leg-dumbbell-romanian-deadlift",
+    "name": "Peso Muerto Rumano a Una Pierna con Mancuerna a Un Brazo",
+    "muscle": "Glúteo Mayor",
+    "image": "one-arm-single-leg-dumbbell-romanian-deadlift-start.webp"
+  },
+  {
+    "id": "one-arm-single-leg-kettlebell-romanian-deadlift",
+    "name": "Peso Muerto Rumano a Una Pierna con Pesa Rusa a Un Brazo",
+    "muscle": "Glúteo Mayor",
+    "image": "one-arm-single-leg-kettlebell-romanian-deadlift-start.webp"
+  },
+  {
+    "id": "overhead-squat",
+    "name": "Sentadilla con Barra en Alto",
+    "muscle": "Glúteo Mayor",
+    "image": "overhead-squat-start.webp"
+  },
+  {
+    "id": "overhead-tricep-extension",
+    "name": "Extensión de Tríceps por Encima de la Cabeza",
+    "muscle": "Tríceps",
+    "image": "overhead-tricep-extension-start.webp"
+  },
+  {
+    "id": "overhead-triceps-stretch",
+    "name": "Estiramiento de Tríceps sobre la Cabeza",
+    "muscle": "Tríceps",
+    "image": "overhead-triceps-stretch-main.webp"
+  },
+  {
+    "id": "pause-deadlift",
+    "name": "Peso Muerto con Pausa",
+    "muscle": "Erector Espinal",
+    "image": "pause-deadlift-start.webp"
+  },
+  {
+    "id": "pause-pull-up",
+    "name": "Dominada con Pausa",
+    "muscle": "Dorsal Ancho",
+    "image": "pause-pull-up-start.webp"
+  },
+  {
+    "id": "pause-squat",
+    "name": "Sentadilla con Pausa",
+    "muscle": "Glúteo Mayor",
+    "image": "pause-squat-start.webp"
+  },
+  {
+    "id": "paused-bench-press",
+    "name": "Press de Banca con Pausa",
+    "muscle": "Pectoral Mayor",
+    "image": "paused-bench-press-start.webp"
+  },
+  {
+    "id": "paused-incline-bench-press",
+    "name": "Press Inclinado con Pausa",
+    "muscle": "Deltoides Anterior",
+    "image": "paused-incline-bench-press-start.webp"
+  },
+  {
+    "id": "paused-ohp",
+    "name": "Press militar con pausa",
+    "muscle": "Deltoides Anterior",
+    "image": "paused-ohp-start.webp"
+  },
+  {
+    "id": "pec-deck",
+    "name": "Pec Deck",
+    "muscle": "Pectoral Mayor",
+    "image": "pec-deck-start.webp"
+  },
+  {
+    "id": "pendlay-row",
+    "name": "Remo Pendlay",
+    "muscle": "Dorsal Ancho",
+    "image": "pendlay-row-start.webp"
+  },
+  {
+    "id": "pigeon-stretch",
+    "name": "Estiramiento de la Paloma",
+    "muscle": "Glúteo Mayor",
+    "image": "pigeon-stretch-main.webp"
+  },
+  {
+    "id": "pike-push-ups",
+    "name": "Flexiones en Pica",
+    "muscle": "Deltoides Anterior",
+    "image": "pike-push-ups-start.webp"
+  },
+  {
+    "id": "pilates-kneeling-side-kick",
+    "name": "Patada Lateral de Rodillas de Pilates",
+    "muscle": "Glúteo Medio",
+    "image": "pilates-kneeling-side-kick-start.webp"
+  },
+  {
+    "id": "pilates-leg-pull-back",
+    "name": "Leg Pull Back de Pilates",
+    "muscle": "Erector Espinal",
+    "image": "pilates-leg-pull-back-start.webp"
+  },
+  {
+    "id": "pilates-leg-pull-front",
+    "name": "Leg Pull Front de Pilates",
+    "muscle": "Glúteo Mayor",
+    "image": "pilates-leg-pull-front-start.webp"
+  },
+  {
+    "id": "pilates-roll-down",
+    "name": "Roll Down de Pilates",
+    "muscle": "Erector Espinal",
+    "image": "pilates-roll-down-start.webp"
+  },
+  {
+    "id": "pilates-roll-over",
+    "name": "Roll Over de Pilates",
+    "muscle": "Recto Abdominal",
+    "image": "pilates-roll-over-start.webp"
+  },
+  {
+    "id": "pilates-saw",
+    "name": "La Sierra de Pilates",
+    "muscle": "Erector Espinal",
+    "image": "pilates-saw-start.webp"
+  },
+  {
+    "id": "pilates-side-bend",
+    "name": "Flexión Lateral de Pilates",
+    "muscle": "Glúteo Medio",
+    "image": "pilates-side-bend-start.webp"
+  },
+  {
+    "id": "pilates-spine-stretch-forward",
+    "name": "Spine Stretch Forward de Pilates",
+    "muscle": "Erector Espinal",
+    "image": "pilates-spine-stretch-forward-start.webp"
+  },
+  {
+    "id": "pilates-spine-twist",
+    "name": "Spine Twist de Pilates",
+    "muscle": "Oblicuos",
+    "image": "pilates-spine-twist-start.webp"
+  },
+  {
+    "id": "pistol-squat",
+    "name": "Sentadilla a una Pierna (Pistol)",
+    "muscle": "Glúteo Mayor",
+    "image": "pistol-squat-start.webp"
+  },
+  {
+    "id": "planche",
+    "name": "Plancha Calisténica",
+    "muscle": "Deltoides Anterior",
+    "image": "planche-main.webp"
+  },
+  {
+    "id": "plank",
+    "name": "Plancha",
+    "muscle": "Recto Abdominal",
+    "image": "plank-main.webp"
+  },
+  {
+    "id": "plate-loaded-donkey-calf-raise",
+    "name": "Elevación de Pantorrilla a la Burra en Máquina",
+    "muscle": "Gemelos",
+    "image": "plate-loaded-donkey-calf-raise-start.webp"
+  },
+  {
+    "id": "plate-loaded-glute-drive",
+    "name": "Empuje de Glúteo en Máquina de Discos",
+    "muscle": "Glúteo Mayor",
+    "image": "plate-loaded-glute-drive-start.webp"
+  },
+  {
+    "id": "plate-loaded-lateral-raise",
+    "name": "Elevación Lateral en Máquina de Discos",
+    "muscle": "Deltoides Lateral",
+    "image": "plate-loaded-lateral-raise-start.webp"
+  },
+  {
+    "id": "plate-loaded-shrug",
+    "name": "Encogimiento de Hombros en Máquina de Discos",
+    "muscle": "Trapecio",
+    "image": "plate-loaded-shrug-start.webp"
+  },
+  {
+    "id": "plate-pinch",
+    "name": "Agarre de Discos",
+    "muscle": "Flexores del Antebrazo",
+    "image": "plate-pinch-start.webp"
+  },
+  {
+    "id": "plate-pullover",
+    "name": "Pullover con Disco",
+    "muscle": "Dorsal Ancho",
+    "image": "plate-pullover-start.webp"
+  },
+  {
+    "id": "plow-pose",
+    "name": "Postura del Arado",
+    "muscle": "Erector Espinal",
+    "image": "plow-pose-main.webp"
+  },
+  {
+    "id": "plyo-lunge",
+    "name": "Zancada Pliométrica",
+    "muscle": "Glúteo Mayor",
+    "image": "plyo-lunge-start.webp"
+  },
+  {
+    "id": "plyo-push-up",
+    "name": "Flexión Pliométrica",
+    "muscle": "Pectoral Mayor",
+    "image": "plyo-push-up-start.webp"
+  },
+  {
+    "id": "preacher-curl",
+    "name": "Curl en Banco Scott",
+    "muscle": "Bíceps",
+    "image": "preacher-curl-start.webp"
+  },
+  {
+    "id": "preacher-hammer-curl",
+    "name": "Curl Martillo en Banco Scott",
+    "muscle": "Braquial",
+    "image": "preacher-hammer-curl-start.webp"
+  },
+  {
+    "id": "pseudo-planche-push-ups",
+    "name": "Push-Ups de Pseudo Plancha",
+    "muscle": "Deltoides Anterior",
+    "image": "pseudo-planche-push-ups-start.webp"
+  },
+  {
+    "id": "pull-up",
+    "name": "Dominada",
+    "muscle": "Dorsal Ancho",
+    "image": "pull-up-start.webp"
+  },
+  {
+    "id": "puppy-pose",
+    "name": "Postura del Cachorro",
+    "muscle": "Dorsal Ancho",
+    "image": "puppy-pose-main.webp"
+  },
+  {
+    "id": "push-jerk",
+    "name": "Jerk de Empuje",
+    "muscle": "Deltoides Anterior",
+    "image": "push-jerk-start.webp"
+  },
+  {
+    "id": "push-press",
+    "name": "Press de Empuje",
+    "muscle": "Deltoides Anterior",
+    "image": "push-press-start.webp"
+  },
+  {
+    "id": "push-up",
+    "name": "Push-Up",
+    "muscle": "Pectoral Mayor",
+    "image": "push-up-start.webp"
+  },
+  {
+    "id": "pyramid-pose",
+    "name": "Postura de la Pirámide",
+    "muscle": "Isquiotibiales",
+    "image": "pyramid-pose-main.webp"
+  },
+  {
+    "id": "rack-pull",
+    "name": "Rack Pull",
+    "muscle": "Erector Espinal",
+    "image": "rack-pull-start.webp"
+  },
+  {
+    "id": "rear-delt-fly",
+    "name": "Apertura de Deltoides Posterior",
+    "muscle": "Deltoides Posterior",
+    "image": "rear-delt-fly-start.webp"
+  },
+  {
+    "id": "reverse-crunches",
+    "name": "Crunches Inversos",
+    "muscle": "Recto Abdominal",
+    "image": "reverse-crunches-start.webp"
+  },
+  {
+    "id": "reverse-curl",
+    "name": "Curl Inverso",
+    "muscle": "Braquial",
+    "image": "reverse-curl-start.webp"
+  },
+  {
+    "id": "reverse-grip-bent-over-row",
+    "name": "Remo Inclinado con Agarre Invertido",
+    "muscle": "Dorsal Ancho",
+    "image": "reverse-grip-bent-over-row-start.webp"
+  },
+  {
+    "id": "reverse-grip-lat-pulldown",
+    "name": "Jalón al Pecho Agarre Supino",
+    "muscle": "Bíceps",
+    "image": "reverse-grip-lat-pulldown-start.webp"
+  },
+  {
+    "id": "reverse-lunge",
+    "name": "Zancada Inversa",
+    "muscle": "Glúteo Mayor",
+    "image": "reverse-lunge-start.webp"
+  },
+  {
+    "id": "reverse-nordic-curl",
+    "name": "Nordic Curl Inverso",
+    "muscle": "Cuádriceps",
+    "image": "reverse-nordic-curl-start.webp"
+  },
+  {
+    "id": "reverse-plank",
+    "name": "Plancha Inversa",
+    "muscle": "Erector Espinal",
+    "image": "reverse-plank-main.webp"
+  },
+  {
+    "id": "reverse-plank-dips",
+    "name": "Fondos en Plancha Invertida",
+    "muscle": "Tríceps",
+    "image": "reverse-plank-dips-start.webp"
+  },
+  {
+    "id": "reverse-tabletop-hip-pulses",
+    "name": "Pulsos de Cadera en Mesa Invertida",
+    "muscle": "Glúteo Mayor",
+    "image": "reverse-tabletop-hip-pulses-start.webp"
+  },
+  {
+    "id": "reverse-tabletop-hold",
+    "name": "Mesa Invertida Isométrica",
+    "muscle": "Erector Espinal",
+    "image": "reverse-tabletop-hold-main.webp"
+  },
+  {
+    "id": "revolved-chair-pose",
+    "name": "Postura de la Silla Girada",
+    "muscle": "Oblicuos",
+    "image": "revolved-chair-pose-main.webp"
+  },
+  {
+    "id": "revolved-crescent-lunge",
+    "name": "Zancada Alta Girada",
+    "muscle": "Oblicuos",
+    "image": "revolved-crescent-lunge-main.webp"
+  },
+  {
+    "id": "ring-dead-hang",
+    "name": "Cuelgue Estático en Anillas",
+    "muscle": "Flexores del Antebrazo",
+    "image": "ring-dead-hang-main.webp"
+  },
+  {
+    "id": "ring-dips",
+    "name": "Fondos en Anillas",
+    "muscle": "Pectoral Mayor",
+    "image": "ring-dips-start.webp"
+  },
+  {
+    "id": "ring-face-pull",
+    "name": "Face Pull en Anillas",
+    "muscle": "Deltoides Posterior",
+    "image": "ring-face-pull-start.webp"
+  },
+  {
+    "id": "ring-muscle-up",
+    "name": "Muscle-Up en Anillas",
+    "muscle": "Dorsal Ancho",
+    "image": "ring-muscle-up-start.webp"
+  },
+  {
+    "id": "ring-push-up",
+    "name": "Flexión en Anillas",
+    "muscle": "Pectoral Mayor",
+    "image": "ring-push-up-start.webp"
+  },
+  {
+    "id": "ring-row",
+    "name": "Remo en Anillas",
+    "muscle": "Dorsal Ancho",
+    "image": "ring-row-start.webp"
+  },
+  {
+    "id": "rings-inverted-row",
+    "name": "Remo Invertido en Anillas",
+    "muscle": "Dorsal Ancho",
+    "image": "rings-inverted-row-start.webp"
+  },
+  {
+    "id": "romanian-deadlift",
+    "name": "Peso Muerto Rumano",
+    "muscle": "Glúteo Mayor",
+    "image": "romanian-deadlift-start.webp"
+  },
+  {
+    "id": "rope-climb",
+    "name": "Trepa de Cuerda",
+    "muscle": "Dorsal Ancho",
+    "image": "rope-climb-main.webp"
+  },
+  {
+    "id": "rowing-machine",
+    "name": "Máquina de Remo",
+    "muscle": "Dorsal Ancho",
+    "image": "rowing-machine-start.webp"
+  },
+  {
+    "id": "running",
+    "name": "Correr",
+    "muscle": "Gemelos",
+    "image": "running-main.webp"
+  },
+  {
+    "id": "russian-twist",
+    "name": "Giro Ruso",
+    "muscle": "Oblicuos",
+    "image": "russian-twist-start.webp"
+  },
+  {
+    "id": "savasana",
+    "name": "Postura del Cadáver",
+    "muscle": "Erector Espinal",
+    "image": "savasana-main.webp"
+  },
+  {
+    "id": "scapular-pull-ups",
+    "name": "Dominadas Escapulares",
+    "muscle": "Dorsal Ancho",
+    "image": "scapular-pull-ups-start.webp"
+  },
+  {
+    "id": "scissor-kicks",
+    "name": "Tijeras",
+    "muscle": "Flexores de Cadera",
+    "image": "scissor-kicks-start.webp"
+  },
+  {
+    "id": "seated-barbell-overhead-press",
+    "name": "Press de Barra sobre la Cabeza Sentado",
+    "muscle": "Deltoides Anterior",
+    "image": "seated-barbell-overhead-press-start.webp"
+  },
+  {
+    "id": "seated-cable-row",
+    "name": "Remo Sentado en Polea",
+    "muscle": "Dorsal Ancho",
+    "image": "seated-cable-row-start.webp"
+  },
+  {
+    "id": "seated-calf-raise",
+    "name": "Elevación de Talones Sentado",
+    "muscle": "Sóleo",
+    "image": "seated-calf-raise-start.webp"
+  },
+  {
+    "id": "seated-db-press",
+    "name": "Press de Hombro con Mancuernas Sentado",
+    "muscle": "Deltoides Anterior",
+    "image": "seated-db-press-start.webp"
+  },
+  {
+    "id": "seated-dumbbell-curl",
+    "name": "Curl con Mancuernas Sentado",
+    "muscle": "Bíceps",
+    "image": "seated-dumbbell-curl-start.webp"
+  },
+  {
+    "id": "seated-dumbbell-lateral-raise",
+    "name": "Elevación Lateral con Mancuerna Sentado",
+    "muscle": "Deltoides Lateral",
+    "image": "seated-dumbbell-lateral-raise-start.webp"
+  },
+  {
+    "id": "seated-dumbbell-tricep-extension",
+    "name": "Extensión de Tríceps con Mancuerna Sentado",
+    "muscle": "Tríceps",
+    "image": "seated-dumbbell-tricep-extension-start.webp"
+  },
+  {
+    "id": "seated-forward-fold",
+    "name": "Flexión Sentado hacia Adelante",
+    "muscle": "Isquiotibiales",
+    "image": "seated-forward-fold-main.webp"
+  },
+  {
+    "id": "seated-leg-curl",
+    "name": "Curl de Piernas Sentado",
+    "muscle": "Isquiotibiales",
+    "image": "seated-leg-curl-start.webp"
+  },
+  {
+    "id": "seated-smith-machine-shoulder-press",
+    "name": "Press de Hombros en Máquina Smith Sentado",
+    "muscle": "Deltoides Anterior",
+    "image": "seated-smith-machine-shoulder-press-start.webp"
+  },
+  {
+    "id": "seated-spinal-twist",
+    "name": "Giro Espinal Sentado",
+    "muscle": "Erector Espinal",
+    "image": "seated-spinal-twist-main.webp"
+  },
+  {
+    "id": "seated-straddle-stretch",
+    "name": "Estiramiento en Apertura Sentado",
+    "muscle": "Aductores",
+    "image": "seated-straddle-stretch-main.webp"
+  },
+  {
+    "id": "shrug",
+    "name": "Encogimiento con Barra",
+    "muscle": "Trapecio",
+    "image": "shrug-start.webp"
+  },
+  {
+    "id": "side-lunge",
+    "name": "Zancada Lateral",
+    "muscle": "Glúteo Mayor",
+    "image": "side-lunge-start.webp"
+  },
+  {
+    "id": "side-lying-hip-abduction",
+    "name": "Abducción de Cadera Acostado de Lado",
+    "muscle": "Abductores",
+    "image": "side-lying-hip-abduction-start.webp"
+  },
+  {
+    "id": "side-lying-hip-abduction-hold",
+    "name": "Abducción de Cadera Acostado de Lado Isométrica",
+    "muscle": "Abductores",
+    "image": "side-lying-hip-abduction-hold-main.webp"
+  },
+  {
+    "id": "side-lying-hip-adduction",
+    "name": "Aducción de Cadera Acostado de Lado",
+    "muscle": "Aductores",
+    "image": "side-lying-hip-adduction-start.webp"
+  },
+  {
+    "id": "side-lying-hip-adduction-hold",
+    "name": "Aducción de Cadera Acostado de Lado Isométrica",
+    "muscle": "Aductores",
+    "image": "side-lying-hip-adduction-hold-main.webp"
+  },
+  {
+    "id": "side-lying-lateral-raise",
+    "name": "Elevación Lateral Tumbado de Lado",
+    "muscle": "Deltoides Lateral",
+    "image": "side-lying-lateral-raise-start.webp"
+  },
+  {
+    "id": "side-plank",
+    "name": "Plancha Lateral",
+    "muscle": "Oblicuos",
+    "image": "side-plank-main.webp"
+  },
+  {
+    "id": "side-plank-leg-lift",
+    "name": "Plancha Lateral con Elevación de Pierna",
+    "muscle": "Glúteo Medio",
+    "image": "side-plank-leg-lift-start.webp"
+  },
+  {
+    "id": "side-plank-leg-lift-hold",
+    "name": "Plancha Lateral con Elevación de Pierna Isométrica",
+    "muscle": "Glúteo Medio",
+    "image": "side-plank-leg-lift-hold-main.webp"
+  },
+  {
+    "id": "single-arm-chest-supported-dumbbell-row",
+    "name": "Remo con Mancuerna a Una Mano con Pecho Apoyado",
+    "muscle": "Dorsal Ancho",
+    "image": "single-arm-chest-supported-dumbbell-row-start.webp"
+  },
+  {
+    "id": "single-arm-db-row",
+    "name": "Remo con Mancuerna a Un Brazo",
+    "muscle": "Dorsal Ancho",
+    "image": "single-arm-db-row-start.webp"
+  },
+  {
+    "id": "single-arm-dumbbell-overhead-tricep-extension",
+    "name": "Extensión de Tríceps sobre la Cabeza con Mancuerna a Un Brazo",
+    "muscle": "Tríceps",
+    "image": "single-arm-dumbbell-overhead-tricep-extension-start.webp"
+  },
+  {
+    "id": "single-arm-hammer-curl",
+    "name": "Curl martillo unilateral",
+    "muscle": "Braquial",
+    "image": "single-arm-hammer-curl-start.webp"
+  },
+  {
+    "id": "single-arm-machine-shoulder-press",
+    "name": "Press de hombros unilateral en máquina",
+    "muscle": "Deltoides Anterior",
+    "image": "single-arm-machine-shoulder-press-start.webp"
+  },
+  {
+    "id": "single-arm-plate-loaded-lateral-raise",
+    "name": "Elevación Lateral a Un Brazo en Máquina de Discos",
+    "muscle": "Deltoides Lateral",
+    "image": "single-arm-plate-loaded-lateral-raise-start.webp"
+  },
+  {
+    "id": "single-arm-tricep-pushdown",
+    "name": "Extensión de Tríceps a Un Brazo en Polea",
+    "muscle": "Tríceps",
+    "image": "single-arm-tricep-pushdown-start.webp"
+  },
+  {
+    "id": "single-db-svend-press",
+    "name": "Press Svend con una Mancuerna",
+    "muscle": "Pectoral Mayor",
+    "image": "single-db-svend-press-start.webp"
+  },
+  {
+    "id": "single-leg-calf-raise",
+    "name": "Elevación de Pantorrilla a Una Pierna",
+    "muscle": "Gemelos",
+    "image": "single-leg-calf-raise-start.webp"
+  },
+  {
+    "id": "single-leg-extension",
+    "name": "Extensión de Cuádriceps a Una Pierna",
+    "muscle": "Cuádriceps",
+    "image": "single-leg-extension-start.webp"
+  },
+  {
+    "id": "single-leg-glute-bridge",
+    "name": "Puente de Glúteo a Una Pierna",
+    "muscle": "Glúteo Mayor",
+    "image": "single-leg-glute-bridge-start.webp"
+  },
+  {
+    "id": "single-leg-glute-bridge-hold",
+    "name": "Puente de Glúteo a Una Pierna Isométrico",
+    "muscle": "Glúteo Mayor",
+    "image": "single-leg-glute-bridge-hold-main.webp"
+  },
+  {
+    "id": "single-leg-lying-leg-curl",
+    "name": "Curl de Pierna Tumbado a Una Pierna",
+    "muscle": "Isquiotibiales",
+    "image": "single-leg-lying-leg-curl-start.webp"
+  },
+  {
+    "id": "single-leg-press",
+    "name": "Prensa de Piernas a Una Pierna",
+    "muscle": "Glúteo Mayor",
+    "image": "single-leg-press-start.webp"
+  },
+  {
+    "id": "single-leg-romanian-deadlift",
+    "name": "Peso Muerto Rumano a Una Pierna",
+    "muscle": "Glúteo Mayor",
+    "image": "single-leg-romanian-deadlift-start.webp"
+  },
+  {
+    "id": "sit-ups",
+    "name": "Abdominales",
+    "muscle": "Flexores de Cadera",
+    "image": "sit-ups-start.webp"
+  },
+  {
+    "id": "skull-crusher",
+    "name": "Skull Crusher",
+    "muscle": "Tríceps",
+    "image": "skull-crusher-start.webp"
+  },
+  {
+    "id": "sled-row",
+    "name": "Remo con Trineo",
+    "muscle": "Dorsal Ancho",
+    "image": "sled-row-start.webp"
+  },
+  {
+    "id": "smith-machine-bench-press",
+    "name": "Press de Banca en Máquina Smith",
+    "muscle": "Pectoral Mayor",
+    "image": "smith-machine-bench-press-start.webp"
+  },
+  {
+    "id": "smith-machine-bent-over-row",
+    "name": "Remo Inclinado en Máquina Smith",
+    "muscle": "Dorsal Ancho",
+    "image": "smith-machine-bent-over-row-start.webp"
+  },
+  {
+    "id": "smith-machine-bulgarian-split",
+    "name": "Sentadilla Búlgara en Máquina Smith",
+    "muscle": "Glúteo Mayor",
+    "image": "smith-machine-bulgarian-split-start.webp"
+  },
+  {
+    "id": "smith-machine-calf-raise",
+    "name": "Elevación de Talón en Máquina Smith",
+    "muscle": "Gemelos",
+    "image": "smith-machine-calf-raise-start.webp"
+  },
+  {
+    "id": "smith-machine-decline-bench-press",
+    "name": "Press de Banca Declinado en Máquina Smith",
+    "muscle": "Pectoral Mayor",
+    "image": "smith-machine-decline-bench-press-start.webp"
+  },
+  {
+    "id": "smith-machine-front-squat",
+    "name": "Sentadilla Frontal en Máquina Smith",
+    "muscle": "Glúteo Mayor",
+    "image": "smith-machine-front-squat-start.webp"
+  },
+  {
+    "id": "smith-machine-good-morning",
+    "name": "Buenos Días en Máquina Smith",
+    "muscle": "Erector Espinal",
+    "image": "smith-machine-good-morning-start.webp"
+  },
+  {
+    "id": "smith-machine-hip-thrust",
+    "name": "Hip Thrust en Máquina Smith",
+    "muscle": "Glúteo Mayor",
+    "image": "smith-machine-hip-thrust-start.webp"
+  },
+  {
+    "id": "smith-machine-incline-bench-press",
+    "name": "Press Inclinado en Máquina Smith",
+    "muscle": "Deltoides Anterior",
+    "image": "smith-machine-incline-bench-press-start.webp"
+  },
+  {
+    "id": "smith-machine-rdl",
+    "name": "Peso Muerto Rumano en Máquina Smith",
+    "muscle": "Isquiotibiales",
+    "image": "smith-machine-rdl-start.webp"
+  },
+  {
+    "id": "smith-machine-reverse-grip-bent-over-row",
+    "name": "Remo Inclinado con Agarre Inverso en Máquina Smith",
+    "muscle": "Bíceps",
+    "image": "smith-machine-reverse-grip-bent-over-row-start.webp"
+  },
+  {
+    "id": "smith-machine-reverse-lunge",
+    "name": "Zancada Inversa en Máquina Smith",
+    "muscle": "Glúteo Mayor",
+    "image": "smith-machine-reverse-lunge-start.webp"
+  },
+  {
+    "id": "smith-machine-shoulder-press",
+    "name": "Press de Hombros en Máquina Smith",
+    "muscle": "Deltoides Anterior",
+    "image": "smith-machine-shoulder-press-start.webp"
+  },
+  {
+    "id": "smith-machine-shrug",
+    "name": "Encogimiento de Hombros en Máquina Smith",
+    "muscle": "Trapecio",
+    "image": "smith-machine-shrug-start.webp"
+  },
+  {
+    "id": "smith-machine-split-squat",
+    "name": "Sentadilla en Tijera en Máquina Smith",
+    "muscle": "Glúteo Mayor",
+    "image": "smith-machine-split-squat-start.webp"
+  },
+  {
+    "id": "smith-machine-squat",
+    "name": "Sentadilla en Máquina Smith",
+    "muscle": "Glúteo Mayor",
+    "image": "smith-machine-squat-start.webp"
+  },
+  {
+    "id": "smith-machine-upright-row",
+    "name": "Remo al Mentón en Máquina Smith",
+    "muscle": "Deltoides Lateral",
+    "image": "smith-machine-upright-row-start.webp"
+  },
+  {
+    "id": "snatch",
+    "name": "Arrancada",
+    "muscle": "Glúteo Mayor",
+    "image": "snatch-start.webp"
+  },
+  {
+    "id": "sphinx-pose",
+    "name": "Postura de la Esfinge",
+    "muscle": "Erector Espinal",
+    "image": "sphinx-pose-main.webp"
+  },
+  {
+    "id": "spider-curl",
+    "name": "Curl Araña",
+    "muscle": "Bíceps",
+    "image": "spider-curl-start.webp"
+  },
+  {
+    "id": "split-jerk",
+    "name": "Jerk con Tijera",
+    "muscle": "Deltoides Anterior",
+    "image": "split-jerk-start.webp"
+  },
+  {
+    "id": "split-squat",
+    "name": "Sentadilla en Tijera",
+    "muscle": "Glúteo Mayor",
+    "image": "split-squat-start.webp"
+  },
+  {
+    "id": "spoto-press",
+    "name": "Press Spoto",
+    "muscle": "Pectoral Mayor",
+    "image": "spoto-press-start.webp"
+  },
+  {
+    "id": "squat",
+    "name": "Sentadilla Trasera con Barra",
+    "muscle": "Glúteo Mayor",
+    "image": "squat-start.webp"
+  },
+  {
+    "id": "stability-ball-hip-bridge",
+    "name": "Puente de Cadera con Balón de Estabilidad",
+    "muscle": "Glúteo Mayor",
+    "image": "stability-ball-hip-bridge-start.webp"
+  },
+  {
+    "id": "stability-ball-knee-tuck",
+    "name": "Encogimiento de Rodillas con Balón de Estabilidad",
+    "muscle": "Recto Abdominal",
+    "image": "stability-ball-knee-tuck-start.webp"
+  },
+  {
+    "id": "stability-ball-push-up",
+    "name": "Push-Up con Balón de Estabilidad",
+    "muscle": "Pectoral Mayor",
+    "image": "stability-ball-push-up-start.webp"
+  },
+  {
+    "id": "stability-ball-push-up-hands-on-ball",
+    "name": "Flexión sobre pelota de estabilidad (manos en la pelota)",
+    "muscle": "Pectoral Mayor",
+    "image": "stability-ball-push-up-hands-on-ball-start.webp"
+  },
+  {
+    "id": "stability-ball-wall-squat",
+    "name": "Sentadilla en Pared con Pelota",
+    "muscle": "Glúteo Mayor",
+    "image": "stability-ball-wall-squat-start.webp"
+  },
+  {
+    "id": "stair-climber",
+    "name": "Escaladora de Escaleras",
+    "muscle": "Glúteo Mayor",
+    "image": "stair-climber-main.webp"
+  },
+  {
+    "id": "standing-calf-raise",
+    "name": "Elevación de Talones de Pie",
+    "muscle": "Gemelos",
+    "image": "standing-calf-raise-start.webp"
+  },
+  {
+    "id": "standing-calf-stretch",
+    "name": "Estiramiento de Pantorrilla de Pie",
+    "muscle": "Gemelos",
+    "image": "standing-calf-stretch-main.webp"
+  },
+  {
+    "id": "standing-forward-fold",
+    "name": "Flexión de Pie hacia Adelante",
+    "muscle": "Isquiotibiales",
+    "image": "standing-forward-fold-main.webp"
+  },
+  {
+    "id": "standing-forward-fold-to-half-lift",
+    "name": "Flexión de Pie a Media Elevación",
+    "muscle": "Erector Espinal",
+    "image": "standing-forward-fold-to-half-lift-start.webp"
+  },
+  {
+    "id": "standing-quad-stretch",
+    "name": "Estiramiento de Cuádriceps de Pie",
+    "muscle": "Cuádriceps",
+    "image": "standing-quad-stretch-main.webp"
+  },
+  {
+    "id": "standing-side-bend",
+    "name": "Flexión Lateral de Pie",
+    "muscle": "Oblicuos",
+    "image": "standing-side-bend-main.webp"
+  },
+  {
+    "id": "standing-side-bend-flow",
+    "name": "Flexión Lateral de Pie Alterna",
+    "muscle": "Oblicuos",
+    "image": "standing-side-bend-flow-start.webp"
+  },
+  {
+    "id": "standing-split",
+    "name": "Split de Pie",
+    "muscle": "Glúteo Mayor",
+    "image": "standing-split-main.webp"
+  },
+  {
+    "id": "stationary-bike",
+    "name": "Bicicleta Estática",
+    "muscle": "Cuádriceps",
+    "image": "stationary-bike-main.webp"
+  },
+  {
+    "id": "step-ups",
+    "name": "Step Ups",
+    "muscle": "Glúteo Mayor",
+    "image": "step-ups-start.webp"
+  },
+  {
+    "id": "stiff-leg-deadlift",
+    "name": "Peso Muerto con Piernas Rígidas",
+    "muscle": "Glúteo Mayor",
+    "image": "stiff-leg-deadlift-start.webp"
+  },
+  {
+    "id": "straight-arm-pulldown",
+    "name": "Jalón con Brazos Rectos",
+    "muscle": "Dorsal Ancho",
+    "image": "straight-arm-pulldown-start.webp"
+  },
+  {
+    "id": "straight-bar-cable-front-raise",
+    "name": "Elevación frontal en polea con barra recta",
+    "muscle": "Deltoides Anterior",
+    "image": "straight-bar-cable-front-raise-start.webp"
+  },
+  {
+    "id": "straight-bar-dips",
+    "name": "Fondos en Barra Recta",
+    "muscle": "Pectoral Mayor",
+    "image": "straight-bar-dips-start.webp"
+  },
+  {
+    "id": "strict-curl",
+    "name": "Curl Estricto",
+    "muscle": "Bíceps",
+    "image": "strict-curl-start.webp"
+  },
+  {
+    "id": "suitcase-carry",
+    "name": "Paseo del Maletín",
+    "muscle": "Flexores del Antebrazo",
+    "image": "suitcase-carry-main.webp"
+  },
+  {
+    "id": "sumo-deadlift",
+    "name": "Peso Muerto Sumo",
+    "muscle": "Glúteo Mayor",
+    "image": "sumo-deadlift-start.webp"
+  },
+  {
+    "id": "sumo-squat",
+    "name": "Sentadilla Sumo",
+    "muscle": "Glúteo Mayor",
+    "image": "sumo-squat-start.webp"
+  },
+  {
+    "id": "superman",
+    "name": "Superman",
+    "muscle": "Erector Espinal",
+    "image": "superman-start.webp"
+  },
+  {
+    "id": "supine-spinal-twist",
+    "name": "Giro Espinal Tumbado",
+    "muscle": "Erector Espinal",
+    "image": "supine-spinal-twist-main.webp"
+  },
+  {
+    "id": "supine-windshield-wipers",
+    "name": "Limpiaparabrisas Tumbado",
+    "muscle": "Oblicuos",
+    "image": "supine-windshield-wipers-start.webp"
+  },
+  {
+    "id": "supported-shoulderstand",
+    "name": "Vela con Apoyo",
+    "muscle": "Erector Espinal",
+    "image": "supported-shoulderstand-main.webp"
+  },
+  {
+    "id": "svend-press",
+    "name": "Press Svend",
+    "muscle": "Pectoral Mayor",
+    "image": "svend-press-start.webp"
+  },
+  {
+    "id": "t-bar-row",
+    "name": "Remo en T",
+    "muscle": "Dorsal Ancho",
+    "image": "t-bar-row-start.webp"
+  },
+  {
+    "id": "thoracic-bridge",
+    "name": "Puente Torácico",
+    "muscle": "Erector Espinal",
+    "image": "thoracic-bridge-main.webp"
+  },
+  {
+    "id": "thread-the-needle",
+    "name": "Enhebrar la Aguja",
+    "muscle": "Deltoides Posterior",
+    "image": "thread-the-needle-main.webp"
+  },
+  {
+    "id": "thread-the-needle-flow",
+    "name": "Enhebrar la Aguja Dinámico",
+    "muscle": "Oblicuos",
+    "image": "thread-the-needle-flow-start.webp"
+  },
+  {
+    "id": "three-legged-dog",
+    "name": "Perro de Tres Patas",
+    "muscle": "Deltoides Anterior",
+    "image": "three-legged-dog-main.webp"
+  },
+  {
+    "id": "thruster",
+    "name": "Thruster",
+    "muscle": "Deltoides Anterior",
+    "image": "thruster-start.webp"
+  },
+  {
+    "id": "toes-to-bar",
+    "name": "Toes to Bar",
+    "muscle": "Flexores de Cadera",
+    "image": "toes-to-bar-start.webp"
+  },
+  {
+    "id": "treadmill-running",
+    "name": "Carrera en Cinta",
+    "muscle": "Gemelos",
+    "image": "treadmill-running-main.webp"
+  },
+  {
+    "id": "tree-pose",
+    "name": "Postura del Árbol",
+    "muscle": "Glúteo Medio",
+    "image": "tree-pose-main.webp"
+  },
+  {
+    "id": "triangle-pose",
+    "name": "Postura del Triángulo",
+    "muscle": "Isquiotibiales",
+    "image": "triangle-pose-main.webp"
+  },
+  {
+    "id": "tricep-kickback",
+    "name": "Patada de Tríceps con Mancuerna",
+    "muscle": "Tríceps",
+    "image": "tricep-kickback-start.webp"
+  },
+  {
+    "id": "tricep-pushdown",
+    "name": "Jalón de Tríceps en Cable",
+    "muscle": "Tríceps",
+    "image": "tricep-pushdown-start.webp"
+  },
+  {
+    "id": "trx-bicep-curl",
+    "name": "Curl de Bíceps TRX",
+    "muscle": "Bíceps",
+    "image": "trx-bicep-curl-start.webp"
+  },
+  {
+    "id": "trx-chest-press",
+    "name": "Press de Pecho con TRX",
+    "muscle": "Pectoral Mayor",
+    "image": "trx-chest-press-start.webp"
+  },
+  {
+    "id": "trx-face-pull",
+    "name": "Face Pull con TRX",
+    "muscle": "Deltoides Posterior",
+    "image": "trx-face-pull-start.webp"
+  },
+  {
+    "id": "trx-hamstring-curl",
+    "name": "Curl de Isquiotibiales con TRX",
+    "muscle": "Isquiotibiales",
+    "image": "trx-hamstring-curl-start.webp"
+  },
+  {
+    "id": "trx-lunge",
+    "name": "Zancada TRX",
+    "muscle": "Glúteo Mayor",
+    "image": "trx-lunge-start.webp"
+  },
+  {
+    "id": "trx-pistol-squat",
+    "name": "Sentadilla Pistola con TRX",
+    "muscle": "Glúteo Mayor",
+    "image": "trx-pistol-squat-start.webp"
+  },
+  {
+    "id": "trx-plank",
+    "name": "Plancha en TRX",
+    "muscle": "Recto Abdominal",
+    "image": "trx-plank-main.webp"
+  },
+  {
+    "id": "trx-row",
+    "name": "Remo TRX",
+    "muscle": "Dorsal Ancho",
+    "image": "trx-row-start.webp"
+  },
+  {
+    "id": "trx-side-plank",
+    "name": "Plancha Lateral en TRX",
+    "muscle": "Oblicuos",
+    "image": "trx-side-plank-main.webp"
+  },
+  {
+    "id": "trx-squat",
+    "name": "Sentadilla TRX",
+    "muscle": "Glúteo Mayor",
+    "image": "trx-squat-start.webp"
+  },
+  {
+    "id": "trx-tricep-extension",
+    "name": "Extensión de Tríceps TRX",
+    "muscle": "Tríceps",
+    "image": "trx-tricep-extension-start.webp"
+  },
+  {
+    "id": "trx-y-fly",
+    "name": "TRX Y-Fly",
+    "muscle": "Deltoides Posterior",
+    "image": "trx-y-fly-start.webp"
+  },
+  {
+    "id": "upright-row",
+    "name": "Remo al Mentón con Barra",
+    "muscle": "Deltoides Lateral",
+    "image": "upright-row-start.webp"
+  },
+  {
+    "id": "upward-dog",
+    "name": "Perro Boca Arriba",
+    "muscle": "Erector Espinal",
+    "image": "upward-dog-main.webp"
+  },
+  {
+    "id": "v-bar-lat-pulldown",
+    "name": "Jalón al Pecho con Barra en V",
+    "muscle": "Dorsal Ancho",
+    "image": "v-bar-lat-pulldown-start.webp"
+  },
+  {
+    "id": "v-bar-tricep-pushdown",
+    "name": "Extensión de Tríceps en Polea con Barra en V",
+    "muscle": "Tríceps",
+    "image": "v-bar-tricep-pushdown-start.webp"
+  },
+  {
+    "id": "v-sit",
+    "name": "Posición en V",
+    "muscle": "Flexores de Cadera",
+    "image": "v-sit-main.webp"
+  },
+  {
+    "id": "v-ups",
+    "name": "V-Ups",
+    "muscle": "Flexores de Cadera",
+    "image": "v-ups-start.webp"
+  },
+  {
+    "id": "walking",
+    "name": "Caminar",
+    "muscle": "Gemelos",
+    "image": "walking-main.webp"
+  },
+  {
+    "id": "walking-lunge",
+    "name": "Zancada Caminando",
+    "muscle": "Glúteo Mayor",
+    "image": "walking-lunge-start.webp"
+  },
+  {
+    "id": "wall-push-ups",
+    "name": "Push-Ups en Pared",
+    "muscle": "Pectoral Mayor",
+    "image": "wall-push-ups-start.webp"
+  },
+  {
+    "id": "wall-sit",
+    "name": "Sentadilla en Pared",
+    "muscle": "Glúteo Mayor",
+    "image": "wall-sit-main.webp"
+  },
+  {
+    "id": "warrior-one",
+    "name": "Guerrero I",
+    "muscle": "Glúteo Mayor",
+    "image": "warrior-one-main.webp"
+  },
+  {
+    "id": "warrior-three",
+    "name": "Guerrero III",
+    "muscle": "Glúteo Mayor",
+    "image": "warrior-three-main.webp"
+  },
+  {
+    "id": "warrior-two",
+    "name": "Guerrero II",
+    "muscle": "Glúteo Medio",
+    "image": "warrior-two-main.webp"
+  },
+  {
+    "id": "weighted-dips",
+    "name": "Fondos Lastrados",
+    "muscle": "Pectoral Mayor",
+    "image": "weighted-dips-start.webp"
+  },
+  {
+    "id": "weighted-pull-up",
+    "name": "Dominada Lastrada",
+    "muscle": "Dorsal Ancho",
+    "image": "weighted-pull-up-start.webp"
+  },
+  {
+    "id": "weighted-wall-crunch",
+    "name": "Crunch en Pared con Peso",
+    "muscle": "Recto Abdominal",
+    "image": "weighted-wall-crunch-start.webp"
+  },
+  {
+    "id": "wide-grip-bench-press",
+    "name": "Press de Banca en Agarre Ancho",
+    "muscle": "Pectoral Mayor",
+    "image": "wide-grip-bench-press-start.webp"
+  },
+  {
+    "id": "wide-grip-pull-ups",
+    "name": "Dominadas en Agarre Ancho",
+    "muscle": "Dorsal Ancho",
+    "image": "wide-grip-pull-ups-start.webp"
+  },
+  {
+    "id": "wide-grip-push-ups",
+    "name": "Flexiones con Agarre Ancho",
+    "muscle": "Pectoral Mayor",
+    "image": "wide-grip-push-ups-start.webp"
+  },
+  {
+    "id": "wide-grip-seated-cable-row",
+    "name": "Remo en Polea Sentado en Agarre Ancho",
+    "muscle": "Dorsal Ancho",
+    "image": "wide-grip-seated-cable-row-start.webp"
+  },
+  {
+    "id": "wide-legged-forward-fold",
+    "name": "Flexión con Piernas Abiertas",
+    "muscle": "Aductores",
+    "image": "wide-legged-forward-fold-main.webp"
+  },
+  {
+    "id": "wide-stance-leg-press",
+    "name": "Prensa de piernas con postura amplia",
+    "muscle": "Aductores",
+    "image": "wide-stance-leg-press-start.webp"
+  },
+  {
+    "id": "wrist-curl",
+    "name": "Curl de Muñeca con Mancuernas Bilateral",
+    "muscle": "Flexores del Antebrazo",
+    "image": "wrist-curl-start.webp"
+  },
+  {
+    "id": "wrist-roller",
+    "name": "Rodillo de Muñeca",
+    "muscle": "Extensores del Antebrazo",
+    "image": "wrist-roller-start.webp"
+  },
+  {
+    "id": "zottman-curl",
+    "name": "Curl Zottman",
+    "muscle": "Bíceps",
+    "image": "zottman-curl-start.webp"
+  }
+]
