@@ -8,7 +8,6 @@ import {
   SafeAreaView,
 } from "react-native";
 
-// Importamos tus datos locales
 import catalog from "../assets/data/catalogo_app.json";
 import { imageMap } from "../assets/imgs/imageMap";
 
@@ -22,20 +21,31 @@ type Exercise = {
 };
 
 export default function CatalogScreen() {
-  //Func para cada tarjeta de ejecrcicio
-  const renderItem: ListRenderItem<Exercise> = ({ item }) => (
-    <View style={styles.card}>
-      <Image
-        source={imageMap[item.id as keyof typeof imageMap]}
-        style={styles.image}
-        resizeMode="contain"
-      />
-      <View style={styles.infoContainer}>
-        <Text style={styles.title}>{item.name}</Text>
-        <Text style={styles.muscle}>{item.muscle}</Text>
+  // Func para cada tarjeta de ejercicio
+  const renderItem: ListRenderItem<Exercise> = ({ item }) => {
+    const imageSource = imageMap[item.id as keyof typeof imageMap];
+
+    return (
+      <View style={styles.card}>      
+        {imageSource ? (
+          <Image
+            source={imageSource}
+            style={styles.image}
+            resizeMode="contain"
+          />
+        ) : (
+          <View style={[styles.image, { justifyContent: "center", alignItems: "center" }]}>
+            <Text style={{ fontSize: 10, color: "#999", textAlign: "center" }}>Sin imagen</Text>
+          </View>
+        )}
+
+        <View style={styles.infoContainer}>
+          <Text style={styles.title}>{item.name}</Text>
+          <Text style={styles.muscle}>{item.muscle}</Text>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -69,8 +79,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderRadius: 12,
     padding: 12,
-    elevation: 2, //Sombra en Android
-    shadowColor: "#000", //Sombras en iOS
+    elevation: 2, // Sombra en Android
+    shadowColor: "#000", // Sombras en iOS
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -79,7 +89,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 8,
-    backgroundColor: "#EAEAEA", //Fondo gris mientras carga
+    backgroundColor: "#EAEAEA", // Fondo gris mientras carga
   },
   infoContainer: {
     marginLeft: 16,
