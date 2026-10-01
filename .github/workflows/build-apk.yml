@@ -1,0 +1,46 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Compilar APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Generar código nativo de Android (Prebuild)
+        run: npx expo prebuild --platform android
+
+      - name: Dar permisos de ejecución a Gradle
+        run: chmod +x android/gradlew
+
+      - name: Compilar APK (Release)
+        run: cd android && ./gradlew assembleRelease
+
+      - name: Guardar APK como Artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-entrenamiento-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 7
