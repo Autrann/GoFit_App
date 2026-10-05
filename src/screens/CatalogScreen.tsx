@@ -5,8 +5,8 @@ import {
   FlatList,
   Image,
   StyleSheet,
-  SafeAreaView,
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import catalog from "../assets/data/catalogo_app.json";
 import { imageMap } from "../assets/imgs/imageMap";
