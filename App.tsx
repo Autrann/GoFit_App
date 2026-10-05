@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, ActivityIndicator, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'; // Importaciones actualizadas
 import { NavigationContainer } from '@react-navigation/native';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from './src/config/firebase';
@@ -19,21 +20,21 @@ export default function App() {
     return unsubscribe;
   }, []);
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
-      </SafeAreaView>
-    );
-  }
-
-  // Si hay usuario, montamos la navegación completa. Si no, mostramos el Auth.
-  return user ? (
-    <NavigationContainer>
-      <MainTabNavigator />
-    </NavigationContainer>
-  ) : (
-    <AuthScreen />
+  // Todo se envuelve en SafeAreaProvider desde el nivel más alto
+  return (
+    <SafeAreaProvider>
+      {loading ? (
+        <SafeAreaView style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+        </SafeAreaView>
+      ) : user ? (
+        <NavigationContainer>
+          <MainTabNavigator />
+        </NavigationContainer>
+      ) : (
+        <AuthScreen />
+      )}
+    </SafeAreaProvider>
   );
 }
 
