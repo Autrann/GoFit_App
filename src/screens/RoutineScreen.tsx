@@ -183,11 +183,16 @@ export default function RoutineScreen() {
             </Text>
             <TouchableOpacity 
               style={styles.editToggleBtn} 
-              onPress={() => setIsEditing(!isEditing)}
+              onPress={() => isEditing ? handleSaveRoutine() : setIsEditing(true)}
+              disabled={saving}
             >
-              <Ionicons name={isEditing ? "checkmark-circle" : "create"} size={20} color={isEditing ? "#34C759" : "#007AFF"} />
+              {isEditing ? (
+                saving ? <ActivityIndicator size="small" color="#34C759" /> : <Ionicons name="checkmark-circle" size={20} color="#34C759" />
+              ) : (
+                <Ionicons name="create" size={20} color="#007AFF" />
+              )}
               <Text style={[styles.editToggleText, { color: isEditing ? "#34C759" : "#007AFF" }]}>
-                {isEditing ? "Listo" : "Editar"}
+                {isEditing ? "Guardar cambios" : "Editar"}
               </Text>
             </TouchableOpacity>
           </View>
@@ -304,10 +309,17 @@ export default function RoutineScreen() {
               ))}
 
               {isEditing && (
-                <TouchableOpacity style={styles.addBtn} onPress={() => setCatalogVisible(true)}>
-                  <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
-                  <Text style={styles.addBtnText}>Agregar Ejercicio</Text>
-                </TouchableOpacity>
+                <>
+                  <TouchableOpacity style={styles.addBtn} onPress={() => setCatalogVisible(true)}>
+                    <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
+                    <Text style={styles.addBtnText}>Agregar Ejercicio</Text>
+                  </TouchableOpacity>
+
+                  {/* NUEVO BOTÓN INFERIOR DE GUARDAR CAMBIOS */}
+                  <TouchableOpacity style={styles.bottomSaveBtn} onPress={handleSaveRoutine} disabled={saving}>
+                    {saving ? <ActivityIndicator color="#FFF" /> : <Text style={styles.bottomSaveBtnText}>Guardar Cambios</Text>}
+                  </TouchableOpacity>
+                </>
               )}
             </>
           )}
@@ -481,6 +493,10 @@ const styles = StyleSheet.create({
   
   addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F2F2F7', padding: 16, borderRadius: 12, marginTop: 8, borderStyle: 'dashed', borderWidth: 1, borderColor: '#C7C7CC' },
   addBtnText: { color: '#007AFF', fontWeight: '600', marginLeft: 8 },
+
+  // Estilos del nuevo botón inferior
+  bottomSaveBtn: { backgroundColor: '#34C759', padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 24, shadowColor: '#34C759', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
+  bottomSaveBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 
   restContainer: { alignItems: 'center', paddingVertical: 40 },
   restText: { fontSize: 16, color: '#AEAEB2', marginTop: 12, fontWeight: '500' },
