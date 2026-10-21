@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Dimensions, Image, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { auth, db } from '../config/firebase';
 import { doc, getDoc, collection, getDocs, onSnapshot } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
+import { LineChart, BarChart } from 'react-native-chart-kit';
 
 import { imageMap } from '../assets/imgs/imageMap';
 import catalog from '../assets/data/catalogo_app.json';
-import { useContext } from 'react';
 import { ThemeContext } from '../context/ThemeContext';
 import { lightColors, darkColors } from '../theme/colors';
 
@@ -24,22 +24,20 @@ type WorkoutLogData = {
 };
 
 export default function StatsScreen() {
-const { isDark, toggleTheme } = useContext(ThemeContext); // En ProfileScreen agregamos toggleTheme
-const colors = isDark ? darkColors : lightColors;
-const styles = getStyles(colors);
+  const { isDark } = useContext(ThemeContext); 
+  const colors = isDark ? darkColors : lightColors;
+  const styles = getStyles(colors);
   const navigation = useNavigation<any>();
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<any>(null);
   
   // Datos Generales
   const [weeklyData, setWeeklyData] = useState<DailyData[]>([]);
-  const [maxVolume, setMaxVolume] = useState(0);
-  const [personalRecord, setPersonalRecord] = useState<{name: string, weight: number} | null>(null);
 
   // Datos de Progreso Específico
   const [routineExercises, setRoutineExercises] = useState<any[]>([]);
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
-  const [isExerciseModalVisible, setExerciseModalVisible] = useState(false); // NUEVO: Estado del Modal
+  const [isExerciseModalVisible, setExerciseModalVisible] = useState(false);
   const [allWorkoutLogs, setAllWorkoutLogs] = useState<WorkoutLogData[]>([]);
   const [exerciseHistory, setExerciseHistory] = useState<ExerciseHistory[]>([]);
 
@@ -47,23 +45,19 @@ const styles = getStyles(colors);
     const user = auth.currentUser;
     if (!user) return;
 
-    // 1. Escuchar datos del usuario (peso y racha)
     const unsubUser = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
       if (docSnap.exists()) setUserData(docSnap.data());
     });
 
     const fetchStats = async () => {
       try {
-        // --- A. OBTENER RUTINA PARA EXTRAER EJERCICIOS ÚNICOS ---
         const routineSnap = await getDoc(doc(db, 'users', user.uid, 'data', 'routine'));
         const uniqueExercises = new Map();
         if (routineSnap.exists()) {
           const rData = routineSnap.data();
           Object.values(rData).forEach((day: any) => {
             if (day.exercises && !day.isRest) {
-              day.exercises.forEach((ex: any) => {
-                uniqueExercises.set(ex.id, ex);
-              });
+              day.exercises.forEach((ex: any) => uniqueExercises.set(ex.id, ex));
             }
           });
         }
@@ -71,21 +65,13 @@ const styles = getStyles(colors);
         setRoutineExercises(exercisesArray);
         if (exercisesArray.length > 0) setSelectedExerciseId(exercisesArray[0].id);
 
-        // --- B. OBTENER TODO EL HISTORIAL DE ENTRENAMIENTOS ---
         const logsSnap = await getDocs(collection(db, 'users', user.uid, 'workout_logs'));
-        const logs = logsSnap.docs.map(d => ({ 
-  date: d.id, 
-  ...d.data() 
-} as WorkoutLogData)).sort((a, b) => a.date.localeCompare(b.date));
+        const logs = logsSnap.docs.map(d => ({ date: d.id, ...d.data() } as WorkoutLogData)).sort((a, b) => a.date.localeCompare(b.date));
         setAllWorkoutLogs(logs);
 
-        // --- C. PROCESAR ÚLTIMOS 7 DÍAS PARA VOLUMEN GENERAL ---
         const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
         const today = new Date();
         const tempWeeklyData: DailyData[] = [];
-        let currentMaxVolume = 0;
-        let highestWeight = 0;
-        let prExerciseId = '';
 
         for (let i = 6; i >= 0; i--) {
           const d = new Date(today);
@@ -107,29 +93,16 @@ const styles = getStyles(colors);
                     const r = parseInt(ex.reps[j]) || 0;
                     const w = parseFloat(ex.weights[j]) || 1;
                     dailyVolume += (r * w);
-
-                    const actualWeight = parseFloat(ex.weights[j]) || 0;
-                    if (actualWeight > highestWeight) {
-                      highestWeight = actualWeight;
-                      prExerciseId = exId;
-                    }
                   }
                 }
               });
             }
           }
 
-          if (dailyVolume > currentMaxVolume) currentMaxVolume = dailyVolume;
           tempWeeklyData.push({ date: dateStr, dayName, volume: dailyVolume, finished });
         }
 
         setWeeklyData(tempWeeklyData);
-        setMaxVolume(currentMaxVolume);
-
-        if (prExerciseId) {
-          const exDetail = catalog.find(e => e.id === prExerciseId);
-          if (exDetail) setPersonalRecord({ name: exDetail.name, weight: highestWeight });
-        }
 
       } catch (error) {
         console.error("Error obteniendo estadísticas:", error);
@@ -139,11 +112,9 @@ const styles = getStyles(colors);
     };
 
     fetchStats();
-
     return () => unsubUser();
   }, []);
 
-  // --- D. ACTUALIZAR GRÁFICA DE EJERCICIO ESPECÍFICO ---
   useEffect(() => {
     if (!selectedExerciseId || allWorkoutLogs.length === 0) return;
 
@@ -159,7 +130,7 @@ const styles = getStyles(colors);
         });
 
         if (maxW > 0) {
-          const d = new Date(log.date + 'T12:00:00Z'); // Evitar desfase de zona horaria
+          const d = new Date(log.date + 'T12:00:00Z');
           const shortDate = `${d.getDate()}/${d.getMonth() + 1}`;
           history.push({ date: log.date, shortDate, maxWeight: maxW });
         }
@@ -172,14 +143,25 @@ const styles = getStyles(colors);
   if (loading) return <View style={styles.centerContainer}><ActivityIndicator size="large" color="#007AFF" /></View>;
 
   const streakCount = userData?.streak || 0;
-  const currentWeight = userData?.weight;
+  const currentWeight = userData?.weight ? parseFloat(userData.weight) : null;
   const bestDay = [...weeklyData].sort((a, b) => b.volume - a.volume)[0];
 
   const exerciseMaxWeight = exerciseHistory.length > 0 ? Math.max(...exerciseHistory.map(h => h.maxWeight)) : 0;
   const exerciseLastWeight = exerciseHistory.length > 0 ? exerciseHistory[exerciseHistory.length - 1].maxWeight : 0;
-  
-  // Objeto del ejercicio actualmente seleccionado
   const activeExerciseObj = routineExercises.find(ex => ex.id === selectedExerciseId);
+
+  // --- HISTORIAL DE PESO SIMULADO ---
+  const mockWeightHistory = currentWeight ? [
+    currentWeight + 1.5, 
+    currentWeight + 0.8, 
+    currentWeight + 0.2, 
+    currentWeight - 0.5, 
+    currentWeight
+  ] : [];
+  const mockWeightLabels = ["Sem 1", "Sem 2", "Sem 3", "Sem 4", "Hoy"];
+
+  // --- CONFIGURACIONES GLOBALES DE GRÁFICAS ---
+  const chartWidth = width - 72; // Adaptado al ancho de la tarjeta
 
   return (
     <SafeAreaView style={styles.container}>
@@ -204,7 +186,7 @@ const styles = getStyles(colors);
           </View>
         </View>
 
-        {/* 1. SECCIÓN DE PROGRESO POR EJERCICIO */}
+        {/* 1. SECCIÓN DE PROGRESO POR EJERCICIO (BAR CHART) */}
         {routineExercises.length > 0 && (
           <View style={styles.card}>
             <View style={styles.rowAlign}>
@@ -213,7 +195,6 @@ const styles = getStyles(colors);
             </View>
             <Text style={styles.sectionSubtitle}>Mira la evolución de tus cargas máximas.</Text>
 
-            {/* BOTÓN TIPO DROPDOWN */}
             <TouchableOpacity style={styles.dropdownSelector} onPress={() => setExerciseModalVisible(true)}>
               {activeExerciseObj ? (
                 <View style={styles.rowAlign}>
@@ -226,7 +207,6 @@ const styles = getStyles(colors);
               <Ionicons name="chevron-down" size={20} color="#8E8E93" />
             </TouchableOpacity>
 
-            {/* Gráfica y Datos del Ejercicio */}
             {exerciseHistory.length > 0 ? (
               <View style={styles.exerciseStatsContainer}>
                 <View style={styles.exerciseMetricsRow}>
@@ -236,67 +216,78 @@ const styles = getStyles(colors);
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
                     <Text style={styles.metricLabel}>Récord Histórico</Text>
-                    <Text style={[styles.metricValue, { color: '#34C759' }]}>{exerciseMaxWeight} kg 🏆</Text>
+                    <Text style={[styles.metricValue, { color: colors.success }]}>{exerciseMaxWeight} kg 🏆</Text>
                   </View>
                 </View>
 
-                {/* Gráfica de Barras para el Ejercicio */}
-                <View style={styles.chartContainer}>
-                  {exerciseHistory.map((session, index) => {
-                    const barHeight = exerciseMaxWeight > 0 ? (session.maxWeight / exerciseMaxWeight) * 100 : 0;
-                    const isLast = index === exerciseHistory.length - 1;
-
-                    return (
-                      <View key={session.date} style={styles.barCol}>
-                        <Text style={styles.barValue}>{session.maxWeight}</Text>
-                        <View style={styles.barTrack}>
-                          <View style={[
-                            styles.barFill, 
-                            { height: `${barHeight}%`, backgroundColor: isLast ? '#34C759' : '#C6F6D5' }
-                          ]} />
-                        </View>
-                        <Text style={[styles.barLabel, isLast && styles.barLabelToday]}>{session.shortDate}</Text>
-                      </View>
-                    );
-                  })}
+                <View style={{ marginTop: 10, alignItems: 'center' }}>
+                  <BarChart
+                    data={{
+                      labels: exerciseHistory.map(h => h.shortDate),
+                      datasets: [{ data: exerciseHistory.map(h => h.maxWeight) }]
+                    }}
+                    width={chartWidth - 32} // Más padding interno
+                    height={180}
+                    yAxisLabel=""
+                    yAxisSuffix="k"
+                    fromZero={true}
+                    showValuesOnTopOfBars={true}
+                    chartConfig={{
+                      backgroundColor: colors.cardAlt,
+                      backgroundGradientFrom: colors.cardAlt,
+                      backgroundGradientTo: colors.cardAlt,
+                      decimalPlaces: 0,
+                      color: (opacity = 1) => `rgba(52, 199, 89, ${opacity})`, // Verde
+                      labelColor: (opacity = 1) => isDark ? `rgba(255, 255, 255, ${opacity})` : `rgba(142, 142, 147, ${opacity})`,
+                      barPercentage: 0.6,
+                      propsForBackgroundLines: { strokeWidth: 0.5, stroke: colors.border }
+                    }}
+                    style={{ borderRadius: 16, marginLeft: -16 }}
+                  />
                 </View>
               </View>
             ) : (
               <View style={styles.emptyGraphContainer}>
                 <Ionicons name="barbell-outline" size={40} color="#E5E5EA" />
-                <Text style={styles.emptyText}>No hay registros de peso para este ejercicio aún. ¡Regístralo en tu próxima sesión!</Text>
+                <Text style={styles.emptyText}>No hay registros de peso para este ejercicio aún.</Text>
               </View>
             )}
           </View>
         )}
 
-        {/* 2. GRÁFICA DE VOLUMEN GENERAL SEMANAL */}
+        {/* 2. GRÁFICA DE VOLUMEN GENERAL SEMANAL (BAR CHART) */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Volumen General de Carga</Text>
-          <Text style={styles.sectionSubtitle}>Suma total de repeticiones × peso en los últimos 7 días.</Text>
+          <Text style={styles.sectionSubtitle}>Suma de repeticiones × peso en los últimos 7 días.</Text>
           
-          <View style={styles.chartContainer}>
-            {weeklyData.map((day, index) => {
-              const barHeight = maxVolume > 0 ? (day.volume / maxVolume) * 100 : 0;
-              const isToday = index === 6;
-
-              return (
-                <View key={day.date} style={styles.barCol}>
-                  {day.volume > 0 && <Text style={styles.barValue}>{Math.round(day.volume)}</Text>}
-                  <View style={styles.barTrack}>
-                    <View style={[
-                      styles.barFill, 
-                      { height: `${barHeight}%`, backgroundColor: isToday ? '#007AFF' : '#AADAFF' }
-                    ]} />
-                  </View>
-                  <Text style={[styles.barLabel, isToday && styles.barLabelToday]}>{day.dayName}</Text>
-                </View>
-              );
-            })}
+          <View style={{ marginTop: 16, alignItems: 'center' }}>
+            <BarChart
+              data={{
+                labels: weeklyData.map(d => d.dayName),
+                datasets: [{ data: weeklyData.map(d => d.volume) }]
+              }}
+              width={chartWidth}
+              height={200}
+              yAxisLabel=""
+              yAxisSuffix=""
+              fromZero={true}
+              showValuesOnTopOfBars={false} // Se apaga porque el volumen suele ser un número de 4 dígitos y se empalma
+              chartConfig={{
+                backgroundColor: colors.card,
+                backgroundGradientFrom: colors.card,
+                backgroundGradientTo: colors.card,
+                decimalPlaces: 0,
+                color: (opacity = 1) => `rgba(10, 132, 255, ${opacity})`, // Azul primario
+                labelColor: (opacity = 1) => isDark ? `rgba(255, 255, 255, ${opacity})` : `rgba(142, 142, 147, ${opacity})`,
+                barPercentage: 0.5,
+                propsForBackgroundLines: { strokeWidth: 0.5, stroke: colors.border }
+              }}
+              style={{ borderRadius: 16, marginLeft: -16 }}
+            />
           </View>
         </View>
 
-        {/* 3. SECCIÓN DE PESO CORPORAL */}
+        {/* 3. SECCIÓN DE PESO CORPORAL (LINE CHART) */}
         <View style={[styles.card, styles.weightCard]}>
           <View style={styles.rowBetween}>
             <View style={styles.rowAlign}>
@@ -312,11 +303,36 @@ const styles = getStyles(colors);
               <Text style={styles.weightAlertText}>¡No tienes un peso registrado! Es vital para medir tus ganancias o déficit.</Text>
             </View>
           ) : (
-            <Text style={styles.weightMotivator}>Registrar tu peso regularmente te ayuda a ver qué tan efectiva está siendo tu rutina.</Text>
+            <View style={{ marginTop: 24, alignItems: 'center' }}>
+              <LineChart
+                data={{
+                  labels: mockWeightLabels,
+                  datasets: [{ data: mockWeightHistory }]
+                }}
+                width={chartWidth}
+                height={180}
+                yAxisSuffix="kg"
+                withInnerLines={true}
+                withOuterLines={false}
+                chartConfig={{
+                  backgroundColor: colors.card,
+                  backgroundGradientFrom: colors.card,
+                  backgroundGradientTo: colors.card,
+                  decimalPlaces: 1,
+                  color: (opacity = 1) => `rgba(88, 86, 214, ${opacity})`, // Morado
+                  labelColor: (opacity = 1) => isDark ? `rgba(255, 255, 255, ${opacity})` : `rgba(142, 142, 147, ${opacity})`,
+                  style: { borderRadius: 16 },
+                  propsForDots: { r: "5", strokeWidth: "2", stroke: colors.card },
+                  propsForBackgroundLines: { strokeWidth: 0.5, stroke: colors.border, strokeDasharray: "" } // Líneas sólidas tenues
+                }}
+                bezier
+                style={{ borderRadius: 16, marginLeft: -16 }}
+              />
+            </View>
           )}
 
           <TouchableOpacity style={styles.weightBtn} onPress={() => navigation.navigate('Perfil')}>
-            <Text style={styles.weightBtnText}>Actualizar mi peso en el Perfil</Text>
+            <Text style={styles.weightBtnText}>Actualizar mi peso</Text>
             <Ionicons name="arrow-forward" size={18} color="#007AFF" />
           </TouchableOpacity>
         </View>
@@ -400,24 +416,15 @@ const getStyles = (colors: any) => StyleSheet.create({
   exerciseOptionTextActive: { fontWeight: '700', color: colors.primary },
 
   exerciseStatsContainer: { backgroundColor: colors.cardAlt, borderRadius: 16, padding: 16, marginTop: 12 },
-  exerciseMetricsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
+  exerciseMetricsRow: { flexDirection: 'row', justifyContent: 'space-between' },
   metricLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, textTransform: 'uppercase' },
   metricValue: { fontSize: 20, fontWeight: '800', color: colors.text, marginTop: 4 },
   emptyGraphContainer: { alignItems: 'center', padding: 30, backgroundColor: colors.cardAlt, borderRadius: 16, marginTop: 12 },
-
-  chartContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', height: 160, marginTop: 10 },
-  barCol: { alignItems: 'center', flex: 1 },
-  barValue: { fontSize: 10, color: colors.textSecondary, fontWeight: '700', marginBottom: 4 },
-  barTrack: { width: 14, height: 110, backgroundColor: colors.border, borderRadius: 7, justifyContent: 'flex-end', overflow: 'hidden' },
-  barFill: { width: '100%', borderRadius: 7 },
-  barLabel: { fontSize: 11, color: colors.textSecondary, marginTop: 8, fontWeight: '600' },
-  barLabelToday: { color: colors.primary, fontWeight: '800' },
 
   weightCard: { borderColor: colors.border, borderWidth: 1 },
   weightValue: { fontSize: 28, fontWeight: '800', color: colors.text },
   weightAlert: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.warningBg, padding: 12, borderRadius: 12, marginTop: 16 },
   weightAlertText: { fontSize: 13, color: colors.warning, fontWeight: '600', flex: 1, lineHeight: 18 },
-  weightMotivator: { fontSize: 14, color: colors.textSecondary, marginTop: 16, lineHeight: 20 },
   weightBtn: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.primaryLight, padding: 16, borderRadius: 16, marginTop: 16 },
   weightBtnText: { color: colors.primary, fontSize: 15, fontWeight: '700' },
 });

@@ -1,24 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Modal, TextInput, ScrollView, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth, db } from '../config/firebase';
 import { doc, getDoc, updateDoc, setDoc, onSnapshot } from 'firebase/firestore';
-import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 import { imageMap } from '../assets/imgs/imageMap';
-
-import { useContext } from 'react';
 import { ThemeContext } from '../context/ThemeContext';
 import { lightColors, darkColors } from '../theme/colors';
 
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
 export default function ProfileScreen() {
-const { isDark, toggleTheme } = useContext(ThemeContext); 
-const colors = isDark ? darkColors : lightColors;
-const styles = getStyles(colors);
+  const { isDark, toggleTheme } = useContext(ThemeContext); 
+  const colors = isDark ? darkColors : lightColors;
+  const styles = getStyles(colors);
   const navigation = useNavigation<any>();
   
   const [userData, setUserData] = useState<any>(null);
@@ -30,7 +27,7 @@ const styles = getStyles(colors);
   const todayIndex = today.getDay();
   const todayName = DAYS[todayIndex];
   const tomorrowName = DAYS[(todayIndex + 1) % 7];
-  const dateString = today.toISOString().split('T')[0]; // YYYY-MM-DD
+  const dateString = today.toISOString().split('T')[0];
 
   // Obtener fecha de hace 7 días
   const lastWeekDate = new Date(today);
@@ -44,7 +41,7 @@ const styles = getStyles(colors);
   
   // Estados para Perfil y Peso
   const [isProfileModalVisible, setProfileModalVisible] = useState(false);
-  const [tempWeight, setTempWeight] = useState('70');
+  const [tempWeight, setTempWeight] = useState('');
   const [savingSettings, setSavingSettings] = useState(false);
 
   // Estados para Modal de Ejercicio
@@ -54,28 +51,23 @@ const styles = getStyles(colors);
   const [tempWeights, setTempWeights] = useState<string[]>([]);
   const [savingExercise, setSavingExercise] = useState(false);
 
-  // 1. Cargar datos en Tiempo Real (onSnapshot)
+  // 1. Cargar datos en Tiempo Real
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
 
-    // Listener para datos de usuario
     const unsubUser = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         setUserData(data);
-        if (data.weight) setTempWeight(data.weight);
+        if (data.weight && !tempWeight) setTempWeight(data.weight.toString());
       }
     });
 
-    // Listener para la rutina
     const unsubRoutine = onSnapshot(doc(db, 'users', user.uid, 'data', 'routine'), (docSnap) => {
-      if (docSnap.exists()) {
-        setRoutine(docSnap.data());
-      }
+      if (docSnap.exists()) setRoutine(docSnap.data());
     });
 
-    // Listener para el registro del día
     const unsubLog = onSnapshot(doc(db, 'users', user.uid, 'workout_logs', dateString), (docSnap) => {
       if (docSnap.exists()) {
         const logData = docSnap.data();
@@ -86,13 +78,10 @@ const styles = getStyles(colors);
       }
     });
 
-    // Fetch del registro de la semana pasada
     const fetchLastWeek = async () => {
       const lwRef = doc(db, 'users', user.uid, 'workout_logs', lastWeekString);
       const lwSnap = await getDoc(lwRef);
-      if (lwSnap.exists()) {
-        setLastWeekLog(lwSnap.data());
-      }
+      if (lwSnap.exists()) setLastWeekLog(lwSnap.data());
       setLoading(false);
     };
     fetchLastWeek();
@@ -105,12 +94,20 @@ const styles = getStyles(colors);
   }, []);
 
   const handleUpdateWeight = async () => {
+    // Validación para asegurar que sea un número válido
+    const numericWeight = parseFloat(tempWeight.replace(',', '.'));
+    if (isNaN(numericWeight) || numericWeight <= 0) {
+      Alert.alert("Error", "Por favor ingresa un peso válido (ej. 70.5).");
+      return;
+    }
+
     setSavingSettings(true);
     try {
       const user = auth.currentUser;
       if (user) {
         const timestamp = new Date().toISOString();
-        await updateDoc(doc(db, 'users', user.uid), { weight: tempWeight, lastWeightUpdate: timestamp });
+        // Guardamos el peso formateado
+        await updateDoc(doc(db, 'users', user.uid), { weight: numericWeight.toString(), lastWeightUpdate: timestamp });
         Alert.alert("¡Éxito!", "Tu peso ha sido actualizado correctamente.");
       }
     } catch (error) {
@@ -126,7 +123,6 @@ const styles = getStyles(colors);
   };
 
   // --- LÓGICA DE REGISTRO DE ENTRENAMIENTO ---
-
   const openExerciseModal = (exercise: any) => {
     setActiveExercise(exercise);
     const existingData = workoutLog.exercises[exercise.id];
@@ -272,7 +268,6 @@ const styles = getStyles(colors);
     );
   };
 
-  // --- LÓGICA DE ESTADÍSTICAS ---
   const calculateVolume = (exerciseLog: any) => {
     if (!exerciseLog || exerciseLog.skipped) return 0;
     let volume = 0;
@@ -327,15 +322,12 @@ const styles = getStyles(colors);
     };
   };
 
-  // --- RENDERIZADO ---
-
   const getFirstName = (fullName: string) => fullName ? fullName.split(' ')[0] : 'Usuario';
 
   if (loading) return <View style={styles.centerContainer}><ActivityIndicator size="large" color="#007AFF" /></View>;
 
   const todayPlan = routine ? routine[todayName] : null;
   const tomorrowPlan = routine ? routine[tomorrowName] : null;
-  const weightOptions = Array.from({ length: 111 }, (_, i) => (i + 40).toString());
   const streakCount = userData?.streak || 0;
   const hasWorkedOutToday = workoutLog.finished;
 
@@ -347,7 +339,6 @@ const styles = getStyles(colors);
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={styles.greeting}>Hola, {getFirstName(userData?.name || auth.currentUser?.displayName)}</Text>
-            {/* Animación/Icono de Racha */}
             <View style={[styles.streakBadge, hasWorkedOutToday && styles.streakBadgeActive]}>
               <Ionicons name="flame" size={16} color={hasWorkedOutToday ? "#FF9500" : "#AEAEB2"} />
               <Text style={[styles.streakText, hasWorkedOutToday && { color: '#FF9500' }]}>{streakCount}</Text>
@@ -367,7 +358,6 @@ const styles = getStyles(colors);
           <Text style={styles.emptyText}>Aún no has configurado tu rutina en la pestaña "Rutina".</Text>
         ) : workoutLog.finished ? (
           <>
-            {/* VISTA CUANDO EL ENTRENAMIENTO ESTÁ TERMINADO */}
             <View style={styles.finishedCard}>
               <Ionicons name="trophy" size={60} color="#FFD60A" />
               <Text style={styles.finishedTitle}>¡Entrenamiento completado!</Text>
@@ -383,10 +373,8 @@ const styles = getStyles(colors);
               </View>
             </View>
 
-            {/* VISTA DEL RESUMEN DE RENDIMIENTO */}
             <View style={styles.summaryCard}>
               <Text style={styles.sectionTitle}>Análisis del Día</Text>
-              
               <View style={styles.summaryContent}>
                 {(() => {
                   const summary = generateSummary();
@@ -420,14 +408,12 @@ const styles = getStyles(colors);
             </View>
           </>
         ) : todayPlan.isRest ? (
-          // VISTA SI HOY ES DESCANSO
           <View style={styles.restCard}>
             <Ionicons name="bed-outline" size={60} color="#AEAEB2" />
             <Text style={styles.restTitle}>Hoy es día de descanso</Text>
             <Text style={styles.restSubtitle}>Toca recargar energías para mañana.</Text>
           </View>
         ) : (
-          // VISTA DE ENTRENAMIENTO ACTIVO
           <View style={styles.workoutCard}>
             <Text style={styles.routineDayText}>Día de {todayPlan.title}</Text>
             <Text style={styles.musclesText}>Músculos: {todayPlan.muscles.join(', ')}</Text>
@@ -461,9 +447,7 @@ const styles = getStyles(colors);
                       <Image source={imageMap[ex.id as keyof typeof imageMap]} style={styles.exerciseListImg} />
                       <View style={styles.exerciseListInfo}>
                         <Text style={styles.exerciseListName}>{ex.name}</Text>
-                        <Text style={[styles.exerciseStatusText, { color: statusInfo.color }]}>
-                          {statusInfo.text}
-                        </Text>
+                        <Text style={[styles.exerciseStatusText, { color: statusInfo.color }]}>{statusInfo.text}</Text>
                       </View>
                       <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
                     </TouchableOpacity>
@@ -486,14 +470,25 @@ const styles = getStyles(colors);
           </View>
           
           <Text style={styles.weightSubtitle}>
-            Tu peso actual es de <Text style={{fontWeight: '800', color: '#1C1C1E'}}>{userData?.weight || '--'} kg</Text>.
+            Tu peso actual es de <Text style={{fontWeight: '800', color: colors.text}}>{userData?.weight || '--'} kg</Text>.
           </Text>
           <Text style={styles.weightSubtitle2}>¿Han habido cambios? ¡Registrémoslo!</Text>
           
-          <View style={styles.pickerContainer}>
-            <Picker selectedValue={tempWeight} onValueChange={setTempWeight}>
-              {weightOptions.map(w => <Picker.Item key={w} label={`${w} kg`} value={w} />)}
-            </Picker>
+          <View style={styles.weightInputWrapper}>
+            <TextInput
+              style={styles.weightTextInput}
+              keyboardType="decimal-pad"
+              placeholder="Ej. 70.5"
+              placeholderTextColor={colors.textSecondary}
+              value={tempWeight}
+              onChangeText={(val) => {
+                // Solo permitir números y un punto o coma decimal
+                const formatted = val.replace(/[^0-9.,]/g, '');
+                setTempWeight(formatted);
+              }}
+              maxLength={6}
+            />
+            <Text style={styles.weightSuffix}>kg</Text>
           </View>
           
           <TouchableOpacity style={styles.primaryButton} onPress={handleUpdateWeight} disabled={savingSettings}>
@@ -532,7 +527,6 @@ const styles = getStyles(colors);
                   <Text style={styles.repLabel}>Serie {idx + 1}</Text>
                   
                   <View style={styles.inputGroupContainer}>
-                    {/* Input de Peso */}
                     <View style={styles.repInputContainer}>
                       <TextInput 
                         style={styles.repInput}
@@ -540,13 +534,13 @@ const styles = getStyles(colors);
                         value={tempWeights[idx]}
                         onChangeText={(val) => updateWeightValue(idx, val)}
                         placeholder="0"
+                        placeholderTextColor={colors.textSecondary}
                       />
                       <Text style={styles.repSufix}>kg</Text>
                     </View>
                     
                     <Text style={{color: '#C7C7CC', marginHorizontal: 8}}>×</Text>
 
-                    {/* Input de Reps */}
                     <View style={styles.repInputContainer}>
                       <TextInput 
                         style={styles.repInput}
@@ -554,6 +548,7 @@ const styles = getStyles(colors);
                         value={rep}
                         onChangeText={(val) => updateRepValue(idx, val)}
                         placeholder="0"
+                        placeholderTextColor={colors.textSecondary}
                       />
                       <Text style={styles.repSufix}>reps</Text>
                     </View>
@@ -573,7 +568,7 @@ const styles = getStyles(colors);
         </View>
       </Modal>
 
-      {/* MODAL 2: AJUSTES DE PERFIL (Opciones) */}
+      {/* MODAL 2: AJUSTES DE PERFIL */}
       <Modal visible={isProfileModalVisible} animationType="fade" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -585,18 +580,12 @@ const styles = getStyles(colors);
               </TouchableOpacity>
             </View>
 
-            {/* --- AQUÍ VA EL BOTÓN DE MODO OSCURO --- */}
             <View style={[styles.rowBetween, { padding: 0, backgroundColor: 'transparent', marginBottom: 24 }]}>
               <Text style={styles.label}>Modo Oscuro</Text>
               <TouchableOpacity onPress={toggleTheme} style={{ padding: 4 }}>
-                <Ionicons 
-                  name={isDark ? "moon" : "sunny"} 
-                  size={28} 
-                  color={isDark ? colors.primary : "#FF9500"} 
-                />
+                <Ionicons name={isDark ? "moon" : "sunny"} size={28} color={isDark ? colors.primary : "#FF9500"} />
               </TouchableOpacity>
             </View>
-            {/* -------------------------------------- */}
 
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
               <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
@@ -676,7 +665,11 @@ const getStyles = (colors: any) => StyleSheet.create({
   weightCard: { backgroundColor: colors.card, borderRadius: 24, padding: 20, marginTop: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
   weightSubtitle: { fontSize: 16, color: colors.text, marginTop: 4 },
   weightSubtitle2: { fontSize: 14, color: colors.textSecondary, marginTop: 4, marginBottom: 16 },
-  pickerContainer: { backgroundColor: colors.background, borderRadius: 12, overflow: 'hidden', marginBottom: 16 },
+  
+  // NUEVOS ESTILOS PARA EL INPUT DE PESO (reemplazan a pickerContainer)
+  weightInputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.background, borderRadius: 12, paddingHorizontal: 16, marginBottom: 16, borderWidth: 1, borderColor: colors.border },
+  weightTextInput: { flex: 1, color: colors.text, fontSize: 24, fontWeight: '700', paddingVertical: 12, textAlign: 'center' },
+  weightSuffix: { fontSize: 18, fontWeight: '600', color: colors.textSecondary, marginLeft: 8 },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: colors.card, borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, paddingBottom: 40 },

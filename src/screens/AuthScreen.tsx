@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth, db } from '../config/firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { useContext } from 'react';
+
+// Tema global
 import { ThemeContext } from '../context/ThemeContext';
 import { lightColors, darkColors } from '../theme/colors';
 
@@ -12,6 +13,7 @@ export default function AuthScreen() {
   const { isDark } = useContext(ThemeContext);
   const colors = isDark ? darkColors : lightColors;
   const styles = getStyles(colors);
+  
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,7 +41,7 @@ export default function AuthScreen() {
   };
 
   const handleAuthentication = async () => {
-    // 1. Validaciones previas locales (Pre-flight checks)
+    // 1. Validaciones previas locales
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     
     if (!email || !password) {
@@ -81,7 +83,7 @@ export default function AuthScreen() {
         });
       }
     } catch (error: any) {
-      // 3. Captura y traducción del error de Firebase
+      // 3. Captura y traducción del error
       const friendlyMessage = getFriendlyErrorMessage(error.code);
       Alert.alert(isLogin ? 'Error al iniciar sesión' : 'Error en el registro', friendlyMessage);
     } finally {
@@ -98,6 +100,7 @@ export default function AuthScreen() {
           <TextInput
             style={styles.input}
             placeholder="Tu Nombre"
+            placeholderTextColor={colors.textSecondary} 
             value={name}
             onChangeText={setName}
             autoCapitalize="words"
@@ -107,6 +110,7 @@ export default function AuthScreen() {
         <TextInput
           style={styles.input}
           placeholder="Correo electrónico"
+          placeholderTextColor={colors.textSecondary} 
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -116,6 +120,7 @@ export default function AuthScreen() {
         <TextInput
           style={styles.input}
           placeholder="Contraseña"
+          placeholderTextColor={colors.textSecondary}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -140,7 +145,7 @@ const getStyles = (colors: any) => StyleSheet.create({
   input: { backgroundColor: colors.card, color: colors.text, padding: 16, borderRadius: 8, marginBottom: 16, borderWidth: 1, borderColor: colors.border },
   button: { backgroundColor: colors.primary, padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 8 },
   buttonDisabled: { backgroundColor: colors.primaryDisabled },
-  buttonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' }, // El texto en botones primarios suele ser blanco siempre
+  buttonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' }, 
   switchButton: { marginTop: 24, alignItems: 'center' },
   switchText: { color: colors.primary, fontSize: 14 },
 });
