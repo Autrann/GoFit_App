@@ -9,6 +9,10 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import catalog from '../assets/data/catalogo_app.json';
 import { imageMap } from '../assets/imgs/imageMap';
 
+import { useContext } from 'react';
+import { ThemeContext } from '../context/ThemeContext';
+import { lightColors, darkColors } from '../theme/colors';
+
 // Tipos actualizados con instructions y muscleImage
 type Exercise = { id: string; name: string; muscle: string; image: string; instructions?: string[]; muscleImage?: string; };
 type DayPlan = { isRest: boolean; title: string; muscles: string[]; cardio: boolean; exercises: Exercise[]; };
@@ -34,6 +38,9 @@ const defaultDayPlan: DayPlan = { isRest: false, title: '', muscles: [], cardio:
 const initialRoutine = DAYS.reduce((acc, day) => ({ ...acc, [day]: { ...defaultDayPlan } }), {} as Routine);
 
 export default function RoutineScreen() {
+const { isDark, toggleTheme } = useContext(ThemeContext); // En ProfileScreen agregamos toggleTheme
+const colors = isDark ? darkColors : lightColors;
+const styles = getStyles(colors);
   const [routine, setRoutine] = useState<Routine>(initialRoutine);
   const [activeDay, setActiveDay] = useState<string>('Lunes');
   const [loading, setLoading] = useState(true);
@@ -444,93 +451,92 @@ export default function RoutineScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F2F2F7' },
+const getStyles = (colors: any) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 16 },
-  headerTitle: { fontSize: 28, fontWeight: '800', color: '#1C1C1E' },
-  saveBtn: { backgroundColor: '#E5F1FF', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
-  saveBtnText: { color: '#007AFF', fontWeight: '700' },
+  headerTitle: { fontSize: 28, fontWeight: '800', color: colors.text },
+  saveBtn: { backgroundColor: colors.primaryLight, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
+  saveBtnText: { color: colors.primary, fontWeight: '700' },
   
   daysScroll: { paddingHorizontal: 16, paddingBottom: 10 },
-  dayTab: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, backgroundColor: '#E5E5EA', marginRight: 10 },
-  dayTabActive: { backgroundColor: '#1C1C1E' },
-  dayTabText: { color: '#8E8E93', fontWeight: '600', textTransform: 'capitalize' },
-  dayTabTextActive: { color: '#FFF' },
+  dayTab: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, backgroundColor: colors.border, marginRight: 10 },
+  dayTabActive: { backgroundColor: colors.text },
+  dayTabText: { color: colors.textSecondary, fontWeight: '600', textTransform: 'capitalize' },
+  dayTabTextActive: { color: colors.background },
 
   content: { padding: 16 },
-  card: { backgroundColor: '#FFF', borderRadius: 20, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
+  card: { backgroundColor: colors.card, borderRadius: 20, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1C1C1E' },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
   
-  editToggleBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F2F2F7', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
+  editToggleBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.background, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
   editToggleText: { fontWeight: '600', fontSize: 14, marginLeft: 4 },
   
-  editSection: { backgroundColor: '#F8F9FA', padding: 16, borderRadius: 16, marginBottom: 16 },
+  editSection: { backgroundColor: colors.cardAlt, padding: 16, borderRadius: 16, marginBottom: 16 },
   
-  label: { fontSize: 14, fontWeight: '600', color: '#8E8E93', marginBottom: 8, marginTop: 8 },
-  input: { backgroundColor: '#FFF', padding: 14, borderRadius: 12, fontSize: 16, color: '#1C1C1E', borderWidth: 1, borderColor: '#E5E5EA' },
-  divider: { height: 1, backgroundColor: '#F2F2F7', marginVertical: 20 },
+  label: { fontSize: 14, fontWeight: '600', color: colors.textSecondary, marginBottom: 8, marginTop: 8 },
+  input: { backgroundColor: colors.card, color: colors.text, padding: 14, borderRadius: 12, fontSize: 16, borderWidth: 1, borderColor: colors.border },
+  divider: { height: 1, backgroundColor: colors.background, marginVertical: 20 },
 
   readOnlyMusclesContainer: { marginBottom: 10 },
-  cardioBadge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: '#FFF0D9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, marginTop: 8 },
-  cardioBadgeText: { color: '#FF9500', fontWeight: '700', fontSize: 13, marginLeft: 4 },
-  emptyText: { color: '#AEAEB2', fontStyle: 'italic', marginTop: 10 },
+  cardioBadge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: colors.warningBg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, marginTop: 8 },
+  cardioBadgeText: { color: colors.warning, fontWeight: '700', fontSize: 13, marginLeft: 4 },
+  emptyText: { color: colors.textSecondary, fontStyle: 'italic', marginTop: 10 },
 
   chipsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E5E5EA' },
-  chipActive: { backgroundColor: '#E5F1FF', borderColor: '#007AFF' },
-  chipText: { color: '#8E8E93', fontWeight: '500' },
-  chipTextActive: { color: '#007AFF', fontWeight: '700' },
+  chip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  chipActive: { backgroundColor: colors.primaryLight, borderColor: colors.primary },
+  chipText: { color: colors.textSecondary, fontWeight: '500' },
+  chipTextActive: { color: colors.primary, fontWeight: '700' },
 
-  exerciseListItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA', padding: 10, borderRadius: 12, marginBottom: 8 },
+  exerciseListItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, padding: 10, borderRadius: 12, marginBottom: 8 },
   exerciseListContent: { flex: 1, flexDirection: 'row', alignItems: 'center' },
-  exerciseListImg: { width: 50, height: 50, borderRadius: 8, backgroundColor: '#FFF' },
-  exerciseListName: { fontSize: 15, fontWeight: '600', color: '#1C1C1E' },
-  exerciseListMuscle: { fontSize: 13, color: '#8E8E93', marginTop: 2 },
+  exerciseListImg: { width: 50, height: 50, borderRadius: 8, backgroundColor: colors.imagePlaceholder },
+  exerciseListName: { fontSize: 15, fontWeight: '600', color: colors.text },
+  exerciseListMuscle: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
   deleteIconBtn: { padding: 8 },
   
-  addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F2F2F7', padding: 16, borderRadius: 12, marginTop: 8, borderStyle: 'dashed', borderWidth: 1, borderColor: '#C7C7CC' },
-  addBtnText: { color: '#007AFF', fontWeight: '600', marginLeft: 8 },
+  addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background, padding: 16, borderRadius: 12, marginTop: 8, borderStyle: 'dashed', borderWidth: 1, borderColor: colors.textSecondary },
+  addBtnText: { color: colors.primary, fontWeight: '600', marginLeft: 8 },
 
-  // Estilos del nuevo botón inferior
-  bottomSaveBtn: { backgroundColor: '#34C759', padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 24, shadowColor: '#34C759', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
+  bottomSaveBtn: { backgroundColor: colors.success, padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 24, shadowColor: colors.success, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
   bottomSaveBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 
   restContainer: { alignItems: 'center', paddingVertical: 40 },
-  restText: { fontSize: 16, color: '#AEAEB2', marginTop: 12, fontWeight: '500' },
+  restText: { fontSize: 16, color: colors.textSecondary, marginTop: 12, fontWeight: '500' },
 
-  modalContainer: { flex: 1, backgroundColor: '#F2F2F7' },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#E5E5EA' },
-  cancelText: { color: '#007AFF', fontSize: 16 },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: '#1C1C1E' },
-  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E5E5EA', margin: 16, paddingHorizontal: 12, borderRadius: 10, height: 40 },
-  searchInput: { flex: 1, marginLeft: 8, fontSize: 16 },
-  catalogCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', padding: 12, marginHorizontal: 16, marginBottom: 8, borderRadius: 12 },
-  catalogImg: { width: 60, height: 60, borderRadius: 8, backgroundColor: '#F2F2F7' },
+  modalContainer: { flex: 1, backgroundColor: colors.background },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.border },
+  cancelText: { color: colors.primary, fontSize: 16 },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
+  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.border, margin: 16, paddingHorizontal: 12, borderRadius: 10, height: 40 },
+  searchInput: { flex: 1, marginLeft: 8, fontSize: 16, color: colors.text },
+  catalogCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, padding: 12, marginHorizontal: 16, marginBottom: 8, borderRadius: 12 },
+  catalogImg: { width: 60, height: 60, borderRadius: 8, backgroundColor: colors.imagePlaceholder },
   catalogInfo: { flex: 1, marginLeft: 12 },
-  catalogName: { fontSize: 16, fontWeight: '600', color: '#1C1C1E' },
-  catalogMuscle: { fontSize: 14, color: '#8E8E93', marginTop: 4 },
+  catalogName: { fontSize: 16, fontWeight: '600', color: colors.text },
+  catalogMuscle: { fontSize: 14, color: colors.textSecondary, marginTop: 4 },
 
   previewOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  previewContent: { backgroundColor: '#FFF', width: '100%', maxHeight: '90%', borderRadius: 24, padding: 24, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20 },
+  previewContent: { backgroundColor: colors.card, width: '100%', maxHeight: '90%', borderRadius: 24, padding: 24, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20 },
   closePreviewBtn: { position: 'absolute', top: 16, right: 16, zIndex: 1 },
-  previewImg: { width: '100%', height: 200, borderRadius: 16, backgroundColor: '#F2F2F7', marginBottom: 16 },
-  previewTitle: { fontSize: 22, fontWeight: '800', color: '#1C1C1E', textAlign: 'center' },
+  previewImg: { width: '100%', height: 200, borderRadius: 16, backgroundColor: colors.imagePlaceholder, marginBottom: 16 },
+  previewTitle: { fontSize: 22, fontWeight: '800', color: colors.text, textAlign: 'center' },
   
   muscleContainer: { flexDirection: 'row', alignItems: 'center', marginVertical: 8 },
-  muscleIcon: { width: 40, height: 40, marginRight: 8, borderRadius: 8, backgroundColor: '#F8F9FA' },
-  previewMuscle: { fontSize: 15, color: '#8E8E93' },
+  muscleIcon: { width: 40, height: 40, marginRight: 8, borderRadius: 8, backgroundColor: colors.cardAlt },
+  previewMuscle: { fontSize: 15, color: colors.textSecondary },
   
-  guideToggleBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E5F1FF', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, marginVertical: 8 },
-  guideToggleText: { color: '#007AFF', fontWeight: '700', fontSize: 14, marginLeft: 8 },
+  guideToggleBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, marginVertical: 8 },
+  guideToggleText: { color: colors.primary, fontWeight: '700', fontSize: 14, marginLeft: 8 },
 
   instructionsScroll: { width: '100%', marginVertical: 10, paddingHorizontal: 8 },
-  instructionStep: { fontSize: 15, color: '#3A3A3C', marginBottom: 12, lineHeight: 22 },
-  instructionNumber: { fontWeight: '700', color: '#007AFF' },
-  noInstructionsText: { fontSize: 14, color: '#AEAEB2', textAlign: 'center', fontStyle: 'italic', marginVertical: 20 },
+  instructionStep: { fontSize: 15, color: colors.text, marginBottom: 12, lineHeight: 22 },
+  instructionNumber: { fontWeight: '700', color: colors.primary },
+  noInstructionsText: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', fontStyle: 'italic', marginVertical: 20 },
   
-  primaryButton: { backgroundColor: '#007AFF', width: '100%', padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 10 },
+  primaryButton: { backgroundColor: colors.primary, width: '100%', padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 10 },
   primaryButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700' }
 });

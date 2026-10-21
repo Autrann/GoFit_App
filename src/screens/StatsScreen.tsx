@@ -8,6 +8,9 @@ import { useNavigation } from '@react-navigation/native';
 
 import { imageMap } from '../assets/imgs/imageMap';
 import catalog from '../assets/data/catalogo_app.json';
+import { useContext } from 'react';
+import { ThemeContext } from '../context/ThemeContext';
+import { lightColors, darkColors } from '../theme/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -21,6 +24,9 @@ type WorkoutLogData = {
 };
 
 export default function StatsScreen() {
+const { isDark, toggleTheme } = useContext(ThemeContext); // En ProfileScreen agregamos toggleTheme
+const colors = isDark ? darkColors : lightColors;
+const styles = getStyles(colors);
   const navigation = useNavigation<any>();
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<any>(null);
@@ -357,69 +363,61 @@ export default function StatsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F2F2F7' },
+const getStyles = (colors: any) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   content: { padding: 16, paddingBottom: 40 },
   
   headerContainer: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 16 },
-  headerTitle: { fontSize: 28, fontWeight: '800', color: '#1C1C1E' },
-  headerSubtitle: { fontSize: 15, color: '#8E8E93', marginTop: 4 },
+  headerTitle: { fontSize: 28, fontWeight: '800', color: colors.text },
+  headerSubtitle: { fontSize: 15, color: colors.textSecondary, marginTop: 4 },
 
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   rowAlign: { flexDirection: 'row', alignItems: 'center' },
 
-  // Tarjetas de Resumen
-  summaryBox: { flex: 0.48, backgroundColor: '#FFF', padding: 20, borderRadius: 24, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
-  summaryValue: { fontSize: 22, fontWeight: '800', color: '#1C1C1E', marginTop: 8 },
-  summaryLabel: { fontSize: 13, color: '#8E8E93', marginTop: 4, fontWeight: '500' },
+  summaryBox: { flex: 0.48, backgroundColor: colors.card, padding: 20, borderRadius: 24, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
+  summaryValue: { fontSize: 22, fontWeight: '800', color: colors.text, marginTop: 8 },
+  summaryLabel: { fontSize: 13, color: colors.textSecondary, marginTop: 4, fontWeight: '500' },
 
-  // Tarjetas Generales
-  card: { backgroundColor: '#FFF', borderRadius: 24, padding: 20, marginTop: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1C1C1E' },
-  sectionSubtitle: { fontSize: 14, color: '#8E8E93', marginTop: 4, marginBottom: 10 },
-  emptyText: { color: '#8E8E93', fontSize: 14, marginTop: 12, lineHeight: 20, fontStyle: 'italic', textAlign: 'center' },
+  card: { backgroundColor: colors.card, borderRadius: 24, padding: 20, marginTop: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
+  sectionSubtitle: { fontSize: 14, color: colors.textSecondary, marginTop: 4, marginBottom: 10 },
+  emptyText: { color: colors.textSecondary, fontSize: 14, marginTop: 12, lineHeight: 20, fontStyle: 'italic', textAlign: 'center' },
 
-  // Selector Dropdown
-  dropdownSelector: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#F8F9FA', padding: 12, borderRadius: 16, borderWidth: 1, borderColor: '#E5E5EA', marginVertical: 8 },
-  dropdownImg: { width: 32, height: 32, borderRadius: 6, marginRight: 12, backgroundColor: '#FFF' },
-  dropdownText: { fontSize: 16, fontWeight: '600', color: '#1C1C1E', flex: 1 },
+  dropdownSelector: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.cardAlt, padding: 12, borderRadius: 16, borderWidth: 1, borderColor: colors.border, marginVertical: 8 },
+  dropdownImg: { width: 32, height: 32, borderRadius: 6, marginRight: 12, backgroundColor: colors.imagePlaceholder },
+  dropdownText: { fontSize: 16, fontWeight: '600', color: colors.text, flex: 1 },
 
-  // Modales
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#FFF', borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, paddingBottom: 40 },
+  modalContent: { backgroundColor: colors.card, borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, paddingBottom: 40 },
   modalHeaderBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#1C1C1E', flex: 1 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: colors.text, flex: 1 },
   
-  // Lista de opciones dentro del modal
-  exerciseOption: { flexDirection: 'row', alignItems: 'center', padding: 12, backgroundColor: '#F8F9FA', borderRadius: 16, marginBottom: 8, borderWidth: 1, borderColor: 'transparent' },
-  exerciseOptionActive: { backgroundColor: '#E5F1FF', borderColor: '#007AFF' },
-  exerciseOptionImg: { width: 40, height: 40, borderRadius: 8, marginRight: 12, backgroundColor: '#FFF' },
-  exerciseOptionText: { fontSize: 16, fontWeight: '500', color: '#1C1C1E' },
-  exerciseOptionTextActive: { fontWeight: '700', color: '#007AFF' },
+  exerciseOption: { flexDirection: 'row', alignItems: 'center', padding: 12, backgroundColor: colors.cardAlt, borderRadius: 16, marginBottom: 8, borderWidth: 1, borderColor: 'transparent' },
+  exerciseOptionActive: { backgroundColor: colors.primaryLight, borderColor: colors.primary },
+  exerciseOptionImg: { width: 40, height: 40, borderRadius: 8, marginRight: 12, backgroundColor: colors.imagePlaceholder },
+  exerciseOptionText: { fontSize: 16, fontWeight: '500', color: colors.text },
+  exerciseOptionTextActive: { fontWeight: '700', color: colors.primary },
 
-  // Progreso Específico
-  exerciseStatsContainer: { backgroundColor: '#F8F9FA', borderRadius: 16, padding: 16, marginTop: 12 },
+  exerciseStatsContainer: { backgroundColor: colors.cardAlt, borderRadius: 16, padding: 16, marginTop: 12 },
   exerciseMetricsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
-  metricLabel: { fontSize: 12, fontWeight: '600', color: '#8E8E93', textTransform: 'uppercase' },
-  metricValue: { fontSize: 20, fontWeight: '800', color: '#1C1C1E', marginTop: 4 },
-  emptyGraphContainer: { alignItems: 'center', padding: 30, backgroundColor: '#F8F9FA', borderRadius: 16, marginTop: 12 },
+  metricLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, textTransform: 'uppercase' },
+  metricValue: { fontSize: 20, fontWeight: '800', color: colors.text, marginTop: 4 },
+  emptyGraphContainer: { alignItems: 'center', padding: 30, backgroundColor: colors.cardAlt, borderRadius: 16, marginTop: 12 },
 
-  // Gráfica de Barras Nativa
   chartContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', height: 160, marginTop: 10 },
   barCol: { alignItems: 'center', flex: 1 },
-  barValue: { fontSize: 10, color: '#8E8E93', fontWeight: '700', marginBottom: 4 },
-  barTrack: { width: 14, height: 110, backgroundColor: '#E5E5EA', borderRadius: 7, justifyContent: 'flex-end', overflow: 'hidden' },
+  barValue: { fontSize: 10, color: colors.textSecondary, fontWeight: '700', marginBottom: 4 },
+  barTrack: { width: 14, height: 110, backgroundColor: colors.border, borderRadius: 7, justifyContent: 'flex-end', overflow: 'hidden' },
   barFill: { width: '100%', borderRadius: 7 },
-  barLabel: { fontSize: 11, color: '#8E8E93', marginTop: 8, fontWeight: '600' },
-  barLabelToday: { color: '#007AFF', fontWeight: '800' },
+  barLabel: { fontSize: 11, color: colors.textSecondary, marginTop: 8, fontWeight: '600' },
+  barLabelToday: { color: colors.primary, fontWeight: '800' },
 
-  // Módulo de Peso
-  weightCard: { borderColor: '#E5E5EA', borderWidth: 1 },
-  weightValue: { fontSize: 28, fontWeight: '800', color: '#1C1C1E' },
-  weightAlert: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF0D9', padding: 12, borderRadius: 12, marginTop: 16 },
-  weightAlertText: { fontSize: 13, color: '#FF9500', fontWeight: '600', flex: 1, lineHeight: 18 },
-  weightMotivator: { fontSize: 14, color: '#8E8E93', marginTop: 16, lineHeight: 20 },
-  weightBtn: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#E5F1FF', padding: 16, borderRadius: 16, marginTop: 16 },
-  weightBtnText: { color: '#007AFF', fontSize: 15, fontWeight: '700' },
+  weightCard: { borderColor: colors.border, borderWidth: 1 },
+  weightValue: { fontSize: 28, fontWeight: '800', color: colors.text },
+  weightAlert: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.warningBg, padding: 12, borderRadius: 12, marginTop: 16 },
+  weightAlertText: { fontSize: 13, color: colors.warning, fontWeight: '600', flex: 1, lineHeight: 18 },
+  weightMotivator: { fontSize: 14, color: colors.textSecondary, marginTop: 16, lineHeight: 20 },
+  weightBtn: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.primaryLight, padding: 16, borderRadius: 16, marginTop: 16 },
+  weightBtnText: { color: colors.primary, fontSize: 15, fontWeight: '700' },
 });

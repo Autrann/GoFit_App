@@ -1,12 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { ActivityIndicator, StyleSheet } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'; // Importaciones actualizadas
-import { NavigationContainer } from '@react-navigation/native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from './src/config/firebase';
 
 import AuthScreen from './src/screens/AuthScreen';
 import MainTabNavigator from './src/navigation/MainTabNavigator';
+import { ThemeProvider, ThemeContext } from './src/context/ThemeContext'; // <-- Importación
+
+// Subcomponente que lee el tema global
+function RootNavigator({ user, loading }: { user: User | null, loading: boolean }) {
+  const { isDark } = useContext(ThemeContext);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.loadingContainer, { backgroundColor: isDark ? '#000' : '#F8F9FA' }]}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </SafeAreaView>
+    );
+  }
+
+  return user ? (
+    <NavigationContainer theme={isDark ? DarkTheme : DefaultTheme}>
+      <MainTabNavigator />
+    </NavigationContainer>
+  ) : (
+    <AuthScreen />
+  );
+}
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -20,24 +42,15 @@ export default function App() {
     return unsubscribe;
   }, []);
 
-  // Todo se envuelve en SafeAreaProvider desde el nivel más alto
   return (
     <SafeAreaProvider>
-      {loading ? (
-        <SafeAreaView style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-        </SafeAreaView>
-      ) : user ? (
-        <NavigationContainer>
-          <MainTabNavigator />
-        </NavigationContainer>
-      ) : (
-        <AuthScreen />
-      )}
+      <ThemeProvider>
+        <RootNavigator user={user} loading={loading} />
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8F9FA' }
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' }
 });

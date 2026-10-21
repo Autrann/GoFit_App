@@ -9,9 +9,16 @@ import { useNavigation } from '@react-navigation/native';
 
 import { imageMap } from '../assets/imgs/imageMap';
 
+import { useContext } from 'react';
+import { ThemeContext } from '../context/ThemeContext';
+import { lightColors, darkColors } from '../theme/colors';
+
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
 export default function ProfileScreen() {
+const { isDark, toggleTheme } = useContext(ThemeContext); 
+const colors = isDark ? darkColors : lightColors;
+const styles = getStyles(colors);
   const navigation = useNavigation<any>();
   
   const [userData, setUserData] = useState<any>(null);
@@ -566,21 +573,36 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-      {/* MODAL 2: AJUSTES DE PERFIL (Solo Cerrar Sesión) */}
+      {/* MODAL 2: AJUSTES DE PERFIL (Opciones) */}
       <Modal visible={isProfileModalVisible} animationType="fade" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
+            
             <View style={styles.modalHeaderBetween}>
               <Text style={styles.modalTitle}>Opciones</Text>
               <TouchableOpacity onPress={() => setProfileModalVisible(false)}>
                 <Ionicons name="close-circle" size={28} color="#AEAEB2" />
               </TouchableOpacity>
             </View>
-            
+
+            {/* --- AQUÍ VA EL BOTÓN DE MODO OSCURO --- */}
+            <View style={[styles.rowBetween, { padding: 0, backgroundColor: 'transparent', marginBottom: 24 }]}>
+              <Text style={styles.label}>Modo Oscuro</Text>
+              <TouchableOpacity onPress={toggleTheme} style={{ padding: 4 }}>
+                <Ionicons 
+                  name={isDark ? "moon" : "sunny"} 
+                  size={28} 
+                  color={isDark ? colors.primary : "#FF9500"} 
+                />
+              </TouchableOpacity>
+            </View>
+            {/* -------------------------------------- */}
+
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
               <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
               <Text style={styles.logoutText}>Cerrar Sesión</Text>
             </TouchableOpacity>
+            
           </View>
         </View>
       </Modal>
@@ -589,103 +611,96 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F2F2F7' },
+const getStyles = (colors: any) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   content: { padding: 16, paddingBottom: 40 },
   
-  // Header & Streak
   headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 16 },
-  greeting: { fontSize: 26, fontWeight: '800', color: '#1C1C1E' },
-  dateHeader: { fontSize: 15, color: '#8E8E93', marginTop: 4, textTransform: 'capitalize' },
+  greeting: { fontSize: 26, fontWeight: '800', color: colors.text },
+  dateHeader: { fontSize: 15, color: colors.textSecondary, marginTop: 4, textTransform: 'capitalize' },
   
-  streakBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E5E5EA', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, marginLeft: 10 },
-  streakBadgeActive: { backgroundColor: '#FFF0D9' },
-  streakText: { fontWeight: '700', fontSize: 14, color: '#8E8E93', marginLeft: 4 },
+  streakBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.border, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, marginLeft: 10 },
+  streakBadgeActive: { backgroundColor: colors.warningBg },
+  streakText: { fontWeight: '700', fontSize: 14, color: colors.textSecondary, marginLeft: 4 },
   
-  avatarCircle: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#007AFF', justifyContent: 'center', alignItems: 'center', shadowColor: '#007AFF', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
+  avatarCircle: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center', shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
   avatarText: { color: '#FFF', fontSize: 20, fontWeight: 'bold' },
   
-  emptyText: { textAlign: 'center', color: '#8E8E93', marginTop: 40, fontSize: 16 },
+  emptyText: { textAlign: 'center', color: colors.textSecondary, marginTop: 40, fontSize: 16 },
 
-  // Tarjeta de Descanso
-  restCard: { backgroundColor: '#FFF', borderRadius: 24, padding: 40, alignItems: 'center', marginTop: 20 },
-  restTitle: { fontSize: 22, fontWeight: '700', color: '#1C1C1E', marginTop: 16 },
-  restSubtitle: { fontSize: 16, color: '#8E8E93', marginTop: 8, textAlign: 'center' },
+  restCard: { backgroundColor: colors.card, borderRadius: 24, padding: 40, alignItems: 'center', marginTop: 20 },
+  restTitle: { fontSize: 22, fontWeight: '700', color: colors.text, marginTop: 16 },
+  restSubtitle: { fontSize: 16, color: colors.textSecondary, marginTop: 8, textAlign: 'center' },
 
-  // Tarjeta de Entrenamiento Terminado
-  finishedCard: { backgroundColor: '#FFF', borderRadius: 24, padding: 30, alignItems: 'center', marginTop: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
-  finishedTitle: { fontSize: 22, fontWeight: '800', color: '#1C1C1E', marginTop: 16 },
-  finishedSubtitle: { fontSize: 16, color: '#8E8E93', marginTop: 4 },
-  tomorrowPreview: { backgroundColor: '#F8F9FA', width: '100%', padding: 16, borderRadius: 16, marginTop: 24, alignItems: 'center' },
-  tomorrowLabel: { fontSize: 13, fontWeight: '600', color: '#8E8E93', textTransform: 'uppercase', letterSpacing: 1 },
-  tomorrowText: { fontSize: 16, fontWeight: '700', color: '#1C1C1E', marginTop: 6, textAlign: 'center' },
+  finishedCard: { backgroundColor: colors.card, borderRadius: 24, padding: 30, alignItems: 'center', marginTop: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
+  finishedTitle: { fontSize: 22, fontWeight: '800', color: colors.text, marginTop: 16 },
+  finishedSubtitle: { fontSize: 16, color: colors.textSecondary, marginTop: 4 },
+  tomorrowPreview: { backgroundColor: colors.cardAlt, width: '100%', padding: 16, borderRadius: 16, marginTop: 24, alignItems: 'center' },
+  tomorrowLabel: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1 },
+  tomorrowText: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: 6, textAlign: 'center' },
 
-  // Tarjeta de Resumen (Summary Card)
-  summaryCard: { backgroundColor: '#FFF', borderRadius: 24, padding: 20, marginTop: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
-  summaryContent: { backgroundColor: '#F8F9FA', padding: 16, borderRadius: 16, marginTop: 12 },
-  summaryTitle: { fontSize: 18, fontWeight: '700', color: '#1C1C1E' },
-  summarySubtitle: { fontSize: 14, color: '#8E8E93', marginTop: 4, marginBottom: 12, lineHeight: 20 },
+  summaryCard: { backgroundColor: colors.card, borderRadius: 24, padding: 20, marginTop: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
+  summaryContent: { backgroundColor: colors.cardAlt, padding: 16, borderRadius: 16, marginTop: 12 },
+  summaryTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
+  summarySubtitle: { fontSize: 14, color: colors.textSecondary, marginTop: 4, marginBottom: 12, lineHeight: 20 },
   summaryRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
-  summaryDetailText: { fontSize: 14, color: '#3A3A3C', marginLeft: 8, flex: 1 },
+  summaryDetailText: { fontSize: 14, color: colors.text, marginLeft: 8, flex: 1 },
   
-  statsButton: { flexDirection: 'row', backgroundColor: '#E5F1FF', padding: 16, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginTop: 16 },
-  statsButtonText: { color: '#007AFF', fontSize: 15, fontWeight: '700', marginLeft: 8 },
+  statsButton: { flexDirection: 'row', backgroundColor: colors.primaryLight, padding: 16, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginTop: 16 },
+  statsButtonText: { color: colors.primary, fontSize: 15, fontWeight: '700', marginLeft: 8 },
 
-  // Tarjeta de Entrenamiento Activo
-  workoutCard: { backgroundColor: '#FFF', borderRadius: 24, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
-  routineDayText: { fontSize: 24, fontWeight: '800', color: '#1C1C1E' },
-  musclesText: { fontSize: 15, color: '#8E8E93', marginTop: 4, marginBottom: 20 },
+  workoutCard: { backgroundColor: colors.card, borderRadius: 24, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
+  routineDayText: { fontSize: 24, fontWeight: '800', color: colors.text },
+  musclesText: { fontSize: 15, color: colors.textSecondary, marginTop: 4, marginBottom: 20 },
   
-  startWorkoutBtn: { backgroundColor: '#007AFF', flexDirection: 'row', padding: 16, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  startWorkoutBtn: { backgroundColor: colors.primary, flexDirection: 'row', padding: 16, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   startWorkoutText: { color: '#FFF', fontSize: 16, fontWeight: '700', marginLeft: 8 },
 
   activeWorkoutContainer: { marginTop: 10 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1C1C1E' },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
   
-  exerciseListItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA', padding: 12, borderRadius: 16, marginBottom: 10, borderWidth: 1, borderColor: 'transparent' },
-  exerciseListComplete: { borderColor: '#34C759', backgroundColor: '#F0FFF4' },
-  exerciseListIncomplete: { borderColor: '#FF9500', backgroundColor: '#FFF9F0' },
-  exerciseListSkipped: { borderColor: '#FF3B30', backgroundColor: '#FFF0F0' },
+  exerciseListItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, padding: 12, borderRadius: 16, marginBottom: 10, borderWidth: 1, borderColor: 'transparent' },
+  exerciseListComplete: { borderColor: colors.success, backgroundColor: colors.successBg },
+  exerciseListIncomplete: { borderColor: colors.warning, backgroundColor: colors.warningLight },
+  exerciseListSkipped: { borderColor: colors.danger, backgroundColor: colors.dangerLight },
   
-  exerciseListImg: { width: 50, height: 50, borderRadius: 8, backgroundColor: '#FFF' },
+  exerciseListImg: { width: 50, height: 50, borderRadius: 8, backgroundColor: colors.imagePlaceholder },
   exerciseListInfo: { flex: 1, marginLeft: 12 },
-  exerciseListName: { fontSize: 16, fontWeight: '600', color: '#1C1C1E' },
+  exerciseListName: { fontSize: 16, fontWeight: '600', color: colors.text },
   exerciseStatusText: { fontSize: 13, fontWeight: '600', marginTop: 2 },
   
-  finishWorkoutBtn: { backgroundColor: '#1C1C1E', padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 20 },
-  finishWorkoutText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  finishWorkoutBtn: { backgroundColor: colors.text, padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 20 },
+  finishWorkoutText: { color: colors.background, fontSize: 16, fontWeight: '700' },
 
-  // Tarjeta de Control de Peso
-  weightCard: { backgroundColor: '#FFF', borderRadius: 24, padding: 20, marginTop: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
-  weightSubtitle: { fontSize: 16, color: '#3A3A3C', marginTop: 4 },
-  weightSubtitle2: { fontSize: 14, color: '#8E8E93', marginTop: 4, marginBottom: 16 },
-  pickerContainer: { backgroundColor: '#F2F2F7', borderRadius: 12, overflow: 'hidden', marginBottom: 16 },
+  weightCard: { backgroundColor: colors.card, borderRadius: 24, padding: 20, marginTop: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
+  weightSubtitle: { fontSize: 16, color: colors.text, marginTop: 4 },
+  weightSubtitle2: { fontSize: 14, color: colors.textSecondary, marginTop: 4, marginBottom: 16 },
+  pickerContainer: { backgroundColor: colors.background, borderRadius: 12, overflow: 'hidden', marginBottom: 16 },
 
-  // Modales
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#FFF', borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, paddingBottom: 40 },
+  modalContent: { backgroundColor: colors.card, borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, paddingBottom: 40 },
   modalHeaderBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  modalTitle: { fontSize: 22, fontWeight: 'bold', color: '#1C1C1E', flex: 1 },
+  modalTitle: { fontSize: 22, fontWeight: 'bold', color: colors.text, flex: 1 },
   
-  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#F8F9FA', padding: 16, borderRadius: 16 },
-  label: { fontSize: 16, fontWeight: '600', color: '#1C1C1E' },
-  setsInput: { backgroundColor: '#FFF', width: 60, height: 40, borderRadius: 8, textAlign: 'center', fontSize: 18, fontWeight: '700', borderWidth: 1, borderColor: '#E5E5EA' },
-  hintText: { fontSize: 14, color: '#8E8E93', marginTop: 16, marginBottom: 8 },
+  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.cardAlt, padding: 16, borderRadius: 16 },
+  label: { fontSize: 16, fontWeight: '600', color: colors.text },
+  setsInput: { backgroundColor: colors.card, color: colors.text, width: 60, height: 40, borderRadius: 8, textAlign: 'center', fontSize: 18, fontWeight: '700', borderWidth: 1, borderColor: colors.border },
+  hintText: { fontSize: 14, color: colors.textSecondary, marginTop: 16, marginBottom: 8 },
 
-  repRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#F2F2F7', paddingVertical: 12 },
-  repLabel: { fontSize: 16, fontWeight: '500', color: '#3A3A3C' },
+  repRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: colors.background, paddingVertical: 12 },
+  repLabel: { fontSize: 16, fontWeight: '500', color: colors.text },
   inputGroupContainer: { flexDirection: 'row', alignItems: 'center' },
   repInputContainer: { flexDirection: 'row', alignItems: 'center' },
-  repInput: { backgroundColor: '#F2F2F7', width: 50, height: 40, borderRadius: 8, textAlign: 'center', fontSize: 16, fontWeight: '600' },
-  repSufix: { fontSize: 13, color: '#8E8E93', marginLeft: 4 },
+  repInput: { backgroundColor: colors.background, color: colors.text, width: 50, height: 40, borderRadius: 8, textAlign: 'center', fontSize: 16, fontWeight: '600' },
+  repSufix: { fontSize: 13, color: colors.textSecondary, marginLeft: 4 },
 
-  primaryButton: { backgroundColor: '#007AFF', padding: 16, borderRadius: 16, alignItems: 'center' },
+  primaryButton: { backgroundColor: colors.primary, padding: 16, borderRadius: 16, alignItems: 'center' },
   primaryButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   
   skipButton: { padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 8 },
-  skipButtonText: { color: '#FF3B30', fontSize: 15, fontWeight: '600' },
+  skipButtonText: { color: colors.danger, fontSize: 15, fontWeight: '600' },
 
-  logoutButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 16, backgroundColor: '#FFE5E5' },
-  logoutText: { color: '#FF3B30', fontSize: 16, fontWeight: '700', marginLeft: 8 },
+  logoutButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 16, backgroundColor: colors.dangerBg },
+  logoutText: { color: colors.danger, fontSize: 16, fontWeight: '700', marginLeft: 8 },
 });

@@ -12,6 +12,9 @@ import catalog from "../assets/data/catalogo_app.json";
 import { imageMap } from "../assets/imgs/imageMap";
 
 import { ListRenderItem } from "react-native";
+import { useContext } from 'react';
+import { ThemeContext } from '../context/ThemeContext';
+import { lightColors, darkColors } from '../theme/colors';
 
 type Exercise = {
   id: string;
@@ -21,6 +24,9 @@ type Exercise = {
 };
 
 export default function CatalogScreen() {
+const { isDark, toggleTheme } = useContext(ThemeContext);
+const colors = isDark ? darkColors : lightColors;
+const styles = getStyles(colors);
   // Func para cada tarjeta de ejercicio
   const renderItem: ListRenderItem<Exercise> = ({ item }) => {
     const imageSource = imageMap[item.id as keyof typeof imageMap];
@@ -61,49 +67,24 @@ export default function CatalogScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    margin: 16,
-    color: "#333",
-  },
+const getStyles = (colors: any) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
+  header: { fontSize: 24, fontWeight: "bold", margin: 16, color: colors.text },
   card: {
     flexDirection: "row",
-    backgroundColor: "#FFF",
+    backgroundColor: colors.card,
     marginHorizontal: 16,
     marginBottom: 12,
     borderRadius: 12,
     padding: 12,
-    elevation: 2, // Sombra en Android
-    shadowColor: "#000", // Sombras en iOS
+    elevation: 2,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  image: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    backgroundColor: "#EAEAEA", // Fondo gris mientras carga
-  },
-  infoContainer: {
-    marginLeft: 16,
-    justifyContent: "center",
-    flex: 1,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1A1A1A",
-    marginBottom: 4,
-  },
-  muscle: {
-    fontSize: 14,
-    color: "#666",
-  },
+  image: { width: 80, height: 80, borderRadius: 8, backgroundColor: colors.imagePlaceholder },
+  infoContainer: { marginLeft: 16, justifyContent: "center", flex: 1 },
+  title: { fontSize: 16, fontWeight: "600", color: colors.text, marginBottom: 4 },
+  muscle: { fontSize: 14, color: colors.textSecondary },
 });

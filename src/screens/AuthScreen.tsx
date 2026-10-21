@@ -4,8 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth, db } from '../config/firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
+import { useContext } from 'react';
+import { ThemeContext } from '../context/ThemeContext';
+import { lightColors, darkColors } from '../theme/colors';
 
 export default function AuthScreen() {
+  const { isDark } = useContext(ThemeContext);
+  const colors = isDark ? darkColors : lightColors;
+  const styles = getStyles(colors);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -127,14 +133,14 @@ export default function AuthScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5' },
+const getStyles = (colors: any) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
   scrollContainer: { flexGrow: 1, justifyContent: 'center', padding: 24 },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 24, color: '#333', textAlign: 'center' },
-  input: { backgroundColor: '#FFF', padding: 16, borderRadius: 8, marginBottom: 16, borderWidth: 1, borderColor: '#E0E0E0' },
-  button: { backgroundColor: '#007AFF', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 8 },
-  buttonDisabled: { backgroundColor: '#80BFFF' },
-  buttonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
+  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 24, color: colors.text, textAlign: 'center' },
+  input: { backgroundColor: colors.card, color: colors.text, padding: 16, borderRadius: 8, marginBottom: 16, borderWidth: 1, borderColor: colors.border },
+  button: { backgroundColor: colors.primary, padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 8 },
+  buttonDisabled: { backgroundColor: colors.primaryDisabled },
+  buttonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' }, // El texto en botones primarios suele ser blanco siempre
   switchButton: { marginTop: 24, alignItems: 'center' },
-  switchText: { color: '#007AFF', fontSize: 14 },
+  switchText: { color: colors.primary, fontSize: 14 },
 });
