@@ -12,6 +12,17 @@ import { lightColors, darkColors } from '../theme/colors';
 
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
+// --- MAPA DE AVATARES PREDEFINIDOS ---
+// Asegúrate de tener estas imágenes en tu carpeta src/assets/profiles/
+export const profileAvatars: Record<string, any> = {
+  'avatar1': require('../assets/profiles/lion.avif'), // Cambia los nombres por los reales
+  'avatar2': require('../assets/profiles/zebra.avif'),
+  //'avatar3': require('../assets/profiles/avatar3.webp'),
+  //'avatar4': require('../assets/profiles/avatar4.webp'),
+  //'avatar5': require('../assets/profiles/avatar5.webp'),
+  //'avatar6': require('../assets/profiles/avatar6.webp'),
+};
+
 export default function ProfileScreen() {
   const { isDark, toggleTheme } = useContext(ThemeContext); 
   const colors = isDark ? darkColors : lightColors;
@@ -29,7 +40,6 @@ export default function ProfileScreen() {
   const tomorrowName = DAYS[(todayIndex + 1) % 7];
   const dateString = today.toISOString().split('T')[0];
 
-  // Obtener fecha de hace 7 días
   const lastWeekDate = new Date(today);
   lastWeekDate.setDate(lastWeekDate.getDate() - 7);
   const lastWeekString = lastWeekDate.toISOString().split('T')[0];
@@ -39,8 +49,9 @@ export default function ProfileScreen() {
   const [workoutLog, setWorkoutLog] = useState<any>({ finished: false, exercises: {} });
   const [lastWeekLog, setLastWeekLog] = useState<any>(null);
   
-  // Estados para Perfil y Peso
+  // Estados para Perfil, Peso y Avatares
   const [isProfileModalVisible, setProfileModalVisible] = useState(false);
+  const [isAvatarSelectorVisible, setAvatarSelectorVisible] = useState(false); // <-- NUEVO ESTADO
   const [tempWeight, setTempWeight] = useState('');
   const [savingSettings, setSavingSettings] = useState(false);
 
@@ -93,8 +104,25 @@ export default function ProfileScreen() {
     };
   }, []);
 
+  // --- LÓGICA DE FOTO DE PERFIL LOCAL ---
+  const handleSelectAvatar = async (avatarKey: string) => {
+    setSavingSettings(true);
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        // Solo guardamos el identificador ('avatar1', 'avatar2'...) en Firestore
+        await updateDoc(doc(db, 'users', user.uid), { avatarId: avatarKey });
+      }
+      setAvatarSelectorVisible(false);
+    } catch (error) {
+      console.error("Error guardando avatar:", error);
+      Alert.alert("Error", "No se pudo actualizar el avatar.");
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
   const handleUpdateWeight = async () => {
-    // Validación para asegurar que sea un número válido
     const numericWeight = parseFloat(tempWeight.replace(',', '.'));
     if (isNaN(numericWeight) || numericWeight <= 0) {
       Alert.alert("Error", "Por favor ingresa un peso válido (ej. 70.5).");
@@ -106,7 +134,6 @@ export default function ProfileScreen() {
       const user = auth.currentUser;
       if (user) {
         const timestamp = new Date().toISOString();
-        // Guardamos el peso formateado
         await updateDoc(doc(db, 'users', user.uid), { weight: numericWeight.toString(), lastWeightUpdate: timestamp });
         Alert.alert("¡Éxito!", "Tu peso ha sido actualizado correctamente.");
       }
@@ -346,8 +373,14 @@ export default function ProfileScreen() {
           </View>
           <Text style={styles.dateHeader}>{todayName}, {today.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}</Text>
         </View>
+        
+        {/* --- CÍRCULO DE AVATAR (Ahora lee de profileAvatars usando avatarId) --- */}
         <TouchableOpacity style={styles.avatarCircle} onPress={() => setProfileModalVisible(true)}>
-          <Text style={styles.avatarText}>{getFirstName(userData?.name || auth.currentUser?.displayName).charAt(0).toUpperCase()}</Text>
+          {userData?.avatarId && profileAvatars[userData.avatarId] ? (
+            <Image source={profileAvatars[userData.avatarId]} style={styles.avatarImage} />
+          ) : (
+            <Text style={styles.avatarText}>{getFirstName(userData?.name || auth.currentUser?.displayName).charAt(0).toUpperCase()}</Text>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -482,7 +515,6 @@ export default function ProfileScreen() {
               placeholderTextColor={colors.textSecondary}
               value={tempWeight}
               onChangeText={(val) => {
-                // Solo permitir números y un punto o coma decimal
                 const formatted = val.replace(/[^0-9.,]/g, '');
                 setTempWeight(formatted);
               }}
@@ -580,8 +612,23 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
 
-            <View style={[styles.rowBetween, { padding: 0, backgroundColor: 'transparent', marginBottom: 24 }]}>
-              <Text style={styles.label}>Modo Oscuro</Text>
+            {/* --- BOTÓN PARA ABRIR SELECTOR DE AVATARES --- */}
+            <TouchableOpacity style={styles.optionRow} onPress={() => {
+              setProfileModalVisible(false);
+              setAvatarSelectorVisible(true);
+            }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="images-outline" size={24} color={colors.text} style={{ marginRight: 12 }} />
+                <Text style={styles.label}>Cambiar foto de perfil</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+            </TouchableOpacity>
+
+            <View style={[styles.rowBetween, { padding: 0, backgroundColor: 'transparent', marginBottom: 24, marginTop: 12 }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name={isDark ? "moon-outline" : "sunny-outline"} size={24} color={colors.text} style={{ marginRight: 12 }} />
+                <Text style={styles.label}>Modo Oscuro</Text>
+              </View>
               <TouchableOpacity onPress={toggleTheme} style={{ padding: 4 }}>
                 <Ionicons name={isDark ? "moon" : "sunny"} size={28} color={isDark ? colors.primary : "#FF9500"} />
               </TouchableOpacity>
@@ -592,6 +639,43 @@ export default function ProfileScreen() {
               <Text style={styles.logoutText}>Cerrar Sesión</Text>
             </TouchableOpacity>
             
+          </View>
+        </View>
+      </Modal>
+
+      {/* MODAL 3: SELECTOR DE AVATARES (CUADRÍCULA) */}
+      <Modal visible={isAvatarSelectorVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeaderBetween}>
+              <Text style={styles.modalTitle}>Elige tu Avatar (¡Pronto nuevas!)</Text>
+              <TouchableOpacity onPress={() => setAvatarSelectorVisible(false)}>
+                <Ionicons name="close-circle" size={28} color="#AEAEB2" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.avatarGrid}>
+              {Object.keys(profileAvatars).map((avatarKey) => {
+                const isSelected = userData?.avatarId === avatarKey;
+                return (
+                  <TouchableOpacity 
+                    key={avatarKey} 
+                    style={[styles.avatarOption, isSelected && styles.avatarOptionSelected]} 
+                    onPress={() => handleSelectAvatar(avatarKey)}
+                    disabled={savingSettings}
+                  >
+                    <Image source={profileAvatars[avatarKey]} style={styles.avatarOptionImg} />
+                    {isSelected && (
+                      <View style={styles.avatarCheckBadge}>
+                        <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            
+            {savingSettings && <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />}
           </View>
         </View>
       </Modal>
@@ -613,8 +697,9 @@ const getStyles = (colors: any) => StyleSheet.create({
   streakBadgeActive: { backgroundColor: colors.warningBg },
   streakText: { fontWeight: '700', fontSize: 14, color: colors.textSecondary, marginLeft: 4 },
   
-  avatarCircle: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center', shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
+  avatarCircle: { width: 50, height: 50, borderRadius: 25, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center', shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, overflow: 'hidden' },
   avatarText: { color: '#FFF', fontSize: 20, fontWeight: 'bold' },
+  avatarImage: { width: '100%', height: '100%' },
   
   emptyText: { textAlign: 'center', color: colors.textSecondary, marginTop: 40, fontSize: 16 },
 
@@ -666,7 +751,6 @@ const getStyles = (colors: any) => StyleSheet.create({
   weightSubtitle: { fontSize: 16, color: colors.text, marginTop: 4 },
   weightSubtitle2: { fontSize: 14, color: colors.textSecondary, marginTop: 4, marginBottom: 16 },
   
-  // NUEVOS ESTILOS PARA EL INPUT DE PESO (reemplazan a pickerContainer)
   weightInputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.background, borderRadius: 12, paddingHorizontal: 16, marginBottom: 16, borderWidth: 1, borderColor: colors.border },
   weightTextInput: { flex: 1, color: colors.text, fontSize: 24, fontWeight: '700', paddingVertical: 12, textAlign: 'center' },
   weightSuffix: { fontSize: 18, fontWeight: '600', color: colors.textSecondary, marginLeft: 8 },
@@ -677,9 +761,17 @@ const getStyles = (colors: any) => StyleSheet.create({
   modalTitle: { fontSize: 22, fontWeight: 'bold', color: colors.text, flex: 1 },
   
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.cardAlt, padding: 16, borderRadius: 16 },
+  optionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.background, padding: 16, borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: colors.border },
   label: { fontSize: 16, fontWeight: '600', color: colors.text },
   setsInput: { backgroundColor: colors.card, color: colors.text, width: 60, height: 40, borderRadius: 8, textAlign: 'center', fontSize: 18, fontWeight: '700', borderWidth: 1, borderColor: colors.border },
   hintText: { fontSize: 14, color: colors.textSecondary, marginTop: 16, marginBottom: 8 },
+
+  // --- ESTILOS NUEVOS PARA LA CUADRÍCULA DE AVATARES ---
+  avatarGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 16, marginTop: 10 },
+  avatarOption: { width: 80, height: 80, borderRadius: 40, borderWidth: 3, borderColor: 'transparent', overflow: 'visible', position: 'relative' },
+  avatarOptionSelected: { borderColor: colors.primary },
+  avatarOptionImg: { width: '100%', height: '100%', borderRadius: 40 },
+  avatarCheckBadge: { position: 'absolute', bottom: -5, right: -5, backgroundColor: colors.background, borderRadius: 12 },
 
   repRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: colors.background, paddingVertical: 12 },
   repLabel: { fontSize: 16, fontWeight: '500', color: colors.text },

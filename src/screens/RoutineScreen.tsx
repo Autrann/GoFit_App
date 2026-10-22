@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Switch, ScrollView, Modal, FlatList, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { auth, db } from '../config/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import * as Haptics from 'expo-haptics'; // <-- NUEVO: Para vibraciones premium
+import { LinearGradient } from 'expo-linear-gradient'; // <-- NUEVO: Fondos premium
 
 // Datos locales
 import catalog from '../assets/data/catalogo_app.json';
 import { imageMap } from '../assets/imgs/imageMap';
 
-import { useContext } from 'react';
 import { ThemeContext } from '../context/ThemeContext';
 import { lightColors, darkColors } from '../theme/colors';
 
-// Tipos actualizados con instructions y muscleImage
 type Exercise = { id: string; name: string; muscle: string; image: string; instructions?: string[]; muscleImage?: string; };
 type DayPlan = { isRest: boolean; title: string; muscles: string[]; cardio: boolean; exercises: Exercise[]; };
 type Routine = { [key: string]: DayPlan };
@@ -21,7 +21,6 @@ type Routine = { [key: string]: DayPlan };
 const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 const MUSCLE_GROUPS = ['Pecho', 'Espalda', 'Hombro', 'Tríceps', 'Bíceps', 'Antebrazo', 'Pierna', 'Glúteo', 'Abdomen'];
 
-// Nuevo diccionario para mapear los nombres en español con las claves de las imágenes
 const muscleToImageKey: Record<string, keyof typeof imageMap> = {
   'Pecho': 'pectoralis-major.webp',
   'Espalda': 'trapezius.webp',
@@ -38,41 +37,37 @@ const defaultDayPlan: DayPlan = { isRest: false, title: '', muscles: [], cardio:
 const initialRoutine = DAYS.reduce((acc, day) => ({ ...acc, [day]: { ...defaultDayPlan } }), {} as Routine);
 
 export default function RoutineScreen() {
-const { isDark, toggleTheme } = useContext(ThemeContext); // En ProfileScreen agregamos toggleTheme
-const colors = isDark ? darkColors : lightColors;
-const styles = getStyles(colors);
+  const { isDark } = useContext(ThemeContext); 
+  const colors = isDark ? darkColors : lightColors;
+  const styles = getStyles(colors);
+
   const [routine, setRoutine] = useState<Routine>(initialRoutine);
   const [activeDay, setActiveDay] = useState<string>('Lunes');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  
-  // Nuevo estado para controlar el modo de edición por día
   const [isEditing, setIsEditing] = useState(false);
 
-  // Estados para Modales
+  // Modales
   const [isCatalogVisible, setCatalogVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [previewExercise, setPreviewExercise] = useState<Exercise | null>(null);
   const [showGuide, setShowGuide] = useState(false);
 
-  // 1. Cargar rutina desde Firebase
   useEffect(() => {
     const fetchRoutine = async () => {
       const user = auth.currentUser;
       if (user) {
         const docRef = doc(db, 'users', user.uid, 'data', 'routine');
         const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setRoutine({ ...initialRoutine, ...docSnap.data() });
-        }
+        if (docSnap.exists()) setRoutine({ ...initialRoutine, ...docSnap.data() });
       }
       setLoading(false);
     };
     fetchRoutine();
   }, []);
 
-  // 2. Guardar rutina en Firebase
   const handleSaveRoutine = async () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); // Feedback de éxito
     setSaving(true);
     try {
       const user = auth.currentUser;
@@ -80,20 +75,21 @@ const styles = getStyles(colors);
         const docRef = doc(db, 'users', user.uid, 'data', 'routine');
         await setDoc(docRef, routine);
       }
-      setIsEditing(false); // Salir del modo edición al guardar
+      setIsEditing(false);
     } catch (error) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       console.error("Error guardando rutina:", error);
     } finally {
       setSaving(false);
     }
   };
 
-  // 3. Funciones de actualización
   const updateActiveDay = (updates: Partial<DayPlan>) => {
     setRoutine(prev => ({ ...prev, [activeDay]: { ...prev[activeDay], ...updates } }));
   };
 
   const toggleMuscle = (muscle: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const currentMuscles = routine[activeDay].muscles;
     const newMuscles = currentMuscles.includes(muscle)
       ? currentMuscles.filter(m => m !== muscle)
@@ -102,6 +98,7 @@ const styles = getStyles(colors);
   };
 
   const handleAddExercise = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (previewExercise) {
       const currentExercises = routine[activeDay].exercises;
       if (!currentExercises.find(e => e.id === previewExercise.id)) {
@@ -114,43 +111,44 @@ const styles = getStyles(colors);
   };
 
   const handleRemoveExercise = (exerciseId: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     const currentExercises = routine[activeDay].exercises;
     updateActiveDay({ exercises: currentExercises.filter(e => e.id !== exerciseId) });
   };
 
   const openPreview = (exercise: Exercise) => {
+    Haptics.selectionAsync();
     const fullExercise = catalog.find(item => item.id === exercise.id) || exercise;
     setPreviewExercise(fullExercise as Exercise);
     setShowGuide(false);
   };
 
   const changeDay = (day: string) => {
+    if (day !== activeDay) Haptics.selectionAsync(); // Feedback al cambiar pestaña
     setActiveDay(day);
-    setIsEditing(false); // Resetear el modo edición al cambiar de día
+    setIsEditing(false);
   };
 
-  // 4. Filtrado del catálogo
+  const toggleEditMode = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (isEditing) handleSaveRoutine();
+    else setIsEditing(true);
+  };
+
   const filteredCatalog = catalog.filter(ex => 
     ex.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     ex.muscle.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (loading) return <View style={styles.centerContainer}><ActivityIndicator size="large" color="#007AFF" /></View>;
+  if (loading) return <View style={styles.centerContainer}><ActivityIndicator size="large" color={colors.primary} /></View>;
 
   const currentPlan = routine[activeDay];
-  
-  const isPreviewInRoutine = previewExercise 
-    ? currentPlan.exercises.some(e => e.id === previewExercise.id) 
-    : false;
+  const isPreviewInRoutine = previewExercise ? currentPlan.exercises.some(e => e.id === previewExercise.id) : false;
 
-  // Componente actualizado usando el diccionario muscleToImageKey
   const renderMuscleImage = (muscleName: string, size = 24) => {
     const imageKey = muscleToImageKey[muscleName];
     const imageSource = imageMap[imageKey];
-    
-    if (imageSource) {
-      return <Image source={imageSource} style={{ width: size, height: size, borderRadius: size/2 }} resizeMode="cover" />;
-    }
+    if (imageSource) return <Image source={imageSource} style={{ width: size, height: size, borderRadius: size/2 }} resizeMode="cover" />;
     return <Ionicons name="body-outline" size={size} color="#8E8E93" />;
   };
 
@@ -160,11 +158,11 @@ const styles = getStyles(colors);
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Mi Rutina</Text>
         <TouchableOpacity onPress={handleSaveRoutine} disabled={saving} style={styles.saveBtn}>
-          {saving ? <ActivityIndicator size="small" color="#007AFF" /> : <Text style={styles.saveBtnText}>Guardar</Text>}
+          {saving ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={styles.saveBtnText}>Guardar</Text>}
         </TouchableOpacity>
       </View>
 
-      {/* Selector de Días */}
+      {/* Selector de Días Flotante */}
       <View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.daysScroll}>
           {DAYS.map(day => (
@@ -179,49 +177,46 @@ const styles = getStyles(colors);
         </ScrollView>
       </View>
 
-      {/* Contenido del Día */}
-      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 40 }}>
-        <View style={styles.card}>
-          
-          {/* Cabecera de la Tarjeta (Día y Botón de Edición) */}
+      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+        
+        {/* Tarjeta Principal con Gradiente */}
+        <LinearGradient 
+          colors={isDark ? ['#1C1C1E', '#2C2C2E'] : ['#FFFFFF', '#F2F2F7']} 
+          style={styles.card}
+        >
+          {/* Cabecera de la Tarjeta */}
           <View style={[styles.rowBetween, { marginBottom: 16 }]}>
             <Text style={styles.sectionTitle}>
-              {currentPlan.isRest ? 'Día de Descanso' : (currentPlan.title || 'Día sin título')}
+              {currentPlan.isRest ? 'Día de Descanso 🛏️' : (currentPlan.title || 'Día de Entrenamiento 🔥')}
             </Text>
-            <TouchableOpacity 
-              style={styles.editToggleBtn} 
-              onPress={() => isEditing ? handleSaveRoutine() : setIsEditing(true)}
-              disabled={saving}
-            >
+            <TouchableOpacity style={styles.editToggleBtn} onPress={toggleEditMode} disabled={saving}>
               {isEditing ? (
-                saving ? <ActivityIndicator size="small" color="#34C759" /> : <Ionicons name="checkmark-circle" size={20} color="#34C759" />
+                saving ? <ActivityIndicator size="small" color={colors.success} /> : <Ionicons name="checkmark-circle" size={22} color={colors.success} />
               ) : (
-                <Ionicons name="create" size={20} color="#007AFF" />
+                <Ionicons name="create" size={22} color={colors.primary} />
               )}
-              <Text style={[styles.editToggleText, { color: isEditing ? "#34C759" : "#007AFF" }]}>
-                {isEditing ? "Guardar cambios" : "Editar"}
-              </Text>
             </TouchableOpacity>
           </View>
 
-          {/* CONTENIDO MODO EDICIÓN */}
+          {/* MODO EDICIÓN */}
           {isEditing && (
             <View style={styles.editSection}>
               <View style={styles.rowBetween}>
-                <Text style={styles.label}>¿Es día de descanso?</Text>
+                <Text style={styles.label}>¿Día de descanso?</Text>
                 <Switch 
                   value={currentPlan.isRest} 
-                  onValueChange={(val) => updateActiveDay({ isRest: val })}
-                  trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+                  onValueChange={(val) => { Haptics.selectionAsync(); updateActiveDay({ isRest: val }); }}
+                  trackColor={{ false: colors.border, true: colors.success }}
                 />
               </View>
 
               {!currentPlan.isRest && (
                 <>
-                  <Text style={styles.label}>Título (Ej. Push, Pierna Pesada)</Text>
+                  <Text style={styles.label}>Nombre de la sesión</Text>
                   <TextInput 
                     style={styles.input} 
-                    placeholder="Nombre de la sesión" 
+                    placeholder="Ej. Push Pesado, Pierna Enfoque Glúteo" 
+                    placeholderTextColor={colors.textSecondary}
                     value={currentPlan.title}
                     onChangeText={(val) => updateActiveDay({ title: val })}
                   />
@@ -236,21 +231,19 @@ const styles = getStyles(colors);
                           style={[styles.chip, isActive && styles.chipActive]}
                           onPress={() => toggleMuscle(muscle)}
                         >
-                          <View style={{ marginRight: 6 }}>
-                            {renderMuscleImage(muscle, 20)}
-                          </View>
+                          <View style={{ marginRight: 6 }}>{renderMuscleImage(muscle, 20)}</View>
                           <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{muscle}</Text>
                         </TouchableOpacity>
                       );
                     })}
                   </View>
 
-                  <View style={[styles.rowBetween, { marginTop: 16 }]}>
-                    <Text style={styles.label}>¿Harás Cardio?</Text>
+                  <View style={[styles.rowBetween, { marginTop: 20 }]}>
+                    <Text style={styles.label}>¿Incluir Cardio?</Text>
                     <Switch 
                       value={currentPlan.cardio} 
-                      onValueChange={(val) => updateActiveDay({ cardio: val })}
-                      trackColor={{ false: '#E5E5EA', true: '#FF9500' }}
+                      onValueChange={(val) => { Haptics.selectionAsync(); updateActiveDay({ cardio: val }); }}
+                      trackColor={{ false: colors.border, true: '#FF9500' }}
                     />
                   </View>
                 </>
@@ -259,32 +252,30 @@ const styles = getStyles(colors);
             </View>
           )}
 
-          {/* CONTENIDO MODO LECTURA / VISTA */}
+          {/* MODO LECTURA */}
           {currentPlan.isRest ? (
             <View style={styles.restContainer}>
-              <Ionicons name="bed-outline" size={60} color="#AEAEB2" />
-              <Text style={styles.restText}>Toca recargar energías.</Text>
+              <Ionicons name="battery-charging-outline" size={64} color={colors.textSecondary} />
+              <Text style={styles.restText}>Hoy el cuerpo se recupera para crecer.</Text>
             </View>
           ) : (
             <>
-              {/* Músculos a trabajar en modo lectura */}
               {!isEditing && currentPlan.muscles.length > 0 && (
                 <View style={styles.readOnlyMusclesContainer}>
-                  <Text style={styles.label}>Músculos:</Text>
                   <View style={styles.chipsContainer}>
                     {currentPlan.muscles.map(muscle => (
                       <View key={muscle} style={[styles.chip, styles.chipActive, { paddingVertical: 6 }]}>
-                        <View style={{ marginRight: 6 }}>{renderMuscleImage(muscle, 20)}</View>
+                        <View style={{ marginRight: 6 }}>{renderMuscleImage(muscle, 18)}</View>
                         <Text style={styles.chipTextActive}>{muscle}</Text>
                       </View>
                     ))}
+                    {currentPlan.cardio && (
+                      <View style={styles.cardioBadge}>
+                        <Ionicons name="flame" size={14} color="#FF9500" />
+                        <Text style={styles.cardioBadgeText}>Cardio</Text>
+                      </View>
+                    )}
                   </View>
-                  {currentPlan.cardio && (
-                    <View style={styles.cardioBadge}>
-                      <Ionicons name="flame" size={16} color="#FF9500" />
-                      <Text style={styles.cardioBadgeText}>+ Cardio</Text>
-                    </View>
-                  )}
                   <View style={styles.divider} />
                 </View>
               )}
@@ -292,157 +283,159 @@ const styles = getStyles(colors);
               <Text style={styles.sectionTitle}>Ejercicios ({currentPlan.exercises.length})</Text>
               
               {currentPlan.exercises.length === 0 && !isEditing && (
-                <Text style={styles.emptyText}>No hay ejercicios asignados. Presiona Editar para agregar.</Text>
+                <View style={styles.emptyState}>
+                  <Ionicons name="barbell-outline" size={40} color={colors.border} />
+                  <Text style={styles.emptyText}>Tu rutina está vacía. Toca el botón de editar para comenzar a construirla.</Text>
+                </View>
               )}
 
               {currentPlan.exercises.map((ex, index) => (
                 <View key={`${ex.id}-${index}`} style={styles.exerciseListItem}>
-                  <TouchableOpacity 
-                    style={styles.exerciseListContent} 
-                    onPress={() => openPreview(ex)}
-                  >
+                  <TouchableOpacity style={styles.exerciseListContent} onPress={() => openPreview(ex)}>
                     <Image source={imageMap[ex.id as keyof typeof imageMap]} style={styles.exerciseListImg} />
-                    <View style={{ flex: 1, marginLeft: 12 }}>
+                    <View style={{ flex: 1, marginLeft: 16 }}>
                       <Text style={styles.exerciseListName}>{ex.name}</Text>
                       <Text style={styles.exerciseListMuscle}>{ex.muscle}</Text>
                     </View>
+                    <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
                   </TouchableOpacity>
+                  
                   {isEditing && (
                     <TouchableOpacity style={styles.deleteIconBtn} onPress={() => handleRemoveExercise(ex.id)}>
-                      <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                      <Ionicons name="remove-circle" size={28} color={colors.danger} />
                     </TouchableOpacity>
                   )}
                 </View>
               ))}
 
               {isEditing && (
-                <>
-                  <TouchableOpacity style={styles.addBtn} onPress={() => setCatalogVisible(true)}>
-                    <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
-                    <Text style={styles.addBtnText}>Agregar Ejercicio</Text>
-                  </TouchableOpacity>
-
-                  {/* NUEVO BOTÓN INFERIOR DE GUARDAR CAMBIOS */}
-                  <TouchableOpacity style={styles.bottomSaveBtn} onPress={handleSaveRoutine} disabled={saving}>
-                    {saving ? <ActivityIndicator color="#FFF" /> : <Text style={styles.bottomSaveBtnText}>Guardar Cambios</Text>}
-                  </TouchableOpacity>
-                </>
+                <TouchableOpacity style={styles.addBtn} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); setCatalogVisible(true); }}>
+                  <Ionicons name="add" size={24} color={colors.primary} />
+                  <Text style={styles.addBtnText}>Añadir Ejercicio</Text>
+                </TouchableOpacity>
               )}
             </>
           )}
-        </View>
+        </LinearGradient>
+
+        {isEditing && (
+           <TouchableOpacity style={styles.bottomSaveBtn} onPress={handleSaveRoutine} disabled={saving}>
+             {saving ? <ActivityIndicator color="#FFF" /> : <Text style={styles.bottomSaveBtnText}>Confirmar Rutina</Text>}
+           </TouchableOpacity>
+        )}
       </ScrollView>
 
-      {/* MODAL 1: Catálogo de Búsqueda */}
-      <Modal visible={isCatalogVisible} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setCatalogVisible(false)}>
-              <Text style={styles.cancelText}>Cancelar</Text>
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>Catálogo</Text>
-            <View style={{ width: 60 }} />
-          </View>
+      {/* MODAL 1: Catálogo estilo Bottom Sheet */}
+      <Modal visible={isCatalogVisible} animationType="slide" transparent={true}>
+        <View style={styles.bottomSheetOverlay}>
+          <View style={[styles.bottomSheetContent, { height: '85%' }]}>
+            <View style={styles.dragHandle} />
+            
+            <View style={styles.modalHeaderBetween}>
+              <Text style={styles.modalTitle}>Catálogo</Text>
+              <TouchableOpacity onPress={() => setCatalogVisible(false)}>
+                <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
 
-          <View style={styles.searchContainer}>
-            <Ionicons name="search" size={20} color="#8E8E93" />
-            <TextInput 
-              style={styles.searchInput} 
-              placeholder="Buscar ejercicio o músculo..." 
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              clearButtonMode="while-editing"
+            <View style={styles.searchContainer}>
+              <Ionicons name="search" size={20} color={colors.textSecondary} />
+              <TextInput 
+                style={styles.searchInput} 
+                placeholder="Buscar por nombre o músculo..." 
+                placeholderTextColor={colors.textSecondary}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                clearButtonMode="while-editing"
+              />
+            </View>
+
+            <FlatList
+              data={filteredCatalog}
+              keyExtractor={item => item.id}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 40 }}
+              renderItem={({ item }) => (
+                <TouchableOpacity style={styles.catalogCard} onPress={() => openPreview(item as Exercise)}>
+                  {imageMap[item.id as keyof typeof imageMap] ? (
+                    <Image source={imageMap[item.id as keyof typeof imageMap]} style={styles.catalogImg} />
+                  ) : (
+                    <View style={[styles.catalogImg, { justifyContent: 'center', alignItems: 'center' }]}>
+                      <Ionicons name="image-outline" size={24} color={colors.border} />
+                    </View>
+                  )}
+                  <View style={styles.catalogInfo}>
+                    <Text style={styles.catalogName}>{item.name}</Text>
+                    <Text style={styles.catalogMuscle}>{item.muscle}</Text>
+                  </View>
+                  <Ionicons name="add-circle" size={28} color={colors.primary} />
+                </TouchableOpacity>
+              )}
             />
           </View>
-
-          <FlatList
-            data={filteredCatalog}
-            keyExtractor={item => item.id}
-            initialNumToRender={12}
-            renderItem={({ item }) => (
-              <TouchableOpacity style={styles.catalogCard} onPress={() => openPreview(item as Exercise)}>
-                {imageMap[item.id as keyof typeof imageMap] ? (
-                  <Image source={imageMap[item.id as keyof typeof imageMap]} style={styles.catalogImg} />
-                ) : (
-                  <View style={[styles.catalogImg, { justifyContent: 'center', alignItems: 'center' }]}>
-                    <Ionicons name="image-outline" size={24} color="#C7C7CC" />
-                  </View>
-                )}
-                <View style={styles.catalogInfo}>
-                  <Text style={styles.catalogName}>{item.name}</Text>
-                  <Text style={styles.catalogMuscle}>{item.muscle}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
-              </TouchableOpacity>
-            )}
-          />
-        </SafeAreaView>
+        </View>
       </Modal>
 
-      {/* MODAL 2: Vista Previa y Detalles del Ejercicio */}
-      <Modal visible={!!previewExercise} animationType="fade" transparent={true}>
-        <View style={styles.previewOverlay}>
-          <View style={styles.previewContent}>
+      {/* MODAL 2: Detalles estilo Bottom Sheet */}
+      <Modal visible={!!previewExercise} animationType="slide" transparent={true}>
+        <View style={styles.bottomSheetOverlay}>
+          <View style={styles.bottomSheetContent}>
+            <View style={styles.dragHandle} />
+            
             <TouchableOpacity style={styles.closePreviewBtn} onPress={() => setPreviewExercise(null)}>
-              <Ionicons name="close-circle" size={30} color="#AEAEB2" />
+              <Ionicons name="close-circle" size={30} color={colors.textSecondary} />
             </TouchableOpacity>
             
             {previewExercise && imageMap[previewExercise.id as keyof typeof imageMap] ? (
               <Image source={imageMap[previewExercise.id as keyof typeof imageMap]} style={styles.previewImg} resizeMode="contain" />
             ) : (
-              <View style={[styles.previewImg, { justifyContent: 'center', alignItems: 'center' }]}>
-                <Text style={{color: '#999'}}>Sin imagen disponible</Text>
-              </View>
+              <View style={[styles.previewImg, { justifyContent: 'center', alignItems: 'center' }]}><Text style={{color: '#999'}}>Sin imagen</Text></View>
             )}
 
             <Text style={styles.previewTitle}>{previewExercise?.name}</Text>
             
             <View style={styles.muscleContainer}>
-              <Text style={styles.previewMuscle}>Músculo: <Text style={{fontWeight: '700', color: '#007AFF'}}>{previewExercise?.muscle}</Text></Text>
-
+              <Text style={styles.previewMuscle}>Enfoque: <Text style={{fontWeight: '700', color: colors.primary}}>{previewExercise?.muscle}</Text></Text>
               {previewExercise?.muscleImage && imageMap[previewExercise.muscleImage as keyof typeof imageMap] && (
-                <Image 
-                  source={imageMap[previewExercise.muscleImage as keyof typeof imageMap]} 
-                  style={styles.muscleIcon} 
-                  resizeMode="contain"
-                />
+                <Image source={imageMap[previewExercise.muscleImage as keyof typeof imageMap]} style={styles.muscleIcon} resizeMode="contain" />
               )}
             </View>
 
-            <TouchableOpacity style={styles.guideToggleBtn} onPress={() => setShowGuide(!showGuide)}>
-              <Ionicons name={showGuide ? "book" : "book-outline"} size={20} color="#007AFF" />
-              <Text style={styles.guideToggleText}>{showGuide ? "Ocultar guía de cómo hacerlo" : "Ver guía de cómo hacerlo"}</Text>
-              <Ionicons name={showGuide ? "chevron-up" : "chevron-down"} size={16} color="#007AFF" style={{ marginLeft: 4 }} />
+            <TouchableOpacity style={styles.guideToggleBtn} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setShowGuide(!showGuide); }}>
+              <Ionicons name={showGuide ? "book" : "book-outline"} size={20} color={colors.primary} />
+              <Text style={styles.guideToggleText}>{showGuide ? "Ocultar instrucciones" : "Cómo realizar el ejercicio"}</Text>
+              <Ionicons name={showGuide ? "chevron-up" : "chevron-down"} size={16} color={colors.primary} />
             </TouchableOpacity>
 
             {showGuide && (
-              <ScrollView style={styles.instructionsScroll} showsVerticalScrollIndicator={true}>
+              <ScrollView style={styles.instructionsScroll} showsVerticalScrollIndicator={false}>
                 {previewExercise?.instructions && previewExercise.instructions.length > 0 ? (
                   previewExercise.instructions.map((step, index) => (
                     <Text key={index} style={styles.instructionStep}>
-                      <Text style={styles.instructionNumber}>{index + 1}. </Text>
-                      {step}
+                      <Text style={styles.instructionNumber}>{index + 1}. </Text>{step}
                     </Text>
                   ))
                 ) : (
-                  <Text style={styles.noInstructionsText}>No hay guía disponible para este ejercicio.</Text>
+                  <Text style={styles.emptyText}>No hay guía disponible para este ejercicio.</Text>
                 )}
               </ScrollView>
             )}
             
-            {!isPreviewInRoutine ? (
-              <TouchableOpacity style={styles.primaryButton} onPress={handleAddExercise}>
-                <Text style={styles.primaryButtonText}>Agregar a {activeDay}</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity style={[styles.primaryButton, { backgroundColor: '#FF3B30' }]} onPress={() => {
-                if(previewExercise) handleRemoveExercise(previewExercise.id);
-                setPreviewExercise(null);
-                setShowGuide(false);
-              }}>
-                <Text style={styles.primaryButtonText}>Eliminar de la rutina</Text>
-              </TouchableOpacity>
-            )}
+            <View style={{ width: '100%', marginTop: 20 }}>
+              {!isPreviewInRoutine ? (
+                <TouchableOpacity style={styles.primaryButton} onPress={handleAddExercise}>
+                  <Text style={styles.primaryButtonText}>Agregar a {activeDay}</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.dangerBg }]} onPress={() => {
+                  if(previewExercise) handleRemoveExercise(previewExercise.id);
+                  setPreviewExercise(null);
+                  setShowGuide(false);
+                }}>
+                  <Text style={[styles.primaryButtonText, { color: colors.danger }]}>Eliminar de la rutina</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         </View>
       </Modal>
@@ -456,87 +449,86 @@ const getStyles = (colors: any) => StyleSheet.create({
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 16 },
-  headerTitle: { fontSize: 28, fontWeight: '800', color: colors.text },
-  saveBtn: { backgroundColor: colors.primaryLight, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
-  saveBtnText: { color: colors.primary, fontWeight: '700' },
+  headerTitle: { fontSize: 32, fontWeight: '800', color: colors.text, letterSpacing: -0.5 },
+  saveBtn: { backgroundColor: colors.primary, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 24, shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
+  saveBtnText: { color: '#FFF', fontWeight: '700', fontSize: 15 },
   
-  daysScroll: { paddingHorizontal: 16, paddingBottom: 10 },
-  dayTab: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, backgroundColor: colors.border, marginRight: 10 },
-  dayTabActive: { backgroundColor: colors.text },
-  dayTabText: { color: colors.textSecondary, fontWeight: '600', textTransform: 'capitalize' },
+  daysScroll: { paddingHorizontal: 16, paddingBottom: 16 },
+  dayTab: { paddingHorizontal: 22, paddingVertical: 12, borderRadius: 24, backgroundColor: colors.card, marginRight: 10, borderWidth: 1, borderColor: colors.border },
+  dayTabActive: { backgroundColor: colors.text, borderColor: colors.text },
+  dayTabText: { color: colors.textSecondary, fontWeight: '700', textTransform: 'capitalize', fontSize: 15 },
   dayTabTextActive: { color: colors.background },
 
-  content: { padding: 16 },
-  card: { backgroundColor: colors.card, borderRadius: 20, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
+  content: { paddingHorizontal: 16 },
+  card: { borderRadius: 28, padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.08, shadowRadius: 20, elevation: 5, borderWidth: 1, borderColor: colors.border },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
+  sectionTitle: { fontSize: 20, fontWeight: '800', color: colors.text },
   
-  editToggleBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.background, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
-  editToggleText: { fontWeight: '600', fontSize: 14, marginLeft: 4 },
+  editToggleBtn: { backgroundColor: colors.cardAlt, padding: 8, borderRadius: 20 },
   
-  editSection: { backgroundColor: colors.cardAlt, padding: 16, borderRadius: 16, marginBottom: 16 },
-  
-  label: { fontSize: 14, fontWeight: '600', color: colors.textSecondary, marginBottom: 8, marginTop: 8 },
-  input: { backgroundColor: colors.card, color: colors.text, padding: 14, borderRadius: 12, fontSize: 16, borderWidth: 1, borderColor: colors.border },
-  divider: { height: 1, backgroundColor: colors.background, marginVertical: 20 },
+  editSection: { marginTop: 10 },
+  label: { fontSize: 15, fontWeight: '700', color: colors.text, marginBottom: 10, marginTop: 12 },
+  input: { backgroundColor: colors.cardAlt, color: colors.text, padding: 16, borderRadius: 16, fontSize: 16, fontWeight: '500' },
+  divider: { height: 1, backgroundColor: colors.border, marginVertical: 24 },
 
-  readOnlyMusclesContainer: { marginBottom: 10 },
-  cardioBadge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: colors.warningBg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, marginTop: 8 },
-  cardioBadgeText: { color: colors.warning, fontWeight: '700', fontSize: 13, marginLeft: 4 },
-  emptyText: { color: colors.textSecondary, fontStyle: 'italic', marginTop: 10 },
+  readOnlyMusclesContainer: { marginBottom: 16 },
+  cardioBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.warningBg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
+  cardioBadgeText: { color: colors.warning, fontWeight: '800', fontSize: 13, marginLeft: 4 },
+  emptyState: { alignItems: 'center', marginTop: 30, marginBottom: 20 },
+  emptyText: { color: colors.textSecondary, textAlign: 'center', marginTop: 12, fontSize: 15, lineHeight: 22 },
 
-  chipsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  chipsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  chip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 24, backgroundColor: colors.cardAlt, borderWidth: 1, borderColor: 'transparent' },
   chipActive: { backgroundColor: colors.primaryLight, borderColor: colors.primary },
-  chipText: { color: colors.textSecondary, fontWeight: '500' },
-  chipTextActive: { color: colors.primary, fontWeight: '700' },
+  chipText: { color: colors.textSecondary, fontWeight: '600', fontSize: 14 },
+  chipTextActive: { color: colors.primary, fontWeight: '800' },
 
-  exerciseListItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, padding: 10, borderRadius: 12, marginBottom: 8 },
+  exerciseListItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, padding: 12, borderRadius: 20, marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 },
   exerciseListContent: { flex: 1, flexDirection: 'row', alignItems: 'center' },
-  exerciseListImg: { width: 50, height: 50, borderRadius: 8, backgroundColor: colors.imagePlaceholder },
-  exerciseListName: { fontSize: 15, fontWeight: '600', color: colors.text },
-  exerciseListMuscle: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
-  deleteIconBtn: { padding: 8 },
+  exerciseListImg: { width: 56, height: 56, borderRadius: 14, backgroundColor: colors.imagePlaceholder },
+  exerciseListName: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 4 },
+  exerciseListMuscle: { fontSize: 14, color: colors.textSecondary, fontWeight: '500' },
+  deleteIconBtn: { padding: 8, marginLeft: 8 },
   
-  addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background, padding: 16, borderRadius: 12, marginTop: 8, borderStyle: 'dashed', borderWidth: 1, borderColor: colors.textSecondary },
-  addBtnText: { color: colors.primary, fontWeight: '600', marginLeft: 8 },
+  addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primaryLight, padding: 16, borderRadius: 20, marginTop: 10 },
+  addBtnText: { color: colors.primary, fontWeight: '700', fontSize: 16, marginLeft: 8 },
 
-  bottomSaveBtn: { backgroundColor: colors.success, padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 24, shadowColor: colors.success, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
-  bottomSaveBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  bottomSaveBtn: { backgroundColor: colors.success, padding: 18, borderRadius: 24, alignItems: 'center', marginTop: 24, shadowColor: colors.success, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
+  bottomSaveBtnText: { color: '#FFF', fontSize: 18, fontWeight: '800' },
 
   restContainer: { alignItems: 'center', paddingVertical: 40 },
-  restText: { fontSize: 16, color: colors.textSecondary, marginTop: 12, fontWeight: '500' },
+  restText: { fontSize: 17, color: colors.textSecondary, marginTop: 16, fontWeight: '600' },
 
-  modalContainer: { flex: 1, backgroundColor: colors.background },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.border },
-  cancelText: { color: colors.primary, fontSize: 16 },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
-  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.border, margin: 16, paddingHorizontal: 12, borderRadius: 10, height: 40 },
-  searchInput: { flex: 1, marginLeft: 8, fontSize: 16, color: colors.text },
-  catalogCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, padding: 12, marginHorizontal: 16, marginBottom: 8, borderRadius: 12 },
-  catalogImg: { width: 60, height: 60, borderRadius: 8, backgroundColor: colors.imagePlaceholder },
-  catalogInfo: { flex: 1, marginLeft: 12 },
-  catalogName: { fontSize: 16, fontWeight: '600', color: colors.text },
-  catalogMuscle: { fontSize: 14, color: colors.textSecondary, marginTop: 4 },
+  // Estilos de Bottom Sheet
+  bottomSheetOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  bottomSheetContent: { backgroundColor: colors.card, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingHorizontal: 24, paddingBottom: 40, paddingTop: 12, maxHeight: '90%' },
+  dragHandle: { width: 40, height: 5, backgroundColor: colors.border, borderRadius: 3, alignSelf: 'center', marginBottom: 20 },
+  modalHeaderBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  modalTitle: { fontSize: 24, fontWeight: '800', color: colors.text },
+  
+  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, marginBottom: 16, paddingHorizontal: 16, borderRadius: 16, height: 50 },
+  searchInput: { flex: 1, marginLeft: 10, fontSize: 16, color: colors.text, fontWeight: '500' },
+  catalogCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.background, padding: 12, marginBottom: 12, borderRadius: 20, borderWidth: 1, borderColor: colors.border },
+  catalogImg: { width: 64, height: 64, borderRadius: 14, backgroundColor: colors.imagePlaceholder },
+  catalogInfo: { flex: 1, marginLeft: 16 },
+  catalogName: { fontSize: 17, fontWeight: '700', color: colors.text, marginBottom: 4 },
+  catalogMuscle: { fontSize: 14, color: colors.textSecondary, fontWeight: '500' },
 
-  previewOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  previewContent: { backgroundColor: colors.card, width: '100%', maxHeight: '90%', borderRadius: 24, padding: 24, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20 },
-  closePreviewBtn: { position: 'absolute', top: 16, right: 16, zIndex: 1 },
-  previewImg: { width: '100%', height: 200, borderRadius: 16, backgroundColor: colors.imagePlaceholder, marginBottom: 16 },
-  previewTitle: { fontSize: 22, fontWeight: '800', color: colors.text, textAlign: 'center' },
+  closePreviewBtn: { position: 'absolute', top: 16, right: 24, zIndex: 10, backgroundColor: colors.card, borderRadius: 20 },
+  previewImg: { width: '100%', height: 220, borderRadius: 24, backgroundColor: colors.imagePlaceholder, marginBottom: 20 },
+  previewTitle: { fontSize: 26, fontWeight: '800', color: colors.text, textAlign: 'center', marginBottom: 8 },
   
-  muscleContainer: { flexDirection: 'row', alignItems: 'center', marginVertical: 8 },
-  muscleIcon: { width: 40, height: 40, marginRight: 8, borderRadius: 8, backgroundColor: colors.cardAlt },
-  previewMuscle: { fontSize: 15, color: colors.textSecondary },
+  muscleContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+  muscleIcon: { width: 40, height: 40, marginLeft: 12, borderRadius: 10, backgroundColor: colors.cardAlt },
+  previewMuscle: { fontSize: 16, color: colors.textSecondary, fontWeight: '500' },
   
-  guideToggleBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, marginVertical: 8 },
-  guideToggleText: { color: colors.primary, fontWeight: '700', fontSize: 14, marginLeft: 8 },
+  guideToggleBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primaryLight, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 16, alignSelf: 'center' },
+  guideToggleText: { color: colors.primary, fontWeight: '700', fontSize: 15, marginHorizontal: 8 },
 
-  instructionsScroll: { width: '100%', marginVertical: 10, paddingHorizontal: 8 },
-  instructionStep: { fontSize: 15, color: colors.text, marginBottom: 12, lineHeight: 22 },
-  instructionNumber: { fontWeight: '700', color: colors.primary },
-  noInstructionsText: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', fontStyle: 'italic', marginVertical: 20 },
+  instructionsScroll: { width: '100%', marginTop: 20, maxHeight: 200 },
+  instructionStep: { fontSize: 16, color: colors.text, marginBottom: 14, lineHeight: 24 },
+  instructionNumber: { fontWeight: '800', color: colors.primary },
   
-  primaryButton: { backgroundColor: colors.primary, width: '100%', padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 10 },
-  primaryButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700' }
+  primaryButton: { backgroundColor: colors.primary, width: '100%', padding: 18, borderRadius: 20, alignItems: 'center' },
+  primaryButtonText: { color: '#FFF', fontSize: 18, fontWeight: '800' }
 });
