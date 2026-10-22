@@ -1,18 +1,21 @@
-import React from 'react';
-import { useColorScheme } from 'react-native';
+import React, { useContext } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 
 import StatsScreen from '../screens/StatsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import RoutineScreen from '../screens/RoutineScreen';
+
+// Importamos el Contexto Global en lugar de useColorScheme
+import { ThemeContext } from '../context/ThemeContext';
 import { lightColors, darkColors } from '../theme/colors';
 
 const Tab = createBottomTabNavigator();
 
 export default function MainTabNavigator() {
-  const scheme = useColorScheme();
-  const colors = scheme === 'dark' ? darkColors : lightColors;
+  // Ahora escuchamos a la variable global
+  const { isDark } = useContext(ThemeContext);
+  const colors = isDark ? darkColors : lightColors;
 
   return (
     <Tab.Navigator
@@ -37,7 +40,7 @@ export default function MainTabNavigator() {
           elevation: 10,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: scheme === 'dark' ? 0.3 : 0.1,
+          shadowOpacity: isDark ? 0.3 : 0.1, // Adaptamos la sombra a la variable global
           shadowRadius: 4,
           height: 60,
           paddingBottom: 8,
