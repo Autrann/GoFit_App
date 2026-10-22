@@ -1,14 +1,19 @@
 import React from 'react';
+import { useColorScheme } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons'; // Iconos nativos de Expo
+import { Ionicons } from '@expo/vector-icons';
 
 import StatsScreen from '../screens/StatsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import RoutineScreen from '../screens/RoutineScreen';
+import { lightColors, darkColors } from '../theme/colors';
 
 const Tab = createBottomTabNavigator();
 
 export default function MainTabNavigator() {
+  const scheme = useColorScheme();
+  const colors = scheme === 'dark' ? darkColors : lightColors;
+
   return (
     <Tab.Navigator
       initialRouteName="Perfil"
@@ -22,16 +27,17 @@ export default function MainTabNavigator() {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: '#8E8E93',
-        headerShown: false, // Ocultamos el header feo por defecto para hacer el nuestro
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
+        headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 0,
+          backgroundColor: colors.card,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
           elevation: 10,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.1,
+          shadowOpacity: scheme === 'dark' ? 0.3 : 0.1,
           shadowRadius: 4,
           height: 60,
           paddingBottom: 8,
