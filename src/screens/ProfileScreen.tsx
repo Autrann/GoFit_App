@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput, ScrollView, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth, db } from '../config/firebase';
-import { doc, getDoc, updateDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, collection, onSnapshot } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
@@ -21,6 +21,7 @@ export default function ProfileScreen() {
 
   const [userData, setUserData] = useState<any>(null);
   const [routine, setRoutine] = useState<any>(null);
+  const [weightLogs, setWeightLogs] = useState<{ date: string; weight: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   const today = new Date();
@@ -77,6 +78,18 @@ export default function ProfileScreen() {
       }
     });
 
+    // Escuchar historial de peso en tiempo real para mostrar comparativa reciente
+    const unsubWeightLogs = onSnapshot(collection(db, 'users', user.uid, 'weight_logs'), (snap) => {
+      const logs = snap.docs
+        .map((d) => ({
+          date: d.id,
+          weight: parseFloat(d.data().weight) || 0,
+        }))
+        .filter((item) => item.weight > 0)
+        .sort((a, b) => a.date.localeCompare(b.date));
+      setWeightLogs(logs);
+    });
+
     const fetchLastWeek = async () => {
       const lwSnap = await getDoc(doc(db, 'users', user.uid, 'workout_logs', lastWeekString));
       if (lwSnap.exists()) setLastWeekLog(lwSnap.data());
@@ -88,6 +101,7 @@ export default function ProfileScreen() {
       unsubUser();
       unsubRoutine();
       unsubLog();
+      unsubWeightLogs();
     };
   }, []);
 
@@ -104,6 +118,7 @@ export default function ProfileScreen() {
     }
   };
 
+  // --- GUARDAR PESO ACTUAL + REGISTRO EN EL HISTORIAL DE FIRESTORE ---
   const handleUpdateWeight = async () => {
     const numericWeight = parseFloat(tempWeight.replace(',', '.'));
     if (isNaN(numericWeight) || numericWeight <= 0) {
@@ -114,15 +129,31 @@ export default function ProfileScreen() {
     try {
       const user = auth.currentUser;
       if (user) {
+        const timestamp = new Date().toISOString();
+
+        // 1. Actualizar el peso actual en el perfil del usuario
         await updateDoc(doc(db, 'users', user.uid), {
           weight: numericWeight.toString(),
-          lastWeightUpdate: new Date().toISOString(),
+          lastWeightUpdate: timestamp,
         });
+
+        // 2. Guardar o actualizar la entrada del día en la subcolección weight_logs
+        await setDoc(
+          doc(db, 'users', user.uid, 'weight_logs', dateString),
+          {
+            weight: numericWeight,
+            date: dateString,
+            updatedAt: timestamp,
+          },
+          { merge: true }
+        );
+
         setIsWeightInputOpen(false);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
     } catch (error) {
       console.error('Error guardando peso:', error);
+      Alert.alert('Error', 'No se pudo guardar el registro de peso.');
     } finally {
       setSavingSettings(false);
     }
@@ -345,6 +376,12 @@ export default function ProfileScreen() {
       ? todayPlan.exercises[activeExIndex + 1]
       : null;
 
+  // Cálculo de cambio respecto al pesaje inmediato anterior
+  const prevWeightDiff =
+    weightLogs.length >= 2
+      ? (weightLogs[weightLogs.length - 1].weight - weightLogs[weightLogs.length - 2].weight).toFixed(1)
+      : null;
+
   return (
     <SafeAreaView style={kStyles.container}>
       <KineticHeader
@@ -557,9 +594,14 @@ export default function ProfileScreen() {
           <View style={kStyles.rowBetween}>
             <View style={kStyles.rowAlign}>
               <Ionicons name="scale-outline" size={20} color={k.cyan} />
-              <Text style={{ fontSize: 14, fontWeight: '900', fontStyle: 'italic', color: k.textMain }}>
-                CONTROL DE PESO CORPORAL
-              </Text>
+              <View>
+                <Text style={{ fontSize: 14, fontWeight: '900', fontStyle: 'italic', color: k.textMain }}>
+                  CONTROL DE PESO CORPORAL
+                </Text>
+                <Text style={{ fontSize: 10, color: k.textMuted }}>
+                  {weightLogs.length} registros guardados en el historial
+                </Text>
+              </View>
             </View>
             <TouchableOpacity
               style={[styles.pill, { backgroundColor: k.surfaceHighest }]}
@@ -578,7 +620,11 @@ export default function ProfileScreen() {
               </Text>
               <Text style={{ fontSize: 12, fontWeight: '800', color: k.textMuted }}>KG</Text>
             </View>
-            <Text style={{ fontSize: 11, fontWeight: '800', color: k.lime }}>Biometría activa</Text>
+            <Text style={{ fontSize: 11, fontWeight: '800', color: k.lime }}>
+              {prevWeightDiff !== null
+                ? `${parseFloat(prevWeightDiff) > 0 ? '+' : ''}${prevWeightDiff} kg vs pesaje ant.`
+                : 'Biometría activa'}
+            </Text>
           </View>
 
           {isWeightInputOpen && (

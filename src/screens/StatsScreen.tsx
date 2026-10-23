@@ -15,13 +15,22 @@ import ExerciseStatsModal from '../components/modals/ExerciseStatsModal';
 
 const { width } = Dimensions.get('window');
 
+const MONTHS_SHORT = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+type WeightEntry = {
+  date: string;
+  weight: number;
+  updatedAt?: string;
+};
+
 export default function StatsScreen() {
-  const { isDark, colors: k, kStyles } = useTheme();
+  const { colors: k, kStyles } = useTheme();
   const navigation = useNavigation<any>();
 
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<any>(null);
   const [routineData, setRoutineData] = useState<any>(null);
+  const [weightHistory, setWeightHistory] = useState<WeightEntry[]>([]);
 
   const [weeklyData, setWeeklyData] = useState<any[]>([]);
   const [timeframe, setTimeframe] = useState<'1S' | '1M' | '3M' | '1A'>('3M');
@@ -36,10 +45,29 @@ export default function StatsScreen() {
     const user = auth.currentUser;
     if (!user) return;
 
+    // 1. Escuchar datos del usuario
     const unsubUser = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
       if (docSnap.exists()) setUserData(docSnap.data());
     });
 
+    // 2. Escuchar historial REAL de peso desde la subcolección weight_logs
+    const unsubWeight = onSnapshot(collection(db, 'users', user.uid, 'weight_logs'), (snap) => {
+      const entries: WeightEntry[] = snap.docs
+        .map((d) => {
+          const data = d.data();
+          return {
+            date: d.id,
+            weight: parseFloat(data.weight) || 0,
+            updatedAt: data.updatedAt,
+          };
+        })
+        .filter((e) => e.weight > 0)
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      setWeightHistory(entries);
+    });
+
+    // 3. Escuchar rutina
     const unsubRoutine = onSnapshot(doc(db, 'users', user.uid, 'data', 'routine'), (routineSnap) => {
       const uniqueExercises = new Map();
       if (routineSnap.exists()) {
@@ -56,6 +84,7 @@ export default function StatsScreen() {
       setSelectedExerciseId((prev) => prev || (arr.length > 0 ? arr[0].id : null));
     });
 
+    // 4. Escuchar workout_logs
     const unsubLogs = onSnapshot(collection(db, 'users', user.uid, 'workout_logs'), (logsSnap) => {
       const logs = logsSnap.docs
         .map((d) => ({ date: d.id, ...d.data() } as any))
@@ -106,6 +135,7 @@ export default function StatsScreen() {
 
     return () => {
       unsubUser();
+      unsubWeight();
       unsubRoutine();
       unsubLogs();
     };
@@ -143,6 +173,75 @@ export default function StatsScreen() {
     return history;
   };
 
+  // --- PROCESAMIENTO DEL HISTORIAL REAL DE PESO SEGÚN EL FILTRO TEMPORAL ---
+  const buildRealWeightChartData = () => {
+    const currentWeight = userData?.weight ? parseFloat(userData.weight) : null;
+
+    // Si el usuario ya tenía un peso antes de esta actualización pero aún no tiene documentos en weight_logs
+    let sourceLogs: WeightEntry[] = [...weightHistory];
+    if (sourceLogs.length === 0 && currentWeight) {
+      const fallbackDate = userData?.lastWeightUpdate
+        ? userData.lastWeightUpdate.split('T')[0]
+        : new Date().toISOString().split('T')[0];
+      sourceLogs = [{ date: fallbackDate, weight: currentWeight }];
+    }
+
+    if (sourceLogs.length === 0) {
+      return { hasData: false, labels: [], data: [], diffValue: 0, count: 0 };
+    }
+
+    // Filtrar por ventana de tiempo seleccionada (1S = 7d, 1M = 30d, 3M = 90d, 1A = 365d)
+    const daysMap = { '1S': 7, '1M': 30, '3M': 90, '1A': 365 };
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysMap[timeframe]);
+    const cutoffStr = cutoffDate.toISOString().split('T')[0];
+
+    let filtered = sourceLogs.filter((entry) => entry.date >= cutoffStr);
+    // Si en ese rango no hay registros, mostramos los últimos disponibles para no dejar la gráfica en blanco
+    if (filtered.length === 0) {
+      filtered = sourceLogs.slice(-6);
+    }
+
+    const firstWeight = filtered[0].weight;
+    const latestWeight = filtered[filtered.length - 1].weight;
+    const diffValue = parseFloat((latestWeight - firstWeight).toFixed(1));
+
+    // Seleccionar máximo 6 puntos distribuidos uniformemente para que las etiquetas de fechas se lean limpias
+    let chartEntries = filtered;
+    if (filtered.length > 6) {
+      const step = (filtered.length - 1) / 5;
+      chartEntries = [0, 1, 2, 3, 4, 5].map((i) => filtered[Math.round(i * step)]);
+    }
+
+    const formatShortDate = (dateStr: string) => {
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      const monthIdx = parseInt(parts[1], 10) - 1;
+      const dayNum = parseInt(parts[2], 10);
+      return `${dayNum} ${MONTHS_SHORT[monthIdx] || ''}`;
+    };
+
+    // LineChart requiere al menos 2 puntos para trazar la línea curva sin errores en SVG
+    if (chartEntries.length === 1) {
+      const single = chartEntries[0];
+      return {
+        hasData: true,
+        labels: ['Inicio', formatShortDate(single.date)],
+        data: [single.weight, single.weight],
+        diffValue: 0,
+        count: sourceLogs.length,
+      };
+    }
+
+    return {
+      hasData: true,
+      labels: chartEntries.map((e) => formatShortDate(e.date)),
+      data: chartEntries.map((e) => e.weight),
+      diffValue,
+      count: filtered.length,
+    };
+  };
+
   if (loading) {
     return (
       <View style={kStyles.centerContainer}>
@@ -151,7 +250,14 @@ export default function StatsScreen() {
     );
   }
 
-  const currentWeight = userData?.weight ? parseFloat(userData.weight) : null;
+  const realWeightStats = buildRealWeightChartData();
+  const latestWeightVal =
+    weightHistory.length > 0
+      ? weightHistory[weightHistory.length - 1].weight
+      : userData?.weight
+      ? parseFloat(userData.weight)
+      : null;
+
   const bestDay = [...weeklyData].sort((a, b) => b.volume - a.volume)[0];
   const totalWeeklyVolume = weeklyData.reduce((acc, d) => acc + d.volume, 0);
   const muscleCategories = ['Todos', ...Array.from(new Set(routineExercises.map((e) => e.muscle).filter(Boolean)))];
@@ -260,11 +366,11 @@ export default function StatsScreen() {
           </View>
         </View>
 
-        {/* Evolución de Peso Corporal */}
+        {/* Evolución REAL de Peso Corporal */}
         <View style={kStyles.surfaceCard}>
           <View style={kStyles.rowBetween}>
             <View>
-              <Text style={kStyles.kickerMuted}>COMPOSICIÓN</Text>
+              <Text style={kStyles.kickerMuted}>HISTORIAL BIOMÉTRICO REAL</Text>
               <Text style={{ fontSize: 15, fontWeight: '900', color: k.textMain }}>PESO CORPORAL</Text>
             </View>
             <View style={[styles.tfRow, { backgroundColor: k.surfaceLowest }]}>
@@ -272,7 +378,10 @@ export default function StatsScreen() {
                 <TouchableOpacity
                   key={tf}
                   style={[styles.tfBtn, timeframe === tf && { backgroundColor: k.limeBg }]}
-                  onPress={() => setTimeframe(tf)}
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    setTimeframe(tf);
+                  }}
                 >
                   <Text
                     style={{
@@ -288,43 +397,79 @@ export default function StatsScreen() {
             </View>
           </View>
 
-          {currentWeight ? (
-            <View style={{ marginTop: 12, alignItems: 'center' }}>
-              <LineChart
-                data={{
-                  labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Hoy'],
-                  datasets: [
-                    {
-                      data: [
-                        currentWeight + 1.4,
-                        currentWeight + 0.9,
-                        currentWeight + 0.4,
-                        currentWeight + 0.2,
-                        currentWeight,
-                      ],
+          {realWeightStats.hasData && latestWeightVal !== null ? (
+            <>
+              {/* Resumen numérico del periodo seleccionado */}
+              <View style={[kStyles.rowBetween, { marginTop: 14, alignItems: 'flex-end' }]}>
+                <View>
+                  <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 5 }}>
+                    <Text style={{ fontSize: 32, fontWeight: '900', fontStyle: 'italic', color: k.textMain }}>
+                      {latestWeightVal.toFixed(1)}
+                    </Text>
+                    <Text style={{ fontSize: 12, fontWeight: '800', color: k.textMuted }}>KG</Text>
+                  </View>
+                  <Text style={{ fontSize: 11, color: k.textMuted }}>
+                    {weightHistory.length > 0
+                      ? `Último registro: ${weightHistory[weightHistory.length - 1].date}`
+                      : 'Peso inicial registrado'}
+                  </Text>
+                </View>
+
+                <View style={{ alignItems: 'flex-end' }}>
+                  <View style={[styles.deltaBadge, { backgroundColor: 'rgba(202, 253, 0, 0.14)' }]}>
+                    <Ionicons
+                      name={
+                        realWeightStats.diffValue > 0
+                          ? 'trending-up'
+                          : realWeightStats.diffValue < 0
+                          ? 'trending-down'
+                          : 'remove'
+                      }
+                      size={13}
+                      color={k.lime}
+                    />
+                    <Text style={{ fontSize: 11, fontWeight: '800', color: k.lime }}>
+                      {realWeightStats.diffValue > 0 ? `+${realWeightStats.diffValue}` : realWeightStats.diffValue} kg ({timeframe})
+                    </Text>
+                  </View>
+                  <Text style={{ fontSize: 10, fontWeight: '700', color: k.cyan, marginTop: 4 }}>
+                    {realWeightStats.count} {realWeightStats.count === 1 ? 'pesaje en rango' : 'pesajes en rango'}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={{ marginTop: 14, alignItems: 'center' }}>
+                <LineChart
+                  data={{
+                    labels: realWeightStats.labels,
+                    datasets: [{ data: realWeightStats.data }],
+                  }}
+                  width={width - 64}
+                  height={170}
+                  yAxisSuffix="k"
+                  withOuterLines={false}
+                  chartConfig={{
+                    backgroundColor: k.surface,
+                    backgroundGradientFrom: k.surface,
+                    backgroundGradientTo: k.surface,
+                    decimalPlaces: 1,
+                    color: (opacity = 1) => `rgba(0, 244, 254, ${opacity})`,
+                    labelColor: () => k.textMuted,
+                    propsForDots: { r: '4.5', strokeWidth: '2', stroke: k.limeBg },
+                    propsForBackgroundLines: {
+                      strokeWidth: 0.6,
+                      stroke: k.outline,
+                      strokeDasharray: '4',
                     },
-                  ],
-                }}
-                width={width - 64}
-                height={160}
-                yAxisSuffix="k"
-                withOuterLines={false}
-                chartConfig={{
-                  backgroundColor: k.surface,
-                  backgroundGradientFrom: k.surface,
-                  backgroundGradientTo: k.surface,
-                  decimalPlaces: 1,
-                  color: (opacity = 1) => `rgba(0, 244, 254, ${opacity})`,
-                  labelColor: () => k.textMuted,
-                  propsForDots: { r: '4', strokeWidth: '2', stroke: k.limeBg },
-                }}
-                bezier
-                style={{ borderRadius: 12, marginLeft: -16 }}
-              />
-            </View>
+                  }}
+                  bezier
+                  style={{ borderRadius: 12, marginLeft: -16 }}
+                />
+              </View>
+            </>
           ) : (
             <Text style={[kStyles.bodyMuted, { marginTop: 12 }]}>
-              Registra tu peso en la pestaña Entrenar para ver tu gráfica.
+              Registra tu peso en la pestaña Entrenar para empezar a trazar tu curva histórica.
             </Text>
           )}
         </View>
@@ -433,5 +578,6 @@ const styles = StyleSheet.create({
   statBox: { flex: 1, padding: 10, borderRadius: 10 },
   tfRow: { flexDirection: 'row', padding: 3, borderRadius: 18, gap: 2 },
   tfBtn: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 },
+  deltaBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 12 },
   filterPill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
 });

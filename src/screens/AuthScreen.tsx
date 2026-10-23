@@ -77,19 +77,31 @@ export default function AuthScreen() {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         await updateProfile(user, { displayName: name });
+        
         const numericWeight = parseFloat(weight.replace(',', '.'));
+        const nowISO = new Date().toISOString();
+        const todayDateStr = nowISO.split('T')[0];
 
+        // 1. Documento principal del usuario
         await setDoc(doc(db, 'users', user.uid), {
           name,
           email,
           weight: numericWeight.toString(),
+          lastWeightUpdate: nowISO,
           streak: 0,
-          createdAt: new Date().toISOString(),
+          createdAt: nowISO,
+        });
+
+        // 2. Primer punto en el historial real de peso (weight_logs)
+        await setDoc(doc(db, 'users', user.uid, 'weight_logs', todayDateStr), {
+          weight: numericWeight,
+          date: todayDateStr,
+          updatedAt: nowISO,
         });
 
         Alert.alert(
-          '¡BIENVENIDO A GoFit! ',
-          'Hemos guardado tu peso inicial. Para empezar con el pie derecho, ve a la pestaña "Rutina" y configura tus ejercicios de la semana.',
+          '¡BIENVENIDO A GoFit!',
+          'Hemos registrado tu peso inicial en tu historial biométrico. Ve a la pestaña "Rutina" para configurar tus ejercicios de la semana.',
           [{ text: '¡A ROMPER LÍMITES!' }]
         );
       }
@@ -113,7 +125,7 @@ export default function AuthScreen() {
             <View style={kStyles.intelDot} />
             <Text style={kStyles.intelPillText}>PERFORMANCE INTELLIGENCE</Text>
           </View>
-          <Text style={[styles.brandLogo, { color: k.lime }]}>KINETIC</Text>
+          <Text style={[styles.brandLogo, { color: k.lime }]}>GoFit</Text>
           <Text style={kStyles.bodyMuted}>
             Sistema de sobrecarga progresiva y biometría de entrenamiento.
           </Text>
@@ -222,7 +234,7 @@ export default function AuthScreen() {
 
               <Text style={kStyles.cardTitleItalic}>¡HOLA, {name.split(' ')[0]}! 👋</Text>
               <Text style={kStyles.bodyMuted}>
-                Ingresa tu peso corporal actual en kilogramos para calibrar tus métricas de composición.
+                Ingresa tu peso corporal actual en kilogramos para iniciar tu historial biométrico.
               </Text>
 
               <View style={[styles.weightBox, { backgroundColor: k.surfaceLowest, borderColor: k.cyan }]}>
