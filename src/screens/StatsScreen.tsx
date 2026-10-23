@@ -45,12 +45,10 @@ export default function StatsScreen() {
     const user = auth.currentUser;
     if (!user) return;
 
-    // 1. Escuchar datos del usuario
     const unsubUser = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
       if (docSnap.exists()) setUserData(docSnap.data());
     });
 
-    // 2. Escuchar historial REAL de peso desde la subcolección weight_logs
     const unsubWeight = onSnapshot(collection(db, 'users', user.uid, 'weight_logs'), (snap) => {
       const entries: WeightEntry[] = snap.docs
         .map((d) => {
@@ -67,7 +65,6 @@ export default function StatsScreen() {
       setWeightHistory(entries);
     });
 
-    // 3. Escuchar rutina
     const unsubRoutine = onSnapshot(doc(db, 'users', user.uid, 'data', 'routine'), (routineSnap) => {
       const uniqueExercises = new Map();
       if (routineSnap.exists()) {
@@ -84,7 +81,6 @@ export default function StatsScreen() {
       setSelectedExerciseId((prev) => prev || (arr.length > 0 ? arr[0].id : null));
     });
 
-    // 4. Escuchar workout_logs
     const unsubLogs = onSnapshot(collection(db, 'users', user.uid, 'workout_logs'), (logsSnap) => {
       const logs = logsSnap.docs
         .map((d) => ({ date: d.id, ...d.data() } as any))
@@ -173,11 +169,9 @@ export default function StatsScreen() {
     return history;
   };
 
-  // --- PROCESAMIENTO DEL HISTORIAL REAL DE PESO SEGÚN EL FILTRO TEMPORAL ---
   const buildRealWeightChartData = () => {
     const currentWeight = userData?.weight ? parseFloat(userData.weight) : null;
 
-    // Si el usuario ya tenía un peso antes de esta actualización pero aún no tiene documentos en weight_logs
     let sourceLogs: WeightEntry[] = [...weightHistory];
     if (sourceLogs.length === 0 && currentWeight) {
       const fallbackDate = userData?.lastWeightUpdate
@@ -190,14 +184,12 @@ export default function StatsScreen() {
       return { hasData: false, labels: [], data: [], diffValue: 0, count: 0 };
     }
 
-    // Filtrar por ventana de tiempo seleccionada (1S = 7d, 1M = 30d, 3M = 90d, 1A = 365d)
     const daysMap = { '1S': 7, '1M': 30, '3M': 90, '1A': 365 };
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysMap[timeframe]);
     const cutoffStr = cutoffDate.toISOString().split('T')[0];
 
     let filtered = sourceLogs.filter((entry) => entry.date >= cutoffStr);
-    // Si en ese rango no hay registros, mostramos los últimos disponibles para no dejar la gráfica en blanco
     if (filtered.length === 0) {
       filtered = sourceLogs.slice(-6);
     }
@@ -206,7 +198,6 @@ export default function StatsScreen() {
     const latestWeight = filtered[filtered.length - 1].weight;
     const diffValue = parseFloat((latestWeight - firstWeight).toFixed(1));
 
-    // Seleccionar máximo 6 puntos distribuidos uniformemente para que las etiquetas de fechas se lean limpias
     let chartEntries = filtered;
     if (filtered.length > 6) {
       const step = (filtered.length - 1) / 5;
@@ -221,7 +212,6 @@ export default function StatsScreen() {
       return `${dayNum} ${MONTHS_SHORT[monthIdx] || ''}`;
     };
 
-    // LineChart requiere al menos 2 puntos para trazar la línea curva sin errores en SVG
     if (chartEntries.length === 1) {
       const single = chartEntries[0];
       return {
@@ -258,6 +248,7 @@ export default function StatsScreen() {
       ? parseFloat(userData.weight)
       : null;
 
+  const targetWeightVal = userData?.targetWeight ? parseFloat(userData.targetWeight) : null;
   const bestDay = [...weeklyData].sort((a, b) => b.volume - a.volume)[0];
   const totalWeeklyVolume = weeklyData.reduce((acc, d) => acc + d.volume, 0);
   const muscleCategories = ['Todos', ...Array.from(new Set(routineExercises.map((e) => e.muscle).filter(Boolean)))];
@@ -399,7 +390,6 @@ export default function StatsScreen() {
 
           {realWeightStats.hasData && latestWeightVal !== null ? (
             <>
-              {/* Resumen numérico del periodo seleccionado */}
               <View style={[kStyles.rowBetween, { marginTop: 14, alignItems: 'flex-end' }]}>
                 <View>
                   <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 5 }}>
@@ -433,7 +423,7 @@ export default function StatsScreen() {
                     </Text>
                   </View>
                   <Text style={{ fontSize: 10, fontWeight: '700', color: k.cyan, marginTop: 4 }}>
-                    {realWeightStats.count} {realWeightStats.count === 1 ? 'pesaje en rango' : 'pesajes en rango'}
+                    {targetWeightVal ? `Meta final: ${targetWeightVal.toFixed(1)} kg` : 'Modo: Mantenimiento'}
                   </Text>
                 </View>
               </View>

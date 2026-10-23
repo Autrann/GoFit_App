@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput, ScrollView, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput, ScrollView, Alert, Image, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth, db } from '../config/firebase';
 import { doc, getDoc, updateDoc, setDoc, collection, onSnapshot } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 
 import { imageMap } from '../assets/imgs/imageMap';
@@ -38,12 +39,16 @@ export default function ProfileScreen() {
   const [workoutLog, setWorkoutLog] = useState<any>({ finished: false, exercises: {} });
   const [lastWeekLog, setLastWeekLog] = useState<any>(null);
 
+  // Estados de Perfil, Peso y Meta
   const [isProfileModalVisible, setProfileModalVisible] = useState(false);
   const [tempWeight, setTempWeight] = useState('');
+  const [tempTargetWeight, setTempTargetWeight] = useState('');
+  const [tempMaintainMode, setTempMaintainMode] = useState(false);
   const [isWeightInputOpen, setIsWeightInputOpen] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
   const [waterIntake, setWaterIntake] = useState(1.8);
 
+  // Estados para Modal de Ejercicio
   const [activeExercise, setActiveExercise] = useState<any>(null);
   const [tempSetsCount, setTempSetsCount] = useState('3');
   const [tempReps, setTempReps] = useState<string[]>([]);
@@ -60,7 +65,14 @@ export default function ProfileScreen() {
       if (docSnap.exists()) {
         const data = docSnap.data();
         setUserData(data);
-        if (data.weight && !tempWeight) setTempWeight(data.weight.toString());
+        if (data.weight) setTempWeight(data.weight.toString());
+        if (data.targetWeight) {
+          setTempTargetWeight(data.targetWeight.toString());
+          setTempMaintainMode(false);
+        } else {
+          setTempTargetWeight('');
+          setTempMaintainMode(data.weightGoalType === 'maintain');
+        }
       }
     });
 
@@ -78,7 +90,6 @@ export default function ProfileScreen() {
       }
     });
 
-    // Escuchar historial de peso en tiempo real para mostrar comparativa reciente
     const unsubWeightLogs = onSnapshot(collection(db, 'users', user.uid, 'weight_logs'), (snap) => {
       const logs = snap.docs
         .map((d) => ({
@@ -118,26 +129,55 @@ export default function ProfileScreen() {
     }
   };
 
-  // --- GUARDAR PESO ACTUAL + REGISTRO EN EL HISTORIAL DE FIRESTORE ---
-  const handleUpdateWeight = async () => {
+  // --- GUARDAR PESO ACTUAL Y/O ACTUALIZAR META OBJETIVO ---
+  const handleUpdateWeightAndGoal = async () => {
     const numericWeight = parseFloat(tempWeight.replace(',', '.'));
     if (isNaN(numericWeight) || numericWeight <= 0) {
-      Alert.alert('Error', 'Por favor ingresa un peso válido (ej. 70.5).');
+      Alert.alert('Error', 'Por favor ingresa un peso actual válido (ej. 75.5).');
       return;
     }
+
+    const numericTarget = parseFloat(tempTargetWeight.replace(',', '.'));
+    if (!tempMaintainMode && tempTargetWeight.trim() !== '' && (isNaN(numericTarget) || numericTarget <= 0)) {
+      Alert.alert('Error', 'Ingresa un peso objetivo válido o activa "Mantener mi peso".');
+      return;
+    }
+
     setSavingSettings(true);
     try {
       const user = auth.currentUser;
       if (user) {
         const timestamp = new Date().toISOString();
+        const hasValidTarget =
+          !tempMaintainMode &&
+          tempTargetWeight.trim() !== '' &&
+          !isNaN(numericTarget) &&
+          numericTarget !== numericWeight;
 
-        // 1. Actualizar el peso actual en el perfil del usuario
+        const newGoalType = !hasValidTarget
+          ? 'maintain'
+          : numericTarget < numericWeight
+          ? 'lose'
+          : 'gain';
+
+        // Si el usuario cambió su meta objetivo o no tenía startWeight, fijamos el punto de partida
+        const prevTarget = userData?.targetWeight ? parseFloat(userData.targetWeight) : null;
+        const targetChanged = hasValidTarget && prevTarget !== numericTarget;
+        const startWeightToSave =
+          targetChanged || !userData?.startWeight
+            ? (userData?.weight || numericWeight).toString()
+            : userData.startWeight;
+
+        // 1. Actualizar documento principal del usuario
         await updateDoc(doc(db, 'users', user.uid), {
           weight: numericWeight.toString(),
+          startWeight: startWeightToSave,
+          targetWeight: hasValidTarget ? numericTarget.toString() : null,
+          weightGoalType: newGoalType,
           lastWeightUpdate: timestamp,
         });
 
-        // 2. Guardar o actualizar la entrada del día en la subcolección weight_logs
+        // 2. Guardar entrada en el historial weight_logs
         await setDoc(
           doc(db, 'users', user.uid, 'weight_logs', dateString),
           {
@@ -152,10 +192,95 @@ export default function ProfileScreen() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
     } catch (error) {
-      console.error('Error guardando peso:', error);
-      Alert.alert('Error', 'No se pudo guardar el registro de peso.');
+      console.error('Error guardando peso y meta:', error);
+      Alert.alert('Error', 'No se pudo actualizar la información de peso.');
     } finally {
       setSavingSettings(false);
+    }
+  };
+
+  // --- CÁLCULO VISUAL DE LA ETAPA Y BARRA DE PROGRESO ---
+  const getWeightStageAnalytics = () => {
+    const currW = userData?.weight ? parseFloat(userData.weight) : null;
+    const targW = userData?.targetWeight ? parseFloat(userData.targetWeight) : null;
+    const firstLogW = weightLogs.length > 0 ? weightLogs[0].weight : currW;
+    const startW = userData?.startWeight ? parseFloat(userData.startWeight) : firstLogW;
+
+    if (!currW) {
+      return {
+        stageTitle: 'SIN CALIBRAR',
+        stageBadgeColor: k.textMuted,
+        icon: 'help-circle-outline' as const,
+        leftLabel: 'Sin peso inicial',
+        rightLabel: '0%',
+        remainingText: 'Presiona "+ Actualizar" para registrar tu peso y tu meta.',
+        progressPct: 0,
+      };
+    }
+
+    // Caso 1: Modo Mantenimiento (sin peso objetivo o meta igual al inicio)
+    if (!targW || userData?.weightGoalType === 'maintain') {
+      const baseW = startW || currW;
+      const diffFromBase = Math.abs(currW - baseW);
+      const isStable = diffFromBase <= 1.5;
+
+      return {
+        stageTitle: 'ETAPA: MANTENIMIENTO / RECOMPOSICIÓN',
+        stageBadgeColor: k.cyan,
+        icon: 'shield-checkmark-outline' as const,
+        leftLabel: `Rango Base: ${(baseW - 1.0).toFixed(1)} - ${(baseW + 1.0).toFixed(1)} kg`,
+        rightLabel: isStable ? '100% ESTABLE' : `±${diffFromBase.toFixed(1)} kg`,
+        remainingText: isStable
+          ? 'Te mantienes firme en tu zona de recomposición corporal.'
+          : `Variación de ${diffFromBase.toFixed(1)} kg respecto a tu peso base (${baseW} kg).`,
+        progressPct: isStable ? 100 : Math.max(40, 100 - diffFromBase * 15),
+      };
+    }
+
+    // Determinar si la meta es bajar (Déficit) o subir (Volumen)
+    const isCutting = targW < (startW && startW !== targW ? startW : currW);
+
+    if (isCutting) {
+      const effectiveStart = startW && startW > targW ? startW : Math.max(currW, targW + 0.1);
+      const totalToLose = effectiveStart - targW;
+      const lostSoFar = effectiveStart - currW;
+      const rawPct = totalToLose > 0 ? (lostSoFar / totalToLose) * 100 : 0;
+      const clampedPct = Math.min(100, Math.max(5, Math.round(rawPct)));
+      const remaining = parseFloat((currW - targW).toFixed(1));
+
+      return {
+        stageTitle: 'ETAPA: DÉFICIT / DEFINICIÓN',
+        stageBadgeColor: k.lime,
+        icon: 'trending-down' as const,
+        leftLabel: `Meta Objetivo: ${targW.toFixed(1)} kg`,
+        rightLabel: remaining <= 0 ? '¡META LOGRADA! 🏆' : `${clampedPct}% Completado`,
+        remainingText:
+          remaining <= 0
+            ? `¡Alcanzaste tu meta de ${targW.toFixed(1)} kg! Puedes fijar un nuevo objetivo o pasar a mantenimiento.`
+            : `Te faltan ${remaining} kg para alcanzar tu meta (Inicio: ${effectiveStart.toFixed(1)} kg).`,
+        progressPct: remaining <= 0 ? 100 : clampedPct,
+      };
+    } else {
+      // Etapa de Volumen / Subir de peso
+      const effectiveStart = startW && startW < targW ? startW : Math.min(currW, targW - 0.1);
+      const totalToGain = targW - effectiveStart;
+      const gainedSoFar = currW - effectiveStart;
+      const rawPct = totalToGain > 0 ? (gainedSoFar / totalToGain) * 100 : 0;
+      const clampedPct = Math.min(100, Math.max(5, Math.round(rawPct)));
+      const remaining = parseFloat((targW - currW).toFixed(1));
+
+      return {
+        stageTitle: 'ETAPA: VOLUMEN / HIPERTROFIA',
+        stageBadgeColor: k.cyan,
+        icon: 'trending-up' as const,
+        leftLabel: `Meta Objetivo: ${targW.toFixed(1)} kg`,
+        rightLabel: remaining <= 0 ? '¡META LOGRADA! 🏆' : `${clampedPct}% Completado`,
+        remainingText:
+          remaining <= 0
+            ? `¡Superaste tu meta de volumen de ${targW.toFixed(1)} kg!`
+            : `Te faltan +${remaining} kg para tu objetivo de volumen (Inicio: ${effectiveStart.toFixed(1)} kg).`,
+        progressPct: remaining <= 0 ? 100 : clampedPct,
+      };
     }
   };
 
@@ -376,11 +501,12 @@ export default function ProfileScreen() {
       ? todayPlan.exercises[activeExIndex + 1]
       : null;
 
-  // Cálculo de cambio respecto al pesaje inmediato anterior
   const prevWeightDiff =
     weightLogs.length >= 2
       ? (weightLogs[weightLogs.length - 1].weight - weightLogs[weightLogs.length - 2].weight).toFixed(1)
       : null;
+
+  const stageAnalytics = getWeightStageAnalytics();
 
   return (
     <SafeAreaView style={kStyles.container}>
@@ -589,55 +715,160 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* CONTROL DE PESO */}
+        {/* ========================================================================= */}
+        {/* TARJETA DE CONTROL DE PESO CORPORAL + ETAPA ACTIVA Y BARRA DE PROGRESO    */}
+        {/* ========================================================================= */}
         <View style={[kStyles.card, { gap: 12 }]}>
           <View style={kStyles.rowBetween}>
             <View style={kStyles.rowAlign}>
-              <Ionicons name="scale-outline" size={20} color={k.cyan} />
+              <View style={[styles.iconBox, { backgroundColor: k.surfaceHighest }]}>
+                <Ionicons name="scale-outline" size={18} color={k.cyan} />
+              </View>
               <View>
                 <Text style={{ fontSize: 14, fontWeight: '900', fontStyle: 'italic', color: k.textMain }}>
                   CONTROL DE PESO CORPORAL
                 </Text>
                 <Text style={{ fontSize: 10, color: k.textMuted }}>
-                  {weightLogs.length} registros guardados en el historial
+                  {userData?.lastWeightUpdate
+                    ? `Último registro: ${new Date(userData.lastWeightUpdate).toLocaleDateString('es-ES')}`
+                    : 'Mantén tus métricas al día'}
                 </Text>
               </View>
             </View>
+
             <TouchableOpacity
               style={[styles.pill, { backgroundColor: k.surfaceHighest }]}
-              onPress={() => setIsWeightInputOpen(!isWeightInputOpen)}
+              onPress={() => {
+                Haptics.selectionAsync();
+                setIsWeightInputOpen(!isWeightInputOpen);
+              }}
             >
+              <Ionicons name={isWeightInputOpen ? 'close' : 'add'} size={14} color={k.lime} />
               <Text style={{ fontSize: 10, fontWeight: '900', color: k.lime }}>
-                {isWeightInputOpen ? 'CERRAR' : '+ ACTUALIZAR'}
+                {isWeightInputOpen ? 'CERRAR' : 'ACTUALIZAR'}
               </Text>
             </TouchableOpacity>
           </View>
 
+          {/* Píldora de Etapa Física Detectada */}
+          <View style={[styles.stageBanner, { backgroundColor: k.surfaceLowest, borderColor: stageAnalytics.stageBadgeColor }]}>
+            <Ionicons name={stageAnalytics.icon} size={15} color={stageAnalytics.stageBadgeColor} />
+            <Text style={{ fontSize: 10, fontWeight: '900', color: stageAnalytics.stageBadgeColor, letterSpacing: 0.8 }}>
+              {stageAnalytics.stageTitle}
+            </Text>
+          </View>
+
+          {/* Números Grandes de Peso Actual */}
           <View style={[kStyles.rowBetween, styles.innerBox, { backgroundColor: k.surfaceLowest }]}>
             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
-              <Text style={{ fontSize: 32, fontWeight: '900', fontStyle: 'italic', color: k.textMain }}>
+              <Text style={{ fontSize: 34, fontWeight: '900', fontStyle: 'italic', color: k.textMain, letterSpacing: -1 }}>
                 {userData?.weight || '--'}
               </Text>
               <Text style={{ fontSize: 12, fontWeight: '800', color: k.textMuted }}>KG</Text>
             </View>
-            <Text style={{ fontSize: 11, fontWeight: '800', color: k.lime }}>
-              {prevWeightDiff !== null
-                ? `${parseFloat(prevWeightDiff) > 0 ? '+' : ''}${prevWeightDiff} kg vs pesaje ant.`
-                : 'Biometría activa'}
-            </Text>
+
+            <View style={[styles.trendChip, { backgroundColor: k.surfaceHigh }]}>
+              <Ionicons
+                name={
+                  prevWeightDiff && parseFloat(prevWeightDiff) < 0
+                    ? 'trending-down'
+                    : prevWeightDiff && parseFloat(prevWeightDiff) > 0
+                    ? 'trending-up'
+                    : 'analytics'
+                }
+                size={14}
+                color={k.lime}
+              />
+              <Text style={{ fontSize: 11, fontWeight: '800', color: k.lime }}>
+                {prevWeightDiff !== null
+                  ? `${parseFloat(prevWeightDiff) > 0 ? '+' : ''}${prevWeightDiff} kg vs ant.`
+                  : 'Punto de control'}
+              </Text>
+            </View>
           </View>
 
-          {isWeightInputOpen && (
-            <View style={{ flexDirection: 'row', gap: 10 }}>
-              <TextInput
-                style={[kStyles.kineticInput, { flex: 1 }]}
-                keyboardType="decimal-pad"
-                placeholder="Ej. 78.4"
-                placeholderTextColor={k.textMuted}
-                value={tempWeight}
-                onChangeText={(val) => setTempWeight(val.replace(/[^0-9.,]/g, ''))}
+          {/* Barra de Avance Visual hacia el Peso Objetivo */}
+          <View style={{ gap: 6 }}>
+            <Text style={{ fontSize: 11, color: k.textMuted, lineHeight: 16 }}>
+              {stageAnalytics.remainingText}
+            </Text>
+
+            <View style={[kStyles.rowBetween, { marginTop: 2 }]}>
+              <Text style={{ fontSize: 10, fontWeight: '800', color: k.textMuted, textTransform: 'uppercase' }}>
+                {stageAnalytics.leftLabel}
+              </Text>
+              <Text style={{ fontSize: 10, fontWeight: '900', color: k.cyan }}>
+                {stageAnalytics.rightLabel}
+              </Text>
+            </View>
+
+            <View style={[styles.progressTrack, { backgroundColor: k.surfaceLowest }]}>
+              <LinearGradient
+                colors={[k.cyan, k.limeBg]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[styles.progressFill, { width: `${stageAnalytics.progressPct}%` }]}
               />
-              <KineticButton title="GUARDAR" loading={savingSettings} onPress={handleUpdateWeight} />
+            </View>
+          </View>
+
+          {/* Panel Desplegable para Actualizar Peso de Hoy y Meta Objetivo */}
+          {isWeightInputOpen && (
+            <View style={[styles.editorContainer, { backgroundColor: k.surfaceLowest, borderColor: k.outline }]}>
+              <Text style={kStyles.kickerLime}>ACTUALIZAR BIOMETRÍA Y OBJETIVO</Text>
+
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <View style={{ flex: 1, gap: 4 }}>
+                  <Text style={kStyles.kickerMuted}>PESO DE HOY (KG)</Text>
+                  <TextInput
+                    style={kStyles.kineticInput}
+                    keyboardType="decimal-pad"
+                    placeholder="Ej. 78.4"
+                    placeholderTextColor={k.textMuted}
+                    value={tempWeight}
+                    onChangeText={(val) => setTempWeight(val.replace(/[^0-9.,]/g, ''))}
+                    maxLength={6}
+                  />
+                </View>
+
+                {!tempMaintainMode && (
+                  <View style={{ flex: 1, gap: 4 }}>
+                    <Text style={kStyles.kickerMuted}>META OBJETIVO (KG)</Text>
+                    <TextInput
+                      style={[kStyles.kineticInput, { borderColor: k.lime }]}
+                      keyboardType="decimal-pad"
+                      placeholder="Ej. 75.0"
+                      placeholderTextColor={k.textMuted}
+                      value={tempTargetWeight}
+                      onChangeText={(val) => setTempTargetWeight(val.replace(/[^0-9.,]/g, ''))}
+                      maxLength={6}
+                    />
+                  </View>
+                )}
+              </View>
+
+              <View style={[kStyles.rowBetween, { marginTop: 4 }]}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: k.textMain }}>
+                  Solo quiero mantener mi peso actual
+                </Text>
+                <Switch
+                  value={tempMaintainMode}
+                  onValueChange={(val) => {
+                    Haptics.selectionAsync();
+                    setTempMaintainMode(val);
+                    if (val) setTempTargetWeight('');
+                  }}
+                  trackColor={{ false: k.surfaceHighest, true: k.limeBg }}
+                  thumbColor={tempMaintainMode ? '#3a4a00' : '#f4f3f4'}
+                />
+              </View>
+
+              <KineticButton
+                title="GUARDAR PESO Y META"
+                icon="checkmark-circle"
+                loading={savingSettings}
+                onPress={handleUpdateWeightAndGoal}
+              />
             </View>
           )}
         </View>
@@ -729,10 +960,24 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   pill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20 },
+  iconBox: { width: 32, height: 32, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   innerBox: { padding: 14, borderRadius: 14 },
   phaseBadge: { fontSize: 10, fontWeight: '800', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, textTransform: 'uppercase' },
   metricChip: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, padding: 10, borderRadius: 14 },
   previewPill: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
   exRow: { flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 14 },
   exImg: { width: 46, height: 46, borderRadius: 10 },
+  stageBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 10,
+    borderLeftWidth: 3,
+  },
+  trendChip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
+  progressTrack: { width: '100%', height: 7, borderRadius: 4, overflow: 'hidden', marginTop: 2 },
+  progressFill: { height: '100%', borderRadius: 4 },
+  editorContainer: { padding: 14, borderRadius: 16, borderWidth: 1, gap: 12, marginTop: 4 },
 });
