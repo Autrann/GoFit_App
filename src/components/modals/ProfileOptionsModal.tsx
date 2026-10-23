@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, Modal, TouchableOpacity, Image, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
 import { profileAvatars } from '../../constants/appConstants';
+import GoFitBottomSheet from '../common/GoFitBottomSheet';
 
 interface ProfileOptionsModalProps {
   visible: boolean;
@@ -30,84 +31,78 @@ export default function ProfileOptionsModal({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true}>
-      <View style={kStyles.modalOverlay}>
-        <View style={kStyles.sheetContent}>
-          <View style={kStyles.dragHandle} />
+    <GoFitBottomSheet visible={visible} onClose={handleClose}>
+      <View style={[kStyles.rowBetween, { marginBottom: 20 }]}>
+        <Text style={kStyles.sheetTitle}>
+          {showAvatarGrid ? 'ELIGE TU AVATAR' : 'OPCIONES DE PERFIL'}
+        </Text>
+        <TouchableOpacity onPress={handleClose}>
+          <Ionicons name="close-circle" size={28} color={k.textMuted} />
+        </TouchableOpacity>
+      </View>
 
-          <View style={[kStyles.rowBetween, { marginBottom: 20 }]}>
-            <Text style={kStyles.sheetTitle}>
-              {showAvatarGrid ? 'ELIGE TU AVATAR' : 'OPCIONES DE PERFIL'}
-            </Text>
-            <TouchableOpacity onPress={handleClose}>
-              <Ionicons name="close-circle" size={28} color={k.textMuted} />
+      {!showAvatarGrid ? (
+        <>
+          <TouchableOpacity
+            style={[styles.optionRow, { backgroundColor: k.surfaceLowest }]}
+            onPress={() => setShowAvatarGrid(true)}
+          >
+            <View style={kStyles.rowAlign}>
+              <Ionicons name="images-outline" size={22} color={k.cyan} />
+              <Text style={[styles.label, { color: k.textMain }]}>Cambiar foto de perfil</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={k.textMuted} />
+          </TouchableOpacity>
+
+          <View style={[styles.optionRow, { backgroundColor: k.surfaceLowest, marginBottom: 20 }]}>
+            <View style={kStyles.rowAlign}>
+              <Ionicons name={isDark ? 'moon-outline' : 'sunny-outline'} size={22} color={k.lime} />
+              <Text style={[styles.label, { color: k.textMain }]}>Modo Oscuro (GoFit)</Text>
+            </View>
+            <TouchableOpacity onPress={toggleTheme} style={{ padding: 4 }}>
+              <Ionicons name={isDark ? 'moon' : 'sunny'} size={26} color={isDark ? k.lime : k.warning} />
             </TouchableOpacity>
           </View>
 
-          {!showAvatarGrid ? (
-            <>
-              <TouchableOpacity
-                style={[styles.optionRow, { backgroundColor: k.surfaceLowest }]}
-                onPress={() => setShowAvatarGrid(true)}
-              >
-                <View style={kStyles.rowAlign}>
-                  <Ionicons name="images-outline" size={22} color={k.cyan} />
-                  <Text style={[styles.label, { color: k.textMain }]}>Cambiar foto de perfil</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color={k.textMuted} />
-              </TouchableOpacity>
-
-              <View style={[styles.optionRow, { backgroundColor: k.surfaceLowest, marginBottom: 20 }]}>
-                <View style={kStyles.rowAlign}>
-                  <Ionicons name={isDark ? 'moon-outline' : 'sunny-outline'} size={22} color={k.lime} />
-                  <Text style={[styles.label, { color: k.textMain }]}>Modo Oscuro (Kinetic)</Text>
-                </View>
-                <TouchableOpacity onPress={toggleTheme} style={{ padding: 4 }}>
-                  <Ionicons name={isDark ? 'moon' : 'sunny'} size={26} color={isDark ? k.lime : k.warning} />
+          <TouchableOpacity style={styles.logoutBtn} onPress={onLogout}>
+            <Ionicons name="log-out-outline" size={20} color={k.danger} />
+            <Text style={[styles.logoutText, { color: k.danger }]}>CERRAR SESIÓN</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <View>
+          <View style={styles.avatarGrid}>
+            {Object.keys(profileAvatars).map((avatarKey) => {
+              const isSelected = currentAvatarId === avatarKey;
+              return (
+                <TouchableOpacity
+                  key={avatarKey}
+                  style={[styles.avatarOption, isSelected && { borderColor: k.lime }]}
+                  onPress={() => onSelectAvatar(avatarKey)}
+                  disabled={saving}
+                >
+                  <Image source={profileAvatars[avatarKey]} style={styles.avatarImg} />
+                  {isSelected && (
+                    <View style={[styles.checkBadge, { backgroundColor: k.bg }]}>
+                      <Ionicons name="checkmark-circle" size={24} color={k.lime} />
+                    </View>
+                  )}
                 </TouchableOpacity>
-              </View>
+              );
+            })}
+          </View>
 
-              <TouchableOpacity style={styles.logoutBtn} onPress={onLogout}>
-                <Ionicons name="log-out-outline" size={20} color={k.danger} />
-                <Text style={[styles.logoutText, { color: k.danger }]}>CERRAR SESIÓN</Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <View>
-              <View style={styles.avatarGrid}>
-                {Object.keys(profileAvatars).map((avatarKey) => {
-                  const isSelected = currentAvatarId === avatarKey;
-                  return (
-                    <TouchableOpacity
-                      key={avatarKey}
-                      style={[styles.avatarOption, isSelected && { borderColor: k.lime }]}
-                      onPress={() => onSelectAvatar(avatarKey)}
-                      disabled={saving}
-                    >
-                      <Image source={profileAvatars[avatarKey]} style={styles.avatarImg} />
-                      {isSelected && (
-                        <View style={[styles.checkBadge, { backgroundColor: k.bg }]}>
-                          <Ionicons name="checkmark-circle" size={24} color={k.lime} />
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+          {saving && <ActivityIndicator color={k.lime} style={{ marginTop: 20 }} />}
 
-              {saving && <ActivityIndicator color={k.lime} style={{ marginTop: 20 }} />}
-
-              <TouchableOpacity
-                style={[styles.optionRow, { backgroundColor: k.surfaceLowest, marginTop: 24, justifyContent: 'center' }]}
-                onPress={() => setShowAvatarGrid(false)}
-              >
-                <Text style={{ color: k.textMain, fontWeight: '800', fontSize: 13 }}>VOLVER A OPCIONES</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+          <TouchableOpacity
+            style={[styles.optionRow, { backgroundColor: k.surfaceLowest, marginTop: 24, justifyContent: 'center' }]}
+            onPress={() => setShowAvatarGrid(false)}
+          >
+            <Text style={{ color: k.textMain, fontWeight: '800', fontSize: 13 }}>VOLVER A OPCIONES</Text>
+          </TouchableOpacity>
         </View>
-      </View>
-    </Modal>
+      )}
+    </GoFitBottomSheet>
   );
 }
 

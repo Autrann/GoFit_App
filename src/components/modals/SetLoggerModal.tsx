@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../context/ThemeContext';
 import { RPE_OPTIONS } from '../../constants/appConstants';
 import KineticButton from '../common/KineticButton';
+import GoFitBottomSheet from '../common/GoFitBottomSheet';
 
 interface SetLoggerModalProps {
   visible: boolean;
@@ -114,367 +115,362 @@ export default function SetLoggerModal({
     prevVolume > 0 ? (((currentModalVolume - prevVolume) / prevVolume) * 100).toFixed(1) : null;
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true}>
-      <View style={kStyles.modalOverlay}>
-        <View style={[styles.monolithSheet, { backgroundColor: k.surfaceLow }]}>
-          {/* Drag Handle & Rest Timer Bar */}
-          <View style={styles.topArea}>
-            <View style={kStyles.dragHandle} />
-            <View style={[styles.restTimerBar, { backgroundColor: k.surfaceHighest }]}>
-              <View style={kStyles.rowAlign}>
-                <View style={styles.timerIconCircle}>
-                  <Ionicons name="timer-outline" size={18} color={k.cyan} />
-                </View>
-                <View>
-                  <Text style={kStyles.kickerMuted}>DESCANSO ACTIVO</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
-                    <Text style={[styles.timerCountdown, { color: k.cyan }]}>{formatTime(restSeconds)}</Text>
-                    <Text style={{ fontSize: 10, color: k.textMuted, fontWeight: '600' }}>/ 02:00</Text>
-                  </View>
-                </View>
-              </View>
-
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <TouchableOpacity
-                  style={[styles.timerBtn, { backgroundColor: k.surfaceBright }]}
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    setRestSeconds((s) => s + 30);
-                  }}
-                >
-                  <Text style={{ fontSize: 11, fontWeight: '800', color: k.textMain }}>+30s</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.timerBtn, { backgroundColor: k.surfaceBright, paddingHorizontal: 10 }]}
-                  onPress={() => {
-                    Haptics.selectionAsync();
-                    setTimerRunning(!timerRunning);
-                  }}
-                >
-                  <Ionicons name={timerRunning ? 'pause' : 'play'} size={16} color={k.textMain} />
-                </TouchableOpacity>
+    <GoFitBottomSheet
+      visible={visible}
+      onClose={() => onSaveExercise(false)}
+      backgroundColor={k.surfaceLow}
+      noPadding={true}
+    >
+      {/* Rest Timer Bar */}
+      <View style={styles.topArea}>
+        <View style={[styles.restTimerBar, { backgroundColor: k.surfaceHighest }]}>
+          <View style={kStyles.rowAlign}>
+            <View style={styles.timerIconCircle}>
+              <Ionicons name="timer-outline" size={18} color={k.cyan} />
+            </View>
+            <View>
+              <Text style={kStyles.kickerMuted}>DESCANSO ACTIVO</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
+                <Text style={[styles.timerCountdown, { color: k.cyan }]}>{formatTime(restSeconds)}</Text>
+                <Text style={{ fontSize: 10, color: k.textMuted, fontWeight: '600' }}>/ 02:00</Text>
               </View>
             </View>
           </View>
 
-          {/* Dossier Header */}
-          <View style={styles.dossierHeader}>
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <View style={[styles.exOrderBadge, { backgroundColor: k.surfaceHighest }]}>
-                  <Text style={{ fontSize: 9, fontWeight: '900', color: k.lime }}>
-                    EJERCICIO {activeExIndex + 1} DE {totalExercisesCount || 1}
-                  </Text>
-                </View>
-                <Text style={{ fontSize: 11, fontWeight: '600', color: k.textMuted }}>
-                  {activeExercise?.muscle || routineTitle}
-                </Text>
-              </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <TouchableOpacity
+              style={[styles.timerBtn, { backgroundColor: k.surfaceBright }]}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setRestSeconds((s) => s + 30);
+              }}
+            >
+              <Text style={{ fontSize: 11, fontWeight: '800', color: k.textMain }}>+30s</Text>
+            </TouchableOpacity>
 
-              <Text style={[styles.dossierTitle, { color: k.textMain }]} numberOfLines={1}>
-                {activeExercise?.name}
-              </Text>
-
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 }}>
-                <Ionicons name="time-outline" size={14} color={k.gold} />
-                <Text style={{ fontSize: 11, color: k.textMuted }}>
-                  Registro previo:{' '}
-                  <Text style={{ fontWeight: '800', color: k.textMain }}>
-                    {prevExData?.weights?.[0]
-                      ? `${prevExData.weights[0]} kg × ${prevExData.reps?.[0] || 10} reps`
-                      : 'Sin registro previo'}
-                  </Text>
-                </Text>
-              </View>
-            </View>
-
-            <View style={{ flexDirection: 'row', gap: 6 }}>
-              <TouchableOpacity
-                style={[styles.utilityBtn, { backgroundColor: k.surface }]}
-                onPress={() => onSaveExercise(true)}
-              >
-                <Ionicons name="ban-outline" size={18} color={k.danger} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.utilityBtn, { backgroundColor: k.surface }]}
-                onPress={() => onSaveExercise(false)}
-              >
-                <Ionicons name="chevron-down" size={20} color={k.textMain} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Interactive Sets Table */}
-          <ScrollView style={{ paddingHorizontal: 18 }} showsVerticalScrollIndicator={false}>
-            <View style={styles.tableHeadRow}>
-              <Text style={[styles.thText, { flex: 1.5, color: k.textMuted }]}>SERIE</Text>
-              <Text style={[styles.thText, { flex: 2.5, color: k.textMuted }]}>ANTERIOR</Text>
-              <Text style={[styles.thText, { flex: 1.5, textAlign: 'center', color: k.textMuted }]}>KG</Text>
-              <Text style={[styles.thText, { flex: 1.5, textAlign: 'center', color: k.textMuted }]}>REPS</Text>
-              <Text style={[styles.thText, { flex: 1.2, textAlign: 'center', color: k.textMuted }]}>RPE</Text>
-              <Text style={[styles.thText, { flex: 1.5, textAlign: 'right', color: k.textMuted }]}>ESTADO</Text>
-            </View>
-
-            {tempReps.map((rep, idx) => {
-              const isFocused = idx === activeSetIndex;
-              const isCompleted = rep.trim() !== '' && rep.trim() !== '0';
-              const prevW = prevExData?.weights?.[idx] || prevExData?.weights?.[0] || '--';
-              const prevR = prevExData?.reps?.[idx] || prevExData?.reps?.[0] || '--';
-
-              if (isFocused) {
-                return (
-                  <View key={`set-${idx}`} style={[styles.activeMonolith, { backgroundColor: k.surfaceHighest }]}>
-                    <LinearGradient colors={[k.limeBg, k.cyan]} style={styles.monolithLeftBar} />
-
-                    <View style={[kStyles.rowBetween, { marginBottom: 12, paddingLeft: 4 }]}>
-                      <View style={kStyles.rowAlign}>
-                        <View style={[styles.activeSetBadge, { backgroundColor: k.limeBg }]}>
-                          <Text style={{ fontSize: 10, fontWeight: '900', color: '#3a4a00' }}>SERIE {idx + 1}</Text>
-                        </View>
-                        <Text style={{ fontSize: 11, fontWeight: '800', color: k.cyan }}>EN CURSO • OBJETIVO</Text>
-                      </View>
-                      <Text style={{ fontSize: 10, color: k.textMuted, fontWeight: '600' }}>
-                        Ant: {prevW} kg × {prevR}
-                      </Text>
-                    </View>
-
-                    {/* Steppers Grid */}
-                    <View style={styles.steppersGrid}>
-                      {/* Peso */}
-                      <View style={[styles.stepperBox, { backgroundColor: k.surface }]}>
-                        <View style={kStyles.rowBetween}>
-                          <Text style={[styles.stepperLabel, { color: k.textMuted }]}>PESO (KG)</Text>
-                          <Ionicons name="barbell-outline" size={14} color={k.textMuted} />
-                        </View>
-                        <View style={[kStyles.rowBetween, { marginVertical: 4 }]}>
-                          <TouchableOpacity
-                            style={[styles.stepBtn, { backgroundColor: k.surfaceHigh }]}
-                            onPress={() => stepWeight(-2.5)}
-                          >
-                            <Text style={[styles.stepBtnText, { color: k.textMain }]}>-</Text>
-                          </TouchableOpacity>
-                          <TextInput
-                            style={[styles.stepperBigInput, { color: k.textMain }]}
-                            keyboardType="decimal-pad"
-                            value={tempWeights[idx]}
-                            onChangeText={(val) => onUpdateWeight(idx, val.replace(/[^0-9.]/g, ''))}
-                            placeholder="0"
-                            placeholderTextColor={k.textMuted}
-                          />
-                          <TouchableOpacity
-                            style={[styles.stepBtn, { backgroundColor: k.surfaceHigh }]}
-                            onPress={() => stepWeight(2.5)}
-                          >
-                            <Text style={[styles.stepBtnText, { color: k.textMain }]}>+</Text>
-                          </TouchableOpacity>
-                        </View>
-                        <View style={{ flexDirection: 'row', gap: 4, marginTop: 6 }}>
-                          {[1.25, 2.5, 5].map((delta) => (
-                            <TouchableOpacity
-                              key={delta}
-                              style={[styles.quickIncChip, { backgroundColor: k.surfaceHigh }]}
-                              onPress={() => stepWeight(delta)}
-                            >
-                              <Text style={{ fontSize: 9, fontWeight: '800', color: k.textMuted }}>+{delta}</Text>
-                            </TouchableOpacity>
-                          ))}
-                        </View>
-                      </View>
-
-                      {/* Reps */}
-                      <View style={[styles.stepperBox, { backgroundColor: k.surface }]}>
-                        <View style={kStyles.rowBetween}>
-                          <Text style={[styles.stepperLabel, { color: k.textMuted }]}>REPETICIONES</Text>
-                          <Ionicons name="repeat-outline" size={14} color={k.textMuted} />
-                        </View>
-                        <View style={[kStyles.rowBetween, { marginVertical: 4 }]}>
-                          <TouchableOpacity
-                            style={[styles.stepBtn, { backgroundColor: k.surfaceHigh }]}
-                            onPress={() => stepReps(-1)}
-                          >
-                            <Text style={[styles.stepBtnText, { color: k.textMain }]}>-</Text>
-                          </TouchableOpacity>
-                          <TextInput
-                            style={[styles.stepperBigInput, { color: k.textMain }]}
-                            keyboardType="numeric"
-                            value={rep}
-                            onChangeText={(val) => onUpdateRep(idx, val.replace(/[^0-9]/g, ''))}
-                            placeholder="10"
-                            placeholderTextColor={k.textMuted}
-                          />
-                          <TouchableOpacity
-                            style={[styles.stepBtn, { backgroundColor: k.surfaceHigh }]}
-                            onPress={() => stepReps(1)}
-                          >
-                            <Text style={[styles.stepBtnText, { color: k.textMain }]}>+</Text>
-                          </TouchableOpacity>
-                        </View>
-                        <View style={[kStyles.rowBetween, { marginTop: 8 }]}>
-                          <Text style={{ fontSize: 9, color: k.textMuted }}>Rango sug:</Text>
-                          <Text style={{ fontSize: 9, fontWeight: '800', color: k.lime }}>8 - 12 reps</Text>
-                        </View>
-                      </View>
-                    </View>
-
-                    {/* RPE Selector */}
-                    <View style={{ paddingLeft: 4, marginBottom: 12, gap: 6 }}>
-                      <View style={kStyles.rowBetween}>
-                        <Text style={[styles.stepperLabel, { color: k.textMuted }]}>ESFUERZO PERCIBIDO (RPE)</Text>
-                        <Text style={{ fontSize: 10, fontWeight: '800', color: k.cyan }}>
-                          {RPE_OPTIONS.find((o) => o.val === (tempRpes[idx] || '8.5'))?.label}
-                        </Text>
-                      </View>
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-                        {RPE_OPTIONS.map((opt) => {
-                          const selected = (tempRpes[idx] || '8.5') === opt.val;
-                          return (
-                            <TouchableOpacity
-                              key={opt.val}
-                              style={[
-                                styles.rpePill,
-                                { backgroundColor: selected ? k.cyan : k.surface },
-                              ]}
-                              onPress={() => onUpdateRpe(idx, opt.val)}
-                            >
-                              <Text
-                                style={{
-                                  fontSize: 11,
-                                  fontWeight: selected ? '900' : '800',
-                                  color: selected ? '#000' : k.textMuted,
-                                }}
-                              >
-                                {opt.val}
-                              </Text>
-                            </TouchableOpacity>
-                          );
-                        })}
-                      </ScrollView>
-                    </View>
-
-                    <KineticButton
-                      title={`COMPLETAR SERIE ${idx + 1}`}
-                      icon="checkmark-circle"
-                      onPress={handleCommitSet}
-                    />
-                  </View>
-                );
-              }
-
-              return (
-                <TouchableOpacity
-                  key={`set-${idx}`}
-                  style={[styles.compactSetRow, { backgroundColor: k.surface }, !isCompleted && { opacity: 0.65 }]}
-                  onPress={() => {
-                    Haptics.selectionAsync();
-                    onSelectSetIndex(idx);
-                  }}
-                >
-                  <View style={{ flex: 1.5 }}>
-                    <View style={[styles.setNumBox, { backgroundColor: k.surfaceHighest }]}>
-                      <Text style={{ fontSize: 11, fontWeight: '800', color: k.textMain }}>{idx + 1}</Text>
-                    </View>
-                  </View>
-                  <Text style={{ flex: 2.5, fontSize: 12, fontWeight: '600', color: k.textMuted }}>
-                    {prevW} × {prevR}
-                  </Text>
-                  <Text style={{ flex: 1.5, textAlign: 'center', fontSize: 14, fontWeight: '800', color: k.textMain }}>
-                    {tempWeights[idx] || '--'}
-                  </Text>
-                  <Text style={{ flex: 1.5, textAlign: 'center', fontSize: 14, fontWeight: '800', color: k.textMain }}>
-                    {isCompleted ? rep : '--'}
-                  </Text>
-                  <Text style={{ flex: 1.2, textAlign: 'center', fontSize: 12, color: k.textMuted }}>
-                    {tempRpes[idx] || '8.5'}
-                  </Text>
-                  <View style={{ flex: 1.5, alignItems: 'flex-end' }}>
-                    {isCompleted ? (
-                      <View style={styles.checkDoneBox}>
-                        <Ionicons name="checkmark" size={16} color={k.lime} />
-                      </View>
-                    ) : (
-                      <Text style={{ fontSize: 9, fontWeight: '800', color: k.textMuted }}>PENDIENTE</Text>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-
-            {/* Modifiers Row */}
-            <View style={{ flexDirection: 'row', gap: 8, marginTop: 4, marginBottom: 16 }}>
-              <TouchableOpacity style={[styles.modBtn, { backgroundColor: k.surface }]} onPress={onAddExtraSet}>
-                <Ionicons name="add" size={16} color={k.lime} />
-                <Text style={{ fontSize: 10, fontWeight: '800', color: k.textMain }}>AÑADIR SERIE</Text>
-              </TouchableOpacity>
-
-              {parseInt(tempSetsCount) > 1 && (
-                <TouchableOpacity style={[styles.modBtn, { backgroundColor: k.surface }]} onPress={onRemoveLastSet}>
-                  <Ionicons name="remove" size={16} color={k.textMuted} />
-                  <Text style={{ fontSize: 10, fontWeight: '800', color: k.textMuted }}>QUITAR SERIE</Text>
-                </TouchableOpacity>
-              )}
-
-              <TouchableOpacity
-                style={[styles.modBtn, { backgroundColor: k.surface }]}
-                onPress={() => onSaveExercise(true)}
-              >
-                <Ionicons name="close-circle-outline" size={16} color={k.danger} />
-                <Text style={{ fontSize: 10, fontWeight: '800', color: k.danger }}>OMITIR HOY</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-
-          {/* Footer */}
-          <View style={[styles.footer, { backgroundColor: k.surface, borderTopColor: k.outline }]}>
-            <View style={kStyles.rowBetween}>
-              <View style={kStyles.rowAlign}>
-                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: k.cyan }} />
-                <Text style={{ fontSize: 11, color: k.textMuted, fontWeight: '600' }}>Volumen acumulado:</Text>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
-                <Text style={{ fontSize: 14, fontWeight: '900', color: k.textMain }}>
-                  {currentModalVolume.toLocaleString()} kg
-                </Text>
-                {modalVolDiff && (
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      fontWeight: '800',
-                      color: parseFloat(modalVolDiff) >= 0 ? k.lime : k.danger,
-                    }}
-                  >
-                    {parseFloat(modalVolDiff) >= 0 ? `+${modalVolDiff}%` : `${modalVolDiff}%`} vs prev.
-                  </Text>
-                )}
-              </View>
-            </View>
-
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <KineticButton
-                style={{ flex: 1 }}
-                title={nextExercise ? `SIGUIENTE: ${nextExercise.name}` : 'GUARDAR & VOLVER'}
-                icon="arrow-forward"
-                iconPosition="right"
-                loading={savingExercise}
-                onPress={() => onSaveExercise(false, nextExercise)}
-              />
-              <TouchableOpacity
-                style={[styles.doneSquareBtn, { backgroundColor: k.surfaceHighest }]}
-                onPress={() => onSaveExercise(false)}
-              >
-                <Ionicons name="checkmark-done" size={20} color={k.textMain} />
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={[styles.timerBtn, { backgroundColor: k.surfaceBright, paddingHorizontal: 10 }]}
+              onPress={() => {
+                Haptics.selectionAsync();
+                setTimerRunning(!timerRunning);
+              }}
+            >
+              <Ionicons name={timerRunning ? 'pause' : 'play'} size={16} color={k.textMain} />
+            </TouchableOpacity>
           </View>
         </View>
       </View>
-    </Modal>
+
+      {/* Dossier Header */}
+      <View style={styles.dossierHeader}>
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <View style={[styles.exOrderBadge, { backgroundColor: k.surfaceHighest }]}>
+              <Text style={{ fontSize: 9, fontWeight: '900', color: k.lime }}>
+                EJERCICIO {activeExIndex + 1} DE {totalExercisesCount || 1}
+              </Text>
+            </View>
+            <Text style={{ fontSize: 11, fontWeight: '600', color: k.textMuted }}>
+              {activeExercise?.muscle || routineTitle}
+            </Text>
+          </View>
+
+          <Text style={[styles.dossierTitle, { color: k.textMain }]} numberOfLines={1}>
+            {activeExercise?.name}
+          </Text>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 }}>
+            <Ionicons name="time-outline" size={14} color={k.gold} />
+            <Text style={{ fontSize: 11, color: k.textMuted }}>
+              Registro previo:{' '}
+              <Text style={{ fontWeight: '800', color: k.textMain }}>
+                {prevExData?.weights?.[0]
+                  ? `${prevExData.weights[0]} kg × ${prevExData.reps?.[0] || 10} reps`
+                  : 'Sin registro previo'}
+              </Text>
+            </Text>
+          </View>
+        </View>
+
+        <View style={{ flexDirection: 'row', gap: 6 }}>
+          <TouchableOpacity
+            style={[styles.utilityBtn, { backgroundColor: k.surface }]}
+            onPress={() => onSaveExercise(true)}
+          >
+            <Ionicons name="ban-outline" size={18} color={k.danger} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.utilityBtn, { backgroundColor: k.surface }]}
+            onPress={() => onSaveExercise(false)}
+          >
+            <Ionicons name="chevron-down" size={20} color={k.textMain} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Interactive Sets Table */}
+      <ScrollView style={{ paddingHorizontal: 18 }} showsVerticalScrollIndicator={false}>
+        <View style={styles.tableHeadRow}>
+          <Text style={[styles.thText, { flex: 1.5, color: k.textMuted }]}>SERIE</Text>
+          <Text style={[styles.thText, { flex: 2.5, color: k.textMuted }]}>ANTERIOR</Text>
+          <Text style={[styles.thText, { flex: 1.5, textAlign: 'center', color: k.textMuted }]}>KG</Text>
+          <Text style={[styles.thText, { flex: 1.5, textAlign: 'center', color: k.textMuted }]}>REPS</Text>
+          <Text style={[styles.thText, { flex: 1.2, textAlign: 'center', color: k.textMuted }]}>RPE</Text>
+          <Text style={[styles.thText, { flex: 1.5, textAlign: 'right', color: k.textMuted }]}>ESTADO</Text>
+        </View>
+
+        {tempReps.map((rep, idx) => {
+          const isFocused = idx === activeSetIndex;
+          const isCompleted = rep.trim() !== '' && rep.trim() !== '0';
+          const prevW = prevExData?.weights?.[idx] || prevExData?.weights?.[0] || '--';
+          const prevR = prevExData?.reps?.[idx] || prevExData?.reps?.[0] || '--';
+
+          if (isFocused) {
+            return (
+              <View key={`set-${idx}`} style={[styles.activeMonolith, { backgroundColor: k.surfaceHighest }]}>
+                <LinearGradient colors={[k.limeBg, k.cyan]} style={styles.monolithLeftBar} />
+
+                <View style={[kStyles.rowBetween, { marginBottom: 12, paddingLeft: 4 }]}>
+                  <View style={kStyles.rowAlign}>
+                    <View style={[styles.activeSetBadge, { backgroundColor: k.limeBg }]}>
+                      <Text style={{ fontSize: 10, fontWeight: '900', color: '#3a4a00' }}>SERIE {idx + 1}</Text>
+                    </View>
+                    <Text style={{ fontSize: 11, fontWeight: '800', color: k.cyan }}>EN CURSO • OBJETIVO</Text>
+                  </View>
+                  <Text style={{ fontSize: 10, color: k.textMuted, fontWeight: '600' }}>
+                    Ant: {prevW} kg × {prevR}
+                  </Text>
+                </View>
+
+                <View style={styles.steppersGrid}>
+                  {/* Peso */}
+                  <View style={[styles.stepperBox, { backgroundColor: k.surface }]}>
+                    <View style={kStyles.rowBetween}>
+                      <Text style={[styles.stepperLabel, { color: k.textMuted }]}>PESO (KG)</Text>
+                      <Ionicons name="barbell-outline" size={14} color={k.textMuted} />
+                    </View>
+                    <View style={[kStyles.rowBetween, { marginVertical: 4 }]}>
+                      <TouchableOpacity
+                        style={[styles.stepBtn, { backgroundColor: k.surfaceHigh }]}
+                        onPress={() => stepWeight(-2.5)}
+                      >
+                        <Text style={[styles.stepBtnText, { color: k.textMain }]}>-</Text>
+                      </TouchableOpacity>
+                      <TextInput
+                        style={[styles.stepperBigInput, { color: k.textMain }]}
+                        keyboardType="decimal-pad"
+                        value={tempWeights[idx]}
+                        onChangeText={(val) => onUpdateWeight(idx, val.replace(/[^0-9.]/g, ''))}
+                        placeholder="0"
+                        placeholderTextColor={k.textMuted}
+                      />
+                      <TouchableOpacity
+                        style={[styles.stepBtn, { backgroundColor: k.surfaceHigh }]}
+                        onPress={() => stepWeight(2.5)}
+                      >
+                        <Text style={[styles.stepBtnText, { color: k.textMain }]}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <View style={{ flexDirection: 'row', gap: 4, marginTop: 6 }}>
+                      {[1.25, 2.5, 5].map((delta) => (
+                        <TouchableOpacity
+                          key={delta}
+                          style={[styles.quickIncChip, { backgroundColor: k.surfaceHigh }]}
+                          onPress={() => stepWeight(delta)}
+                        >
+                          <Text style={{ fontSize: 9, fontWeight: '800', color: k.textMuted }}>+{delta}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+
+                  {/* Reps */}
+                  <View style={[styles.stepperBox, { backgroundColor: k.surface }]}>
+                    <View style={kStyles.rowBetween}>
+                      <Text style={[styles.stepperLabel, { color: k.textMuted }]}>REPETICIONES</Text>
+                      <Ionicons name="repeat-outline" size={14} color={k.textMuted} />
+                    </View>
+                    <View style={[kStyles.rowBetween, { marginVertical: 4 }]}>
+                      <TouchableOpacity
+                        style={[styles.stepBtn, { backgroundColor: k.surfaceHigh }]}
+                        onPress={() => stepReps(-1)}
+                      >
+                        <Text style={[styles.stepBtnText, { color: k.textMain }]}>-</Text>
+                      </TouchableOpacity>
+                      <TextInput
+                        style={[styles.stepperBigInput, { color: k.textMain }]}
+                        keyboardType="numeric"
+                        value={rep}
+                        onChangeText={(val) => onUpdateRep(idx, val.replace(/[^0-9]/g, ''))}
+                        placeholder="10"
+                        placeholderTextColor={k.textMuted}
+                      />
+                      <TouchableOpacity
+                        style={[styles.stepBtn, { backgroundColor: k.surfaceHigh }]}
+                        onPress={() => stepReps(1)}
+                      >
+                        <Text style={[styles.stepBtnText, { color: k.textMain }]}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <View style={[kStyles.rowBetween, { marginTop: 8 }]}>
+                      <Text style={{ fontSize: 9, color: k.textMuted }}>Rango sug:</Text>
+                      <Text style={{ fontSize: 9, fontWeight: '800', color: k.lime }}>8 - 12 reps</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* RPE Selector */}
+                <View style={{ paddingLeft: 4, marginBottom: 12, gap: 6 }}>
+                  <View style={kStyles.rowBetween}>
+                    <Text style={[styles.stepperLabel, { color: k.textMuted }]}>ESFUERZO PERCIBIDO (RPE)</Text>
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: k.cyan }}>
+                      {RPE_OPTIONS.find((o) => o.val === (tempRpes[idx] || '8.5'))?.label}
+                    </Text>
+                  </View>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+                    {RPE_OPTIONS.map((opt) => {
+                      const selected = (tempRpes[idx] || '8.5') === opt.val;
+                      return (
+                        <TouchableOpacity
+                          key={opt.val}
+                          style={[styles.rpePill, { backgroundColor: selected ? k.cyan : k.surface }]}
+                          onPress={() => onUpdateRpe(idx, opt.val)}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 11,
+                              fontWeight: selected ? '900' : '800',
+                              color: selected ? '#000' : k.textMuted,
+                            }}
+                          >
+                            {opt.val}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+
+                <KineticButton
+                  title={`COMPLETAR SERIE ${idx + 1}`}
+                  icon="checkmark-circle"
+                  onPress={handleCommitSet}
+                />
+              </View>
+            );
+          }
+
+          return (
+            <TouchableOpacity
+              key={`set-${idx}`}
+              style={[styles.compactSetRow, { backgroundColor: k.surface }, !isCompleted && { opacity: 0.65 }]}
+              onPress={() => {
+                Haptics.selectionAsync();
+                onSelectSetIndex(idx);
+              }}
+            >
+              <View style={{ flex: 1.5 }}>
+                <View style={[styles.setNumBox, { backgroundColor: k.surfaceHighest }]}>
+                  <Text style={{ fontSize: 11, fontWeight: '800', color: k.textMain }}>{idx + 1}</Text>
+                </View>
+              </View>
+              <Text style={{ flex: 2.5, fontSize: 12, fontWeight: '600', color: k.textMuted }}>
+                {prevW} × {prevR}
+              </Text>
+              <Text style={{ flex: 1.5, textAlign: 'center', fontSize: 14, fontWeight: '800', color: k.textMain }}>
+                {tempWeights[idx] || '--'}
+              </Text>
+              <Text style={{ flex: 1.5, textAlign: 'center', fontSize: 14, fontWeight: '800', color: k.textMain }}>
+                {isCompleted ? rep : '--'}
+              </Text>
+              <Text style={{ flex: 1.2, textAlign: 'center', fontSize: 12, color: k.textMuted }}>
+                {tempRpes[idx] || '8.5'}
+              </Text>
+              <View style={{ flex: 1.5, alignItems: 'flex-end' }}>
+                {isCompleted ? (
+                  <View style={styles.checkDoneBox}>
+                    <Ionicons name="checkmark" size={16} color={k.lime} />
+                  </View>
+                ) : (
+                  <Text style={{ fontSize: 9, fontWeight: '800', color: k.textMuted }}>PENDIENTE</Text>
+                )}
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+
+        {/* Modifiers Row */}
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 4, marginBottom: 16 }}>
+          <TouchableOpacity style={[styles.modBtn, { backgroundColor: k.surface }]} onPress={onAddExtraSet}>
+            <Ionicons name="add" size={16} color={k.lime} />
+            <Text style={{ fontSize: 10, fontWeight: '800', color: k.textMain }}>AÑADIR SERIE</Text>
+          </TouchableOpacity>
+
+          {parseInt(tempSetsCount) > 1 && (
+            <TouchableOpacity style={[styles.modBtn, { backgroundColor: k.surface }]} onPress={onRemoveLastSet}>
+              <Ionicons name="remove" size={16} color={k.textMuted} />
+              <Text style={{ fontSize: 10, fontWeight: '800', color: k.textMuted }}>QUITAR SERIE</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            style={[styles.modBtn, { backgroundColor: k.surface }]}
+            onPress={() => onSaveExercise(true)}
+          >
+            <Ionicons name="close-circle-outline" size={16} color={k.danger} />
+            <Text style={{ fontSize: 10, fontWeight: '800', color: k.danger }}>OMITIR HOY</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      {/* Footer */}
+      <View style={[styles.footer, { backgroundColor: k.surface, borderTopColor: k.outline }]}>
+        <View style={kStyles.rowBetween}>
+          <View style={kStyles.rowAlign}>
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: k.cyan }} />
+            <Text style={{ fontSize: 11, color: k.textMuted, fontWeight: '600' }}>Volumen acumulado:</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
+            <Text style={{ fontSize: 14, fontWeight: '900', color: k.textMain }}>
+              {currentModalVolume.toLocaleString()} kg
+            </Text>
+            {modalVolDiff && (
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '800',
+                  color: parseFloat(modalVolDiff) >= 0 ? k.lime : k.danger,
+                }}
+              >
+                {parseFloat(modalVolDiff) >= 0 ? `+${modalVolDiff}%` : `${modalVolDiff}%`} vs prev.
+              </Text>
+            )}
+          </View>
+        </View>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <KineticButton
+            style={{ flex: 1 }}
+            title={nextExercise ? `SIGUIENTE: ${nextExercise.name}` : 'GUARDAR & VOLVER'}
+            icon="arrow-forward"
+            iconPosition="right"
+            loading={savingExercise}
+            onPress={() => onSaveExercise(false, nextExercise)}
+          />
+          <TouchableOpacity
+            style={[styles.doneSquareBtn, { backgroundColor: k.surfaceHighest }]}
+            onPress={() => onSaveExercise(false)}
+          >
+            <Ionicons name="checkmark-done" size={20} color={k.textMain} />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </GoFitBottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  monolithSheet: { borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '92%', overflow: 'hidden' },
-  topArea: { paddingHorizontal: 18, paddingTop: 10, paddingBottom: 6, alignItems: 'center' },
+  topArea: { paddingHorizontal: 18, paddingBottom: 6, alignItems: 'center' },
   restTimerBar: {
     width: '100%',
     borderRadius: 16,

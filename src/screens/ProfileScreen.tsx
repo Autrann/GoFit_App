@@ -11,8 +11,10 @@ import * as Haptics from 'expo-haptics';
 import { imageMap } from '../assets/imgs/imageMap';
 import { useTheme } from '../context/ThemeContext';
 import { DAYS_FROM_SUNDAY, getFirstName } from '../constants/appConstants';
+import { calculateWeightStageAnalytics, calculateExerciseVolume, WeightEntry } from '../utils/analytics';
 import KineticHeader from '../components/common/KineticHeader';
 import KineticButton from '../components/common/KineticButton';
+import HydrationCard from '../components/common/HydrationCard';
 import SetLoggerModal from '../components/modals/SetLoggerModal';
 import ProfileOptionsModal from '../components/modals/ProfileOptionsModal';
 
@@ -22,7 +24,7 @@ export default function ProfileScreen() {
 
   const [userData, setUserData] = useState<any>(null);
   const [routine, setRoutine] = useState<any>(null);
-  const [weightLogs, setWeightLogs] = useState<{ date: string; weight: number }[]>([]);
+  const [weightLogs, setWeightLogs] = useState<WeightEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   const today = new Date();
@@ -36,19 +38,16 @@ export default function ProfileScreen() {
   const lastWeekString = lastWeekDate.toISOString().split('T')[0];
 
   const [isLogging, setIsLogging] = useState(false);
-  const [workoutLog, setWorkoutLog] = useState<any>({ finished: false, exercises: {} });
+  const [workoutLog, setWorkoutLog] = useState<any>({ finished: false, exercises: {}, waterLiters: 0 });
   const [lastWeekLog, setLastWeekLog] = useState<any>(null);
 
-  // Estados de Perfil, Peso y Meta
   const [isProfileModalVisible, setProfileModalVisible] = useState(false);
   const [tempWeight, setTempWeight] = useState('');
   const [tempTargetWeight, setTempTargetWeight] = useState('');
   const [tempMaintainMode, setTempMaintainMode] = useState(false);
   const [isWeightInputOpen, setIsWeightInputOpen] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
-  const [waterIntake, setWaterIntake] = useState(1.8);
 
-  // Estados para Modal de Ejercicio
   const [activeExercise, setActiveExercise] = useState<any>(null);
   const [tempSetsCount, setTempSetsCount] = useState('3');
   const [tempReps, setTempReps] = useState<string[]>([]);
@@ -83,10 +82,10 @@ export default function ProfileScreen() {
     const unsubLog = onSnapshot(doc(db, 'users', user.uid, 'workout_logs', dateString), (docSnap) => {
       if (docSnap.exists()) {
         const logData = docSnap.data();
-        setWorkoutLog(logData);
+        setWorkoutLog({ finished: false, exercises: {}, waterLiters: 0, ...logData });
         if (logData.finished) setIsLogging(false);
       } else {
-        setWorkoutLog({ finished: false, exercises: {} });
+        setWorkoutLog({ finished: false, exercises: {}, waterLiters: 0 });
       }
     });
 
@@ -129,7 +128,21 @@ export default function ProfileScreen() {
     }
   };
 
-  // --- GUARDAR PESO ACTUAL Y/O ACTUALIZAR META OBJETIVO ---
+  // --- PERSISTIR HIDRATACIÓN EN FIRESTORE ---
+  const handleUpdateWaterLiters = async (newLiters: number) => {
+    const user = auth.currentUser;
+    if (!user) return;
+    try {
+      await setDoc(
+        doc(db, 'users', user.uid, 'workout_logs', dateString),
+        { waterLiters: newLiters },
+        { merge: true }
+      );
+    } catch (error) {
+      console.error('Error actualizando hidratación:', error);
+    }
+  };
+
   const handleUpdateWeightAndGoal = async () => {
     const numericWeight = parseFloat(tempWeight.replace(',', '.'));
     if (isNaN(numericWeight) || numericWeight <= 0) {
@@ -160,7 +173,6 @@ export default function ProfileScreen() {
           ? 'lose'
           : 'gain';
 
-        // Si el usuario cambió su meta objetivo o no tenía startWeight, fijamos el punto de partida
         const prevTarget = userData?.targetWeight ? parseFloat(userData.targetWeight) : null;
         const targetChanged = hasValidTarget && prevTarget !== numericTarget;
         const startWeightToSave =
@@ -168,7 +180,6 @@ export default function ProfileScreen() {
             ? (userData?.weight || numericWeight).toString()
             : userData.startWeight;
 
-        // 1. Actualizar documento principal del usuario
         await updateDoc(doc(db, 'users', user.uid), {
           weight: numericWeight.toString(),
           startWeight: startWeightToSave,
@@ -177,7 +188,6 @@ export default function ProfileScreen() {
           lastWeightUpdate: timestamp,
         });
 
-        // 2. Guardar entrada en el historial weight_logs
         await setDoc(
           doc(db, 'users', user.uid, 'weight_logs', dateString),
           {
@@ -192,102 +202,16 @@ export default function ProfileScreen() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
     } catch (error) {
-      console.error('Error guardando peso y meta:', error);
       Alert.alert('Error', 'No se pudo actualizar la información de peso.');
     } finally {
       setSavingSettings(false);
     }
   };
 
-  // --- CÁLCULO VISUAL DE LA ETAPA Y BARRA DE PROGRESO ---
-  const getWeightStageAnalytics = () => {
-    const currW = userData?.weight ? parseFloat(userData.weight) : null;
-    const targW = userData?.targetWeight ? parseFloat(userData.targetWeight) : null;
-    const firstLogW = weightLogs.length > 0 ? weightLogs[0].weight : currW;
-    const startW = userData?.startWeight ? parseFloat(userData.startWeight) : firstLogW;
-
-    if (!currW) {
-      return {
-        stageTitle: 'SIN CALIBRAR',
-        stageBadgeColor: k.textMuted,
-        icon: 'help-circle-outline' as const,
-        leftLabel: 'Sin peso inicial',
-        rightLabel: '0%',
-        remainingText: 'Presiona "+ Actualizar" para registrar tu peso y tu meta.',
-        progressPct: 0,
-      };
-    }
-
-    // Caso 1: Modo Mantenimiento (sin peso objetivo o meta igual al inicio)
-    if (!targW || userData?.weightGoalType === 'maintain') {
-      const baseW = startW || currW;
-      const diffFromBase = Math.abs(currW - baseW);
-      const isStable = diffFromBase <= 1.5;
-
-      return {
-        stageTitle: 'ETAPA: MANTENIMIENTO / RECOMPOSICIÓN',
-        stageBadgeColor: k.cyan,
-        icon: 'shield-checkmark-outline' as const,
-        leftLabel: `Rango Base: ${(baseW - 1.0).toFixed(1)} - ${(baseW + 1.0).toFixed(1)} kg`,
-        rightLabel: isStable ? '100% ESTABLE' : `±${diffFromBase.toFixed(1)} kg`,
-        remainingText: isStable
-          ? 'Te mantienes firme en tu zona de recomposición corporal.'
-          : `Variación de ${diffFromBase.toFixed(1)} kg respecto a tu peso base (${baseW} kg).`,
-        progressPct: isStable ? 100 : Math.max(40, 100 - diffFromBase * 15),
-      };
-    }
-
-    // Determinar si la meta es bajar (Déficit) o subir (Volumen)
-    const isCutting = targW < (startW && startW !== targW ? startW : currW);
-
-    if (isCutting) {
-      const effectiveStart = startW && startW > targW ? startW : Math.max(currW, targW + 0.1);
-      const totalToLose = effectiveStart - targW;
-      const lostSoFar = effectiveStart - currW;
-      const rawPct = totalToLose > 0 ? (lostSoFar / totalToLose) * 100 : 0;
-      const clampedPct = Math.min(100, Math.max(5, Math.round(rawPct)));
-      const remaining = parseFloat((currW - targW).toFixed(1));
-
-      return {
-        stageTitle: 'ETAPA: DÉFICIT / DEFINICIÓN',
-        stageBadgeColor: k.lime,
-        icon: 'trending-down' as const,
-        leftLabel: `Meta Objetivo: ${targW.toFixed(1)} kg`,
-        rightLabel: remaining <= 0 ? '¡META LOGRADA! 🏆' : `${clampedPct}% Completado`,
-        remainingText:
-          remaining <= 0
-            ? `¡Alcanzaste tu meta de ${targW.toFixed(1)} kg! Puedes fijar un nuevo objetivo o pasar a mantenimiento.`
-            : `Te faltan ${remaining} kg para alcanzar tu meta (Inicio: ${effectiveStart.toFixed(1)} kg).`,
-        progressPct: remaining <= 0 ? 100 : clampedPct,
-      };
-    } else {
-      // Etapa de Volumen / Subir de peso
-      const effectiveStart = startW && startW < targW ? startW : Math.min(currW, targW - 0.1);
-      const totalToGain = targW - effectiveStart;
-      const gainedSoFar = currW - effectiveStart;
-      const rawPct = totalToGain > 0 ? (gainedSoFar / totalToGain) * 100 : 0;
-      const clampedPct = Math.min(100, Math.max(5, Math.round(rawPct)));
-      const remaining = parseFloat((targW - currW).toFixed(1));
-
-      return {
-        stageTitle: 'ETAPA: VOLUMEN / HIPERTROFIA',
-        stageBadgeColor: k.cyan,
-        icon: 'trending-up' as const,
-        leftLabel: `Meta Objetivo: ${targW.toFixed(1)} kg`,
-        rightLabel: remaining <= 0 ? '¡META LOGRADA! 🏆' : `${clampedPct}% Completado`,
-        remainingText:
-          remaining <= 0
-            ? `¡Superaste tu meta de volumen de ${targW.toFixed(1)} kg!`
-            : `Te faltan +${remaining} kg para tu objetivo de volumen (Inicio: ${effectiveStart.toFixed(1)} kg).`,
-        progressPct: remaining <= 0 ? 100 : clampedPct,
-      };
-    }
-  };
-
   const openExerciseModal = (exercise: any) => {
     Haptics.selectionAsync();
     setActiveExercise(exercise);
-    const existingData = workoutLog.exercises[exercise.id];
+    const existingData = workoutLog.exercises?.[exercise.id];
     const lastWeekEx = lastWeekLog?.exercises?.[exercise.id];
 
     if (existingData && !existingData.skipped) {
@@ -395,7 +319,7 @@ export default function ProfileScreen() {
   };
 
   const getExerciseStatus = (exerciseId: string) => {
-    const logData = workoutLog.exercises[exerciseId];
+    const logData = workoutLog.exercises?.[exerciseId];
     if (!logData) return { status: 'pending', text: 'Toca para registrar', color: k.textMuted };
     if (logData.skipped) return { status: 'skipped', text: 'Omitido hoy', color: k.danger };
     const hasEmptyReps = logData.reps.some((r: string) => r.trim() === '' || r.trim() === '0');
@@ -441,15 +365,6 @@ export default function ProfileScreen() {
     );
   };
 
-  const calculateVolume = (exLog: any) => {
-    if (!exLog || exLog.skipped) return 0;
-    let vol = 0;
-    for (let i = 0; i < exLog.sets; i++) {
-      vol += (parseInt(exLog.reps[i]) || 0) * (parseFloat(exLog.weights?.[i]) || 1);
-    }
-    return vol;
-  };
-
   const generateSummary = () => {
     if (!lastWeekLog || !lastWeekLog.finished) {
       return {
@@ -465,8 +380,8 @@ export default function ProfileScreen() {
     const decreased: string[] = [];
 
     routine?.[todayName]?.exercises?.forEach((ex: any) => {
-      const cV = calculateVolume(workoutLog.exercises[ex.id]);
-      const pV = calculateVolume(lastWeekLog.exercises?.[ex.id]);
+      const cV = calculateExerciseVolume(workoutLog.exercises?.[ex.id]);
+      const pV = calculateExerciseVolume(lastWeekLog.exercises?.[ex.id]);
       currTotal += cV;
       pastTotal += pV;
       if (pV > 0 && cV > 0) {
@@ -506,7 +421,7 @@ export default function ProfileScreen() {
       ? (weightLogs[weightLogs.length - 1].weight - weightLogs[weightLogs.length - 2].weight).toFixed(1)
       : null;
 
-  const stageAnalytics = getWeightStageAnalytics();
+  const stageAnalytics = calculateWeightStageAnalytics(userData, weightLogs, k);
 
   return (
     <SafeAreaView style={kStyles.container}>
@@ -715,9 +630,7 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* ========================================================================= */}
-        {/* TARJETA DE CONTROL DE PESO CORPORAL + ETAPA ACTIVA Y BARRA DE PROGRESO    */}
-        {/* ========================================================================= */}
+        {/* TARJETA DE CONTROL DE PESO CORPORAL + ETAPA ACTIVA Y BARRA DE PROGRESO */}
         <View style={[kStyles.card, { gap: 12 }]}>
           <View style={kStyles.rowBetween}>
             <View style={kStyles.rowAlign}>
@@ -750,7 +663,6 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Píldora de Etapa Física Detectada */}
           <View style={[styles.stageBanner, { backgroundColor: k.surfaceLowest, borderColor: stageAnalytics.stageBadgeColor }]}>
             <Ionicons name={stageAnalytics.icon} size={15} color={stageAnalytics.stageBadgeColor} />
             <Text style={{ fontSize: 10, fontWeight: '900', color: stageAnalytics.stageBadgeColor, letterSpacing: 0.8 }}>
@@ -758,7 +670,6 @@ export default function ProfileScreen() {
             </Text>
           </View>
 
-          {/* Números Grandes de Peso Actual */}
           <View style={[kStyles.rowBetween, styles.innerBox, { backgroundColor: k.surfaceLowest }]}>
             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
               <Text style={{ fontSize: 34, fontWeight: '900', fontStyle: 'italic', color: k.textMain, letterSpacing: -1 }}>
@@ -787,7 +698,6 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Barra de Avance Visual hacia el Peso Objetivo */}
           <View style={{ gap: 6 }}>
             <Text style={{ fontSize: 11, color: k.textMuted, lineHeight: 16 }}>
               {stageAnalytics.remainingText}
@@ -812,7 +722,6 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Panel Desplegable para Actualizar Peso de Hoy y Meta Objetivo */}
           {isWeightInputOpen && (
             <View style={[styles.editorContainer, { backgroundColor: k.surfaceLowest, borderColor: k.outline }]}>
               <Text style={kStyles.kickerLime}>ACTUALIZAR BIOMETRÍA Y OBJETIVO</Text>
@@ -873,34 +782,13 @@ export default function ProfileScreen() {
           )}
         </View>
 
-        {/* BENTO DE HIDRATACIÓN & PROGRESO */}
-        <View style={{ flexDirection: 'row', gap: 12 }}>
-          <TouchableOpacity
-            style={[kStyles.card, { flex: 1, padding: 14, gap: 8 }]}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setWaterIntake((prev) => parseFloat((prev >= 3.5 ? 0.5 : prev + 0.25).toFixed(2)));
-            }}
-          >
-            <View style={kStyles.rowBetween}>
-              <Text style={kStyles.kickerMuted}>HIDRATACIÓN (+)</Text>
-              <Ionicons name="water" size={16} color={k.cyan} />
-            </View>
-            <Text style={{ fontSize: 24, fontWeight: '900', fontStyle: 'italic', color: k.textMain }}>
-              {waterIntake} <Text style={{ fontSize: 11, color: k.textMuted }}>/ 3.0 L</Text>
-            </Text>
-          </TouchableOpacity>
-
-          <View style={[kStyles.card, { flex: 1, padding: 14, gap: 8 }]}>
-            <View style={kStyles.rowBetween}>
-              <Text style={kStyles.kickerMuted}>PROGRESO HOY</Text>
-              <Ionicons name="flash" size={16} color={k.lime} />
-            </View>
-            <Text style={{ fontSize: 24, fontWeight: '900', fontStyle: 'italic', color: k.textMain }}>
-              {Object.keys(workoutLog.exercises || {}).length}/{totalExercisesCount}
-            </Text>
-          </View>
-        </View>
+        {/* COMPONENTE MODULAR DE HIDRATACIÓN INTUITIVA (-250ml / +250ml) */}
+        <HydrationCard
+          liters={workoutLog.waterLiters || 0}
+          goalLiters={3.0}
+          stepMl={250}
+          onChangeLiters={handleUpdateWaterLiters}
+        />
       </ScrollView>
 
       <SetLoggerModal

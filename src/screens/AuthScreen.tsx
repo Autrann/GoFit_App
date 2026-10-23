@@ -60,7 +60,6 @@ export default function AuthScreen() {
     setStep(2);
   };
 
-  // Detecta en vivo qué etapa eligió el usuario en el Paso 2
   const getDetectedGoalInfo = () => {
     const currW = parseFloat(weight.replace(',', '.'));
     const targW = parseFloat(targetWeight.replace(',', '.'));
@@ -129,14 +128,18 @@ export default function AuthScreen() {
         const nowISO = new Date().toISOString();
         const todayDateStr = nowISO.split('T')[0];
 
-        const hasTarget = !wantsToMaintain && targetWeight.trim() !== '' && !isNaN(numericTarget) && numericTarget !== numericWeight;
+        const hasTarget =
+          !wantsToMaintain &&
+          targetWeight.trim() !== '' &&
+          !isNaN(numericTarget) &&
+          numericTarget !== numericWeight;
+
         const goalType = !hasTarget
           ? 'maintain'
           : numericTarget < numericWeight
           ? 'lose'
           : 'gain';
 
-        // 1. Documento principal del usuario con su meta y punto de partida
         await setDoc(doc(db, 'users', user.uid), {
           name,
           email,
@@ -149,7 +152,6 @@ export default function AuthScreen() {
           createdAt: nowISO,
         });
 
-        // 2. Primer punto en el historial real de peso (weight_logs)
         await setDoc(doc(db, 'users', user.uid, 'weight_logs', todayDateStr), {
           weight: numericWeight,
           date: todayDateStr,
@@ -157,7 +159,7 @@ export default function AuthScreen() {
         });
 
         Alert.alert(
-          '¡BIENVENIDO A KINETIC! 🚀',
+          '¡BIENVENIDO A GOFIT! 🚀',
           'Hemos configurado tu perfil biométrico y tu etapa actual. Ve a la pestaña "Rutina" para armar tu plan semanal.',
           [{ text: '¡A ROMPER LÍMITES!' }]
         );
@@ -184,9 +186,9 @@ export default function AuthScreen() {
             <View style={kStyles.intelDot} />
             <Text style={kStyles.intelPillText}>PERFORMANCE INTELLIGENCE</Text>
           </View>
-          <Text style={[styles.brandLogo, { color: k.lime }]}>KINETIC</Text>
+          <Text style={[styles.brandLogo, { color: k.lime }]}>GoFit</Text>
           <Text style={kStyles.bodyMuted}>
-            Sistema de sobrecarga progresiva y biometría de entrenamiento.
+            Sistema inteligente de sobrecarga progresiva y biometría.
           </Text>
         </View>
 
@@ -217,7 +219,7 @@ export default function AuthScreen() {
               />
 
               <KineticButton
-                title="ENTRAR AL SISTEMA"
+                title="ENTRAR A GOFIT"
                 icon="flash"
                 loading={loading}
                 onPress={handleAuthentication}
@@ -296,7 +298,6 @@ export default function AuthScreen() {
                 Configura tu peso actual y tu meta para adaptar el seguimiento de tu etapa física.
               </Text>
 
-              {/* 1. Peso Actual */}
               <View>
                 <Text style={[kStyles.kickerMuted, { marginBottom: 6 }]}>1. TU PESO ACTUAL (PUNTO DE PARTIDA)</Text>
                 <View style={[styles.weightBox, { backgroundColor: k.surfaceLowest, borderColor: k.cyan }]}>
@@ -313,7 +314,6 @@ export default function AuthScreen() {
                 </View>
               </View>
 
-              {/* 2. Switch de Mantenimiento */}
               <View style={[styles.maintainSwitchRow, { backgroundColor: k.surfaceLowest }]}>
                 <View style={{ flex: 1, paddingRight: 10 }}>
                   <Text style={{ fontSize: 13, fontWeight: '800', color: k.textMain }}>
@@ -335,7 +335,6 @@ export default function AuthScreen() {
                 />
               </View>
 
-              {/* 3. Peso Objetivo (si no eligió mantenerse) */}
               {!wantsToMaintain && (
                 <View>
                   <Text style={[kStyles.kickerMuted, { marginBottom: 6 }]}>
@@ -356,7 +355,6 @@ export default function AuthScreen() {
                 </View>
               )}
 
-              {/* Vista previa dinámica de la Etapa Detectada */}
               {weight.trim() !== '' && (
                 <View style={[styles.stagePreviewBox, { backgroundColor: k.surfaceLowest, borderColor: goalInfo.color }]}>
                   <View style={kStyles.rowAlign}>

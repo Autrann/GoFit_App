@@ -10,18 +10,11 @@ import * as Haptics from 'expo-haptics';
 
 import { useTheme } from '../context/ThemeContext';
 import { DAYS_FROM_SUNDAY, DAYS_SHORT, DAYS_LETTER } from '../constants/appConstants';
+import { buildRealWeightChartData, extractExerciseHistory, WeightEntry } from '../utils/analytics';
 import KineticHeader from '../components/common/KineticHeader';
 import ExerciseStatsModal from '../components/modals/ExerciseStatsModal';
 
 const { width } = Dimensions.get('window');
-
-const MONTHS_SHORT = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-
-type WeightEntry = {
-  date: string;
-  weight: number;
-  updatedAt?: string;
-};
 
 export default function StatsScreen() {
   const { colors: k, kStyles } = useTheme();
@@ -137,101 +130,6 @@ export default function StatsScreen() {
     };
   }, []);
 
-  const getHistoryForExercise = (exId: string) => {
-    const history: any[] = [];
-    allWorkoutLogs.forEach((log) => {
-      const exData = log.exercises?.[exId];
-      if (exData && !exData.skipped) {
-        let maxW = 0;
-        let bestReps = 0;
-        const setsCount = exData.sets || exData.reps?.length || 0;
-        for (let i = 0; i < setsCount; i++) {
-          const w = parseFloat(exData.weights?.[i]) || 0;
-          const r = parseInt(exData.reps?.[i]) || 0;
-          if (r > 0 && w >= maxW) {
-            maxW = w;
-            bestReps = r;
-          }
-        }
-        if (maxW > 0) {
-          const d = new Date(log.date + 'T12:00:00Z');
-          history.push({
-            date: log.date,
-            shortDate: `${d.getDate()}/${d.getMonth() + 1}`,
-            maxWeight: maxW,
-            bestReps,
-            est1RM: Math.round(maxW * (1 + bestReps / 30)),
-            lastSetsCount: setsCount,
-          });
-        }
-      }
-    });
-    return history;
-  };
-
-  const buildRealWeightChartData = () => {
-    const currentWeight = userData?.weight ? parseFloat(userData.weight) : null;
-
-    let sourceLogs: WeightEntry[] = [...weightHistory];
-    if (sourceLogs.length === 0 && currentWeight) {
-      const fallbackDate = userData?.lastWeightUpdate
-        ? userData.lastWeightUpdate.split('T')[0]
-        : new Date().toISOString().split('T')[0];
-      sourceLogs = [{ date: fallbackDate, weight: currentWeight }];
-    }
-
-    if (sourceLogs.length === 0) {
-      return { hasData: false, labels: [], data: [], diffValue: 0, count: 0 };
-    }
-
-    const daysMap = { '1S': 7, '1M': 30, '3M': 90, '1A': 365 };
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - daysMap[timeframe]);
-    const cutoffStr = cutoffDate.toISOString().split('T')[0];
-
-    let filtered = sourceLogs.filter((entry) => entry.date >= cutoffStr);
-    if (filtered.length === 0) {
-      filtered = sourceLogs.slice(-6);
-    }
-
-    const firstWeight = filtered[0].weight;
-    const latestWeight = filtered[filtered.length - 1].weight;
-    const diffValue = parseFloat((latestWeight - firstWeight).toFixed(1));
-
-    let chartEntries = filtered;
-    if (filtered.length > 6) {
-      const step = (filtered.length - 1) / 5;
-      chartEntries = [0, 1, 2, 3, 4, 5].map((i) => filtered[Math.round(i * step)]);
-    }
-
-    const formatShortDate = (dateStr: string) => {
-      const parts = dateStr.split('-');
-      if (parts.length !== 3) return dateStr;
-      const monthIdx = parseInt(parts[1], 10) - 1;
-      const dayNum = parseInt(parts[2], 10);
-      return `${dayNum} ${MONTHS_SHORT[monthIdx] || ''}`;
-    };
-
-    if (chartEntries.length === 1) {
-      const single = chartEntries[0];
-      return {
-        hasData: true,
-        labels: ['Inicio', formatShortDate(single.date)],
-        data: [single.weight, single.weight],
-        diffValue: 0,
-        count: sourceLogs.length,
-      };
-    }
-
-    return {
-      hasData: true,
-      labels: chartEntries.map((e) => formatShortDate(e.date)),
-      data: chartEntries.map((e) => e.weight),
-      diffValue,
-      count: filtered.length,
-    };
-  };
-
   if (loading) {
     return (
       <View style={kStyles.centerContainer}>
@@ -240,7 +138,7 @@ export default function StatsScreen() {
     );
   }
 
-  const realWeightStats = buildRealWeightChartData();
+  const realWeightStats = buildRealWeightChartData(weightHistory, userData, timeframe);
   const latestWeightVal =
     weightHistory.length > 0
       ? weightHistory[weightHistory.length - 1].weight
@@ -257,13 +155,16 @@ export default function StatsScreen() {
       ? routineExercises
       : routineExercises.filter((e) => e.muscle === selectedMuscleFilter);
 
-  const selectedExHistory = selectedExerciseId ? getHistoryForExercise(selectedExerciseId).slice(-8) : [];
+  const selectedExHistory = selectedExerciseId
+    ? extractExerciseHistory(selectedExerciseId, allWorkoutLogs).slice(-8)
+    : [];
 
   return (
     <SafeAreaView style={kStyles.container}>
       <KineticHeader
         userData={userData}
         fallbackName={auth.currentUser?.displayName}
+        brandTitle="GoFit"
         onAvatarPress={() => navigation.navigate('Perfil')}
       />
 
@@ -496,7 +397,7 @@ export default function StatsScreen() {
           </ScrollView>
 
           {filteredExercises.map((ex, idx) => {
-            const hist = getHistoryForExercise(ex.id);
+            const hist = extractExerciseHistory(ex.id, allWorkoutLogs);
             const latest = hist[hist.length - 1];
             const max1RM = hist.length > 0 ? Math.max(...hist.map((h) => h.est1RM)) : 0;
             const accent = idx % 2 === 0 ? k.lime : k.cyan;
@@ -516,7 +417,9 @@ export default function StatsScreen() {
                     <Text style={kStyles.kickerMuted}>
                       {ex.muscle} • {hist.length} SESIONES
                     </Text>
-                    <Text style={{ fontSize: 14, fontWeight: '900', color: k.textMain, textTransform: 'uppercase', marginTop: 2 }}>
+                    <Text
+                      style={{ fontSize: 14, fontWeight: '900', color: k.textMain, textTransform: 'uppercase', marginTop: 2 }}
+                    >
                       {ex.name}
                     </Text>
                     <Text style={kStyles.bodyMuted}>

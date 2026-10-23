@@ -127,6 +127,7 @@ export default function RoutineScreen() {
       <KineticHeader
         userData={userData}
         fallbackName={auth.currentUser?.displayName}
+        brandTitle="GoFit"
         onAvatarPress={() => navigation.navigate('Perfil')}
         rightContent={
           <TouchableOpacity
@@ -155,7 +156,6 @@ export default function RoutineScreen() {
           </Text>
         </View>
 
-        {/* Selector de Días */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
           {DAYS_FROM_MONDAY.map((day) => {
             const isSelected = activeDay === day;
@@ -190,7 +190,6 @@ export default function RoutineScreen() {
           })}
         </ScrollView>
 
-        {/* Tarjeta del Día */}
         <View style={kStyles.card}>
           <View style={[kStyles.leftNotch, { backgroundColor: currentPlan.isRest ? k.textMuted : k.cyan }]} />
 
@@ -248,7 +247,10 @@ export default function RoutineScreen() {
                           key={m}
                           style={[
                             styles.chip,
-                            { backgroundColor: active ? 'rgba(202,253,0,0.16)' : k.surfaceHigh, borderColor: active ? k.limeBg : k.outline },
+                            {
+                              backgroundColor: active ? 'rgba(202,253,0,0.16)' : k.surfaceHigh,
+                              borderColor: active ? k.limeBg : k.outline,
+                            },
                           ]}
                           onPress={() => toggleMuscle(m)}
                         >
@@ -318,7 +320,10 @@ export default function RoutineScreen() {
                         style={[styles.exImg, { backgroundColor: k.surfaceHighest }]}
                       />
                       <View style={{ flex: 1, marginLeft: 12 }}>
-                        <Text style={{ fontSize: 13, fontWeight: '900', color: k.textMain, textTransform: 'uppercase' }} numberOfLines={1}>
+                        <Text
+                          style={{ fontSize: 13, fontWeight: '900', color: k.textMain, textTransform: 'uppercase' }}
+                          numberOfLines={1}
+                        >
                           {ex.name}
                         </Text>
                         <Text style={{ fontSize: 11, color: k.textMuted }}>{ex.muscle}</Text>
