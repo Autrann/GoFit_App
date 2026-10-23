@@ -1,30 +1,26 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons'; // Para el botón de "Volver"
+import { Ionicons } from '@expo/vector-icons';
 import { auth, db } from '../config/firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 
-// Tema global
-import { ThemeContext } from '../context/ThemeContext';
-import { lightColors, darkColors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
+import KineticButton from '../components/common/KineticButton';
 
 export default function AuthScreen() {
-  const { isDark } = useContext(ThemeContext);
-  const colors = isDark ? darkColors : lightColors;
-  const styles = getStyles(colors);
-  
+  const { colors: k, kStyles } = useTheme();
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [weight, setWeight] = useState('');
-  
+
   const [isLogin, setIsLogin] = useState(true);
-  const [step, setStep] = useState(1); // Controla en qué paso del registro estamos
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  // Diccionario para traducir errores de Firebase a español amigable
   const getFriendlyErrorMessage = (errorCode: string) => {
     switch (errorCode) {
       case 'auth/email-already-in-use':
@@ -46,7 +42,6 @@ export default function AuthScreen() {
 
   const handleNextStep = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
     if (!name.trim() || !email || !password) {
       Alert.alert('Datos incompletos', 'Por favor ingresa tu nombre, correo y contraseña.');
       return;
@@ -59,25 +54,19 @@ export default function AuthScreen() {
       Alert.alert('Contraseña corta', 'La contraseña debe tener al menos 6 caracteres.');
       return;
     }
-    
-    // Si todo está bien, pasamos al paso 2 para pedir el peso
     setStep(2);
   };
 
   const handleAuthentication = async () => {
-    // Si es registro y estamos en el paso 2, validamos el peso
     if (!isLogin && step === 2) {
       const numericWeight = parseFloat(weight.replace(',', '.'));
       if (!weight || isNaN(numericWeight) || numericWeight <= 0) {
-        Alert.alert('Peso inválido', 'Por favor ingresa tu peso actual para poder llevar tu progreso (ej. 70.5).');
+        Alert.alert('Peso inválido', 'Ingresa tu peso actual para llevar tu progreso (ej. 70.5).');
         return;
       }
-    } else if (isLogin) {
-      // Validaciones básicas para login
-      if (!email || !password) {
-        Alert.alert('Datos incompletos', 'Por favor ingresa correo y contraseña.');
-        return;
-      }
+    } else if (isLogin && (!email || !password)) {
+      Alert.alert('Datos incompletos', 'Por favor ingresa correo y contraseña.');
+      return;
     }
 
     setLoading(true);
@@ -85,179 +74,199 @@ export default function AuthScreen() {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
-        // Ejecutamos la creación del usuario en Firebase
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-
         await updateProfile(user, { displayName: name });
-
         const numericWeight = parseFloat(weight.replace(',', '.'));
 
-        // Creamos el documento inicial incluyendo el peso
         await setDoc(doc(db, 'users', user.uid), {
-          name: name,
-          email: email,
+          name,
+          email,
           weight: numericWeight.toString(),
           streak: 0,
           createdAt: new Date().toISOString(),
         });
 
-        // Mostramos el mensaje de bienvenida invitando a hacer la rutina
         Alert.alert(
-          '¡Bienvenido a bordo! 🚀',
+          '¡BIENVENIDO A KINETIC! 🚀',
           'Hemos guardado tu peso inicial. Para empezar con el pie derecho, ve a la pestaña "Rutina" y configura tus ejercicios de la semana.',
-          [{ text: '¡A darle!' }]
+          [{ text: '¡A ROMPER LÍMITES!' }]
         );
       }
     } catch (error: any) {
-      const friendlyMessage = getFriendlyErrorMessage(error.code);
-      Alert.alert(isLogin ? 'Error al iniciar sesión' : 'Error en el registro', friendlyMessage);
-      
-      // Si el correo ya estaba en uso, lo regresamos al paso 1
-      if (!isLogin && error.code === 'auth/email-already-in-use') {
-        setStep(1);
-      }
+      Alert.alert(
+        isLogin ? 'Error al iniciar sesión' : 'Error en el registro',
+        getFriendlyErrorMessage(error.code)
+      );
+      if (!isLogin && error.code === 'auth/email-already-in-use') setStep(1);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={kStyles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-        
-        {/* --- VISTA DE INICIO DE SESIÓN --- */}
-        {isLogin ? (
-          <>
-            <Text style={styles.title}>Iniciar Sesión</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Correo electrónico"
-              placeholderTextColor={colors.textSecondary} 
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Contraseña"
-              placeholderTextColor={colors.textSecondary}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
-            <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleAuthentication} disabled={loading}>
-              {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Entrar</Text>}
-            </TouchableOpacity>
+        {/* Branding Header */}
+        <View style={styles.brandBox}>
+          <View style={kStyles.intelPill}>
+            <View style={kStyles.intelDot} />
+            <Text style={kStyles.intelPillText}>PERFORMANCE INTELLIGENCE</Text>
+          </View>
+          <Text style={[styles.brandLogo, { color: k.lime }]}>KINETIC</Text>
+          <Text style={kStyles.bodyMuted}>
+            Sistema de sobrecarga progresiva y biometría de entrenamiento.
+          </Text>
+        </View>
 
-            <TouchableOpacity onPress={() => { setIsLogin(false); setStep(1); }} style={styles.switchButton}>
-              <Text style={styles.switchText}>¿No tienes cuenta? Regístrate aquí</Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          /* --- VISTA DE REGISTRO --- */
-          <>
-            {step === 1 ? (
-              /* PASO 1: CREAR CREDENCIALES */
-              <>
-                <Text style={styles.title}>Crear Cuenta</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Tu Nombre (Ej. Luis)"
-                  placeholderTextColor={colors.textSecondary} 
-                  value={name}
-                  onChangeText={setName}
-                  autoCapitalize="words"
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Correo electrónico"
-                  placeholderTextColor={colors.textSecondary} 
-                  value={email}
-                  onChangeText={setEmail}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Contraseña"
-                  placeholderTextColor={colors.textSecondary}
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                />
+        <View style={kStyles.card}>
+          <View style={kStyles.leftNotch} />
 
-                <TouchableOpacity style={styles.button} onPress={handleNextStep}>
-                  <Text style={styles.buttonText}>Siguiente</Text>
+          {isLogin ? (
+            <View style={{ gap: 14, paddingLeft: 4 }}>
+              <Text style={kStyles.kickerLime}>ACCESO DE ATLETA</Text>
+              <Text style={kStyles.cardTitleItalic}>INICIAR SESIÓN</Text>
+
+              <TextInput
+                style={kStyles.kineticInput}
+                placeholder="Correo electrónico"
+                placeholderTextColor={k.textMuted}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+              />
+              <TextInput
+                style={kStyles.kineticInput}
+                placeholder="Contraseña"
+                placeholderTextColor={k.textMuted}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+              />
+
+              <KineticButton
+                title="ENTRAR AL SISTEMA"
+                icon="flash"
+                loading={loading}
+                onPress={handleAuthentication}
+              />
+
+              <TouchableOpacity
+                onPress={() => {
+                  setIsLogin(false);
+                  setStep(1);
+                }}
+                style={styles.switchBtn}
+              >
+                <Text style={{ color: k.cyan, fontSize: 13, fontWeight: '800' }}>
+                  ¿NO TIENES CUENTA? REGÍSTRATE AQUÍ
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : step === 1 ? (
+            <View style={{ gap: 14, paddingLeft: 4 }}>
+              <Text style={kStyles.kickerLime}>PASO 01 DE 02</Text>
+              <Text style={kStyles.cardTitleItalic}>CREAR PERFIL</Text>
+
+              <TextInput
+                style={kStyles.kineticInput}
+                placeholder="Tu Nombre (Ej. Luis)"
+                placeholderTextColor={k.textMuted}
+                value={name}
+                onChangeText={setName}
+                autoCapitalize="words"
+              />
+              <TextInput
+                style={kStyles.kineticInput}
+                placeholder="Correo electrónico"
+                placeholderTextColor={k.textMuted}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+              />
+              <TextInput
+                style={kStyles.kineticInput}
+                placeholder="Contraseña (mín. 6 caracteres)"
+                placeholderTextColor={k.textMuted}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+              />
+
+              <KineticButton
+                title="SIGUIENTE: BIOMETRÍA"
+                icon="arrow-forward"
+                iconPosition="right"
+                onPress={handleNextStep}
+              />
+
+              <TouchableOpacity onPress={() => setIsLogin(true)} style={styles.switchBtn}>
+                <Text style={{ color: k.cyan, fontSize: 13, fontWeight: '800' }}>
+                  ¿YA TIENES CUENTA? INICIA SESIÓN
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={{ gap: 16, paddingLeft: 4 }}>
+              <View style={kStyles.rowBetween}>
+                <TouchableOpacity
+                  onPress={() => setStep(1)}
+                  style={[styles.backBtn, { backgroundColor: k.surfaceLowest }]}
+                >
+                  <Ionicons name="arrow-back" size={20} color={k.textMain} />
                 </TouchableOpacity>
-
-                <TouchableOpacity onPress={() => setIsLogin(true)} style={styles.switchButton}>
-                  <Text style={styles.switchText}>¿Ya tienes cuenta? Inicia sesión</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              /* PASO 2: BIENVENIDA Y PESO */
-              <View style={styles.step2Container}>
-                <TouchableOpacity onPress={() => setStep(1)} style={styles.backButton}>
-                  <Ionicons name="arrow-back" size={24} color={colors.text} />
-                </TouchableOpacity>
-                
-                <View style={styles.welcomeHeader}>
-                  <Text style={styles.welcomeTitle}>¡Hola, {name.split(' ')[0]}! 👋</Text>
-                  <Text style={styles.welcomeSubtitle}>Para poder medir tu progreso, necesitamos saber tu punto de partida.</Text>
-                </View>
-
-                <Text style={styles.label}>¿Cuál es tu peso actual?</Text>
-                <View style={styles.weightInputWrapper}>
-                  <TextInput
-                    style={styles.weightInput}
-                    placeholder="Ej. 70.5"
-                    placeholderTextColor={colors.textSecondary}
-                    value={weight}
-                    onChangeText={(val) => setWeight(val.replace(/[^0-9.,]/g, ''))}
-                    keyboardType="decimal-pad"
-                    maxLength={6}
-                    autoFocus
-                  />
-                  <Text style={styles.weightSuffix}>kg</Text>
-                </View>
-
-                <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleAuthentication} disabled={loading}>
-                  {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Finalizar Registro</Text>}
-                </TouchableOpacity>
+                <Text style={kStyles.kickerLime}>PASO 02 DE 02 • PUNTO DE PARTIDA</Text>
               </View>
-            )}
-          </>
-        )}
+
+              <Text style={kStyles.cardTitleItalic}>¡HOLA, {name.split(' ')[0]}! 👋</Text>
+              <Text style={kStyles.bodyMuted}>
+                Ingresa tu peso corporal actual en kilogramos para calibrar tus métricas de composición.
+              </Text>
+
+              <View style={[styles.weightBox, { backgroundColor: k.surfaceLowest, borderColor: k.cyan }]}>
+                <TextInput
+                  style={[styles.weightBigInput, { color: k.textMain }]}
+                  placeholder="75.0"
+                  placeholderTextColor={k.textMuted}
+                  value={weight}
+                  onChangeText={(val) => setWeight(val.replace(/[^0-9.,]/g, ''))}
+                  keyboardType="decimal-pad"
+                  maxLength={6}
+                  autoFocus
+                />
+                <Text style={{ fontSize: 20, fontWeight: '900', color: k.cyan }}>KG</Text>
+              </View>
+
+              <KineticButton
+                title="FINALIZAR & COMENZAR"
+                icon="checkmark-circle"
+                loading={loading}
+                onPress={handleAuthentication}
+              />
+            </View>
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const getStyles = (colors: any) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  scrollContainer: { flexGrow: 1, justifyContent: 'center', padding: 24 },
-  title: { fontSize: 32, fontWeight: '800', marginBottom: 32, color: colors.text, textAlign: 'center' },
-  
-  input: { backgroundColor: colors.card, color: colors.text, padding: 18, borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: colors.border, fontSize: 16 },
-  
-  button: { backgroundColor: colors.primary, padding: 18, borderRadius: 16, alignItems: 'center', marginTop: 8, shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
-  buttonDisabled: { backgroundColor: colors.primaryDisabled, shadowOpacity: 0 },
-  buttonText: { color: '#FFF', fontSize: 18, fontWeight: 'bold' }, 
-  
-  switchButton: { marginTop: 32, alignItems: 'center', padding: 10 },
-  switchText: { color: colors.primary, fontSize: 15, fontWeight: '600' },
-
-  // Estilos del Paso 2 (Peso)
-  step2Container: { flex: 1, justifyContent: 'center' },
-  backButton: { alignSelf: 'flex-start', marginBottom: 20, padding: 8, backgroundColor: colors.card, borderRadius: 12 },
-  welcomeHeader: { marginBottom: 32, alignItems: 'center' },
-  welcomeTitle: { fontSize: 28, fontWeight: '800', color: colors.text, marginBottom: 12, textAlign: 'center' },
-  welcomeSubtitle: { fontSize: 16, color: colors.textSecondary, textAlign: 'center', lineHeight: 24, paddingHorizontal: 10 },
-  
-  label: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 12, textAlign: 'center' },
-  weightInputWrapper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderRadius: 20, paddingHorizontal: 20, marginBottom: 32, borderWidth: 2, borderColor: colors.primaryLight },
-  weightInput: { color: colors.text, fontSize: 36, fontWeight: '800', paddingVertical: 20, textAlign: 'center', minWidth: 120 },
-  weightSuffix: { fontSize: 24, fontWeight: '700', color: colors.textSecondary, marginLeft: 8 },
+const styles = StyleSheet.create({
+  scrollContainer: { flexGrow: 1, justifyContent: 'center', padding: 20, gap: 24 },
+  brandBox: { gap: 8 },
+  brandLogo: { fontSize: 44, fontWeight: '900', fontStyle: 'italic', letterSpacing: -1.5 },
+  switchBtn: { marginTop: 8, alignItems: 'center', padding: 8 },
+  backBtn: { width: 38, height: 38, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  weightBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 18,
+    paddingHorizontal: 20,
+    borderWidth: 1.5,
+    gap: 8,
+  },
+  weightBigInput: { fontSize: 38, fontWeight: '900', fontStyle: 'italic', paddingVertical: 18, textAlign: 'center', minWidth: 110 },
 });

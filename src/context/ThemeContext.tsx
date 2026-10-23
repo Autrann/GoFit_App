@@ -19,7 +19,7 @@ export const ThemeContext = createContext<ThemeContextType>({
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const systemScheme = useColorScheme();
-  // Por defecto iniciamos en true 
+  // Por defecto iniciamos en true para lucir la estética KINETIC Dark
   const [manualTheme, setManualTheme] = useState<boolean | null>(true);
 
   const isDark = manualTheme !== null ? manualTheme : systemScheme === 'dark';
