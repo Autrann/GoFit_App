@@ -88,7 +88,7 @@ export default function AuthScreen() {
         });
 
         Alert.alert(
-          '¡BIENVENIDO A KINETIC! 🚀',
+          '¡BIENVENIDO A GoFit! ',
           'Hemos guardado tu peso inicial. Para empezar con el pie derecho, ve a la pestaña "Rutina" y configura tus ejercicios de la semana.',
           [{ text: '¡A ROMPER LÍMITES!' }]
         );

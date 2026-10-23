@@ -16,7 +16,7 @@ interface KineticHeaderProps {
 export default function KineticHeader({
   userData,
   fallbackName,
-  brandTitle = 'KINETIC',
+  brandTitle = 'GoFit',
   onAvatarPress,
   onSettingsPress,
   rightContent,
