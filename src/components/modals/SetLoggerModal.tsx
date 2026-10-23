@@ -58,6 +58,7 @@ export default function SetLoggerModal({
   const { colors: k, kStyles } = useTheme();
   const [restSeconds, setRestSeconds] = useState(120);
   const [timerRunning, setTimerRunning] = useState(false);
+  const [showRpeHelp, setShowRpeHelp] = useState(false);
 
   useEffect(() => {
     let interval: any = null;
@@ -70,10 +71,26 @@ export default function SetLoggerModal({
     return () => clearInterval(interval);
   }, [visible, timerRunning, restSeconds]);
 
+  // Ocultar el tooltip de ayuda cuando se cambia de ejercicio o se cierra el modal
+  useEffect(() => {
+    if (!visible) setShowRpeHelp(false);
+  }, [visible, activeExercise]);
+
   const formatTime = (sec: number) => {
     const m = Math.floor(sec / 60).toString().padStart(2, '0');
     const s = (sec % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
+  };
+
+  const adjustTimer = (delta: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setRestSeconds((prev) => Math.max(0, prev + delta));
+  };
+
+  const resetTimer = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setRestSeconds(120);
+    setTimerRunning(false);
   };
 
   const stepWeight = (delta: number) => {
@@ -121,7 +138,7 @@ export default function SetLoggerModal({
       backgroundColor={k.surfaceLow}
       noPadding={true}
     >
-      {/* Rest Timer Bar */}
+      {/* Barra de Cronómetro de Descanso con -30s, +30s, Reiniciar y Pausa */}
       <View style={styles.topArea}>
         <View style={[styles.restTimerBar, { backgroundColor: k.surfaceHighest }]}>
           <View style={kStyles.rowAlign}>
@@ -129,7 +146,7 @@ export default function SetLoggerModal({
               <Ionicons name="timer-outline" size={18} color={k.cyan} />
             </View>
             <View>
-              <Text style={kStyles.kickerMuted}>DESCANSO ACTIVO</Text>
+              <Text style={kStyles.kickerMuted}>DESCANSO</Text>
               <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
                 <Text style={[styles.timerCountdown, { color: k.cyan }]}>{formatTime(restSeconds)}</Text>
                 <Text style={{ fontSize: 10, color: k.textMuted, fontWeight: '600' }}>/ 02:00</Text>
@@ -137,31 +154,50 @@ export default function SetLoggerModal({
             </View>
           </View>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
             <TouchableOpacity
               style={[styles.timerBtn, { backgroundColor: k.surfaceBright }]}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setRestSeconds((s) => s + 30);
-              }}
+              onPress={() => adjustTimer(-30)}
+            >
+              <Text style={{ fontSize: 11, fontWeight: '800', color: k.textMain }}>-30s</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.timerBtn, { backgroundColor: k.surfaceBright }]}
+              onPress={() => adjustTimer(30)}
             >
               <Text style={{ fontSize: 11, fontWeight: '800', color: k.textMain }}>+30s</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.timerBtn, { backgroundColor: k.surfaceBright, paddingHorizontal: 10 }]}
+              style={[styles.timerIconBtn, { backgroundColor: k.surfaceBright }]}
+              onPress={resetTimer}
+              accessibilityLabel="Reiniciar cronómetro"
+            >
+              <Ionicons name="refresh" size={15} color={k.cyan} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.timerIconBtn,
+                { backgroundColor: timerRunning ? k.limeBg : k.surfaceBright },
+              ]}
               onPress={() => {
                 Haptics.selectionAsync();
                 setTimerRunning(!timerRunning);
               }}
             >
-              <Ionicons name={timerRunning ? 'pause' : 'play'} size={16} color={k.textMain} />
+              <Ionicons
+                name={timerRunning ? 'pause' : 'play'}
+                size={15}
+                color={timerRunning ? '#3a4a00' : k.textMain}
+              />
             </TouchableOpacity>
           </View>
         </View>
       </View>
 
-      {/* Dossier Header */}
+      {/* Cabecera del Ejercicio (Sin flecha abajo y con botón "Omitir hoy" explícito) */}
       <View style={styles.dossierHeader}>
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
@@ -192,23 +228,20 @@ export default function SetLoggerModal({
           </View>
         </View>
 
-        <View style={{ flexDirection: 'row', gap: 6 }}>
-          <TouchableOpacity
-            style={[styles.utilityBtn, { backgroundColor: k.surface }]}
-            onPress={() => onSaveExercise(true)}
-          >
-            <Ionicons name="ban-outline" size={18} color={k.danger} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.utilityBtn, { backgroundColor: k.surface }]}
-            onPress={() => onSaveExercise(false)}
-          >
-            <Ionicons name="chevron-down" size={20} color={k.textMain} />
-          </TouchableOpacity>
-        </View>
+        {/* Botón intuitivo para omitir ejercicio ese día */}
+        <TouchableOpacity
+          style={[styles.skipExercisePill, { borderColor: 'rgba(255, 115, 81, 0.4)' }]}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            onSaveExercise(true);
+          }}
+        >
+          <Ionicons name="ban-outline" size={14} color={k.danger} />
+          <Text style={[styles.skipExercisePillText, { color: k.danger }]}>Omitir hoy</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Interactive Sets Table */}
+      {/* Tabla Interactiva de Series */}
       <ScrollView style={{ paddingHorizontal: 18 }} showsVerticalScrollIndicator={false}>
         <View style={styles.tableHeadRow}>
           <Text style={[styles.thText, { flex: 1.5, color: k.textMuted }]}>SERIE</Text>
@@ -319,14 +352,86 @@ export default function SetLoggerModal({
                   </View>
                 </View>
 
-                {/* RPE Selector */}
+                {/* Selector de RPE con Botón "?" y Mensaje Flotante */}
                 <View style={{ paddingLeft: 4, marginBottom: 12, gap: 6 }}>
                   <View style={kStyles.rowBetween}>
-                    <Text style={[styles.stepperLabel, { color: k.textMuted }]}>ESFUERZO PERCIBIDO (RPE)</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={[styles.stepperLabel, { color: k.textMuted }]}>
+                        ESFUERZO PERCIBIDO (RPE)
+                      </Text>
+                      <TouchableOpacity
+                        style={[
+                          styles.rpeHelpIconBtn,
+                          {
+                            backgroundColor: showRpeHelp ? k.cyan : 'rgba(0, 244, 254, 0.16)',
+                            borderColor: k.cyan,
+                          },
+                        ]}
+                        onPress={() => {
+                          Haptics.selectionAsync();
+                          setShowRpeHelp(!showRpeHelp);
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 10,
+                            fontWeight: '900',
+                            color: showRpeHelp ? '#000' : k.cyan,
+                          }}
+                        >
+                          ?
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+
                     <Text style={{ fontSize: 10, fontWeight: '800', color: k.cyan }}>
                       {RPE_OPTIONS.find((o) => o.val === (tempRpes[idx] || '8.5'))?.label}
                     </Text>
                   </View>
+
+                  {/* Mensaje Flotante (Tooltip) de RPE */}
+                  {showRpeHelp && (
+                    <View
+                      style={[
+                        styles.rpeFloatingTooltip,
+                        { backgroundColor: k.surfaceLowest, borderColor: k.cyan },
+                      ]}
+                    >
+                      <View style={[kStyles.rowBetween, { marginBottom: 4 }]}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                          <Ionicons name="information-circle" size={15} color={k.cyan} />
+                          <Text style={{ fontSize: 11, fontWeight: '900', color: k.cyan }}>
+                            ¿QUÉ ES EL RPE (ESFUERZO PERCIBIDO)?
+                          </Text>
+                        </View>
+                        <TouchableOpacity onPress={() => setShowRpeHelp(false)}>
+                          <Ionicons name="close" size={16} color={k.textMuted} />
+                        </TouchableOpacity>
+                      </View>
+                      <Text style={{ fontSize: 11, color: k.textMain, lineHeight: 16 }}>
+                        Se basa en cuántas{' '}
+                        <Text style={{ fontWeight: '800', color: k.lime }}>
+                          repeticiones te quedaron en reserva (RIR)
+                        </Text>{' '}
+                        antes de llegar al fallo muscular en esta serie:
+                      </Text>
+                      <View style={{ marginTop: 4, gap: 2 }}>
+                        <Text style={{ fontSize: 10, color: k.textMuted }}>
+                          • <Text style={{ fontWeight: '800', color: k.textMain }}>RPE 10:</Text> Fallo total (0 reps en reserva).
+                        </Text>
+                        <Text style={{ fontSize: 10, color: k.textMuted }}>
+                          • <Text style={{ fontWeight: '800', color: k.textMain }}>RPE 9:</Text> Intenso, podías hacer 1 repetición más.
+                        </Text>
+                        <Text style={{ fontSize: 10, color: k.textMuted }}>
+                          • <Text style={{ fontWeight: '800', color: k.textMain }}>RPE 8:</Text> Óptimo, te quedaron 2 repeticiones en reserva.
+                        </Text>
+                        <Text style={{ fontSize: 10, color: k.textMuted }}>
+                          • <Text style={{ fontWeight: '800', color: k.textMain }}>RPE 7:</Text> Moderado, te quedaron 3 repeticiones en reserva.
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
                     {RPE_OPTIONS.map((opt) => {
                       const selected = (tempRpes[idx] || '8.5') === opt.val;
@@ -399,7 +504,7 @@ export default function SetLoggerModal({
           );
         })}
 
-        {/* Modifiers Row */}
+        {/* Modificadores de Series (Añadir / Quitar) */}
         <View style={{ flexDirection: 'row', gap: 8, marginTop: 4, marginBottom: 16 }}>
           <TouchableOpacity style={[styles.modBtn, { backgroundColor: k.surface }]} onPress={onAddExtraSet}>
             <Ionicons name="add" size={16} color={k.lime} />
@@ -412,18 +517,10 @@ export default function SetLoggerModal({
               <Text style={{ fontSize: 10, fontWeight: '800', color: k.textMuted }}>QUITAR SERIE</Text>
             </TouchableOpacity>
           )}
-
-          <TouchableOpacity
-            style={[styles.modBtn, { backgroundColor: k.surface }]}
-            onPress={() => onSaveExercise(true)}
-          >
-            <Ionicons name="close-circle-outline" size={16} color={k.danger} />
-            <Text style={{ fontSize: 10, fontWeight: '800', color: k.danger }}>OMITIR HOY</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
 
-      {/* Footer */}
+      {/* Footer de Tonelaje y Siguiente Ejercicio */}
       <View style={[styles.footer, { backgroundColor: k.surface, borderTopColor: k.outline }]}>
         <View style={kStyles.rowBetween}>
           <View style={kStyles.rowAlign}>
@@ -475,21 +572,22 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 16,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   timerIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: 'rgba(0, 244, 254, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  timerCountdown: { fontSize: 18, fontWeight: '900' },
-  timerBtn: { height: 32, paddingHorizontal: 10, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
+  timerCountdown: { fontSize: 17, fontWeight: '900' },
+  timerBtn: { height: 32, paddingHorizontal: 9, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
+  timerIconBtn: { width: 32, height: 32, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   dossierHeader: {
     paddingHorizontal: 18,
     paddingVertical: 12,
@@ -500,7 +598,17 @@ const styles = StyleSheet.create({
   },
   exOrderBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
   dossierTitle: { fontSize: 20, fontWeight: '900', textTransform: 'uppercase' },
-  utilityBtn: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  skipExercisePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(255, 115, 81, 0.14)',
+    paddingHorizontal: 11,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  skipExercisePillText: { fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.4 },
   tableHeadRow: { flexDirection: 'row', paddingHorizontal: 10, paddingVertical: 6 },
   thText: { fontSize: 9, fontWeight: '800', letterSpacing: 0.6 },
   compactSetRow: {
@@ -530,6 +638,20 @@ const styles = StyleSheet.create({
   stepBtnText: { fontSize: 18, fontWeight: '900' },
   stepperBigInput: { fontSize: 22, fontWeight: '900', textAlign: 'center', minWidth: 55, paddingVertical: 0 },
   quickIncChip: { flex: 1, paddingVertical: 4, borderRadius: 6, alignItems: 'center' },
+  rpeHelpIconBtn: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  rpeFloatingTooltip: {
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginVertical: 4,
+  },
   rpePill: { minWidth: 40, paddingVertical: 7, paddingHorizontal: 10, borderRadius: 8, alignItems: 'center' },
   modBtn: {
     flex: 1,
