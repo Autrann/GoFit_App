@@ -5559,7 +5559,7 @@
   },
   {
     "id": "paused-incline-bench-press",
-    "name": "Press Inclinado con Pausa",
+    "name": "Press Inclinado",
     "instructions": [
       "Túmbate en un banco inclinado y agarra la barra ligeramente más abierta que la anchura de los hombros.",
       "Saca la barra del rack y bájala hasta el pecho superior.",
@@ -5568,8 +5568,8 @@
       "Mantén los omóplatos retraídos durante todo el ejercicio.",
       "Repite el número de repeticiones deseado."
     ],
-    "muscle": "Deltoides Anterior",
-    "muscleImage": "anterior-deltoid.webp",
+    "muscle": "Pectoral Mayor",
+    "muscleImage": "pectoralis-major.webp",
     "image": "paused-incline-bench-press-start.webp"
   },
   {
