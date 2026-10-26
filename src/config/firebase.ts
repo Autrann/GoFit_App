@@ -1,6 +1,8 @@
-import { initializeApp } from "firebase/app";
-import { getAuth } from 'firebase/auth';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+// @ts-ignore - getReactNativePersistence está disponible en el bundle de React Native
+import { initializeAuth, getAuth, getReactNativePersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -9,12 +11,29 @@ const firebaseConfig = {
   storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID
+  measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Inicializamos Firebase
-const app = initializeApp(firebaseConfig);
+// Validación preventiva para evitar crash silencioso si GitHub Actions no inyectó los Secrets
+if (!firebaseConfig.apiKey) {
+  console.error(
+    '🚨 ERROR CRÍTICO: EXPO_PUBLIC_FIREBASE_API_KEY es undefined. Verifica tus Secrets en GitHub Actions.'
+  );
+}
 
-// Exportamos los servicios que vamos a usar
-export const auth = getAuth(app);
+// Evita inicializar la app dos veces en recargas rápidas
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+
+//Inicializamos Auth con persistencia en AsyncStorage (Elimina el warning y mantiene la sesión abierta)
+let authInstance;
+try {
+  authInstance = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+} catch (error) {
+  // Si ya estaba inicializado previamente, recuperamos la instancia
+  authInstance = getAuth(app);
+}
+
+export const auth = authInstance;
 export const db = getFirestore(app);
