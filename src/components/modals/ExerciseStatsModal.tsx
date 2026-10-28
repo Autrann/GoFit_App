@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BarChart } from 'react-native-chart-kit';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../context/ThemeContext';
+import { ExerciseSessionEntry } from '../../utils/analytics';
 import { imageMap } from '../../assets/imgs/imageMap';
 import GoFitBottomSheet from '../common/GoFitBottomSheet';
 
@@ -13,7 +14,7 @@ interface ExerciseStatsModalProps {
   visible: boolean;
   routineExercises: any[];
   selectedExerciseId: string | null;
-  exerciseHistory: { shortDate: string; maxWeight: number }[];
+  exerciseHistory: ExerciseSessionEntry[];
   onClose: () => void;
   onSelectExercise: (id: string) => void;
 }
@@ -28,133 +29,213 @@ export default function ExerciseStatsModal({
 }: ExerciseStatsModalProps) {
   const { isDark, colors: k, kStyles } = useTheme();
   const activeExerciseObj = routineExercises.find((ex) => ex.id === selectedExerciseId);
-  const exerciseMaxWeight =
-    exerciseHistory.length > 0 ? Math.max(...exerciseHistory.map((h) => h.maxWeight)) : 0;
+
+  let bestWeight = 0;
+  let bestReps = 0;
+  exerciseHistory.forEach((h) => {
+    if (h.maxWeight > bestWeight || (h.maxWeight === bestWeight && h.bestRepsAtMax > bestReps)) {
+      bestWeight = h.maxWeight;
+      bestReps = h.bestRepsAtMax;
+    }
+  });
+
+  const reversedSessions = [...exerciseHistory].reverse();
 
   return (
-    <GoFitBottomSheet visible={visible} onClose={onClose}>
-      <View style={[kStyles.rowBetween, { marginBottom: 14 }]}>
+    <GoFitBottomSheet visible={visible} onClose={onClose} maxHeight="92%">
+      <View style={[kStyles.rowBetween, { marginBottom: 12 }]}>
         <View>
-          <Text style={kStyles.kickerLime}>HISTORIAL DETALLADO</Text>
-          <Text style={kStyles.sheetTitle}>ANÁLISIS POR EJERCICIO</Text>
+          <Text style={kStyles.kickerLime}>SOBRECARGA PROGRESIVA</Text>
+          <Text style={kStyles.sheetTitle}>HISTORIAL DEL EJERCICIO</Text>
         </View>
         <TouchableOpacity onPress={onClose}>
           <Ionicons name="close-circle" size={28} color={k.textMuted} />
         </TouchableOpacity>
       </View>
 
-      {activeExerciseObj && (
-        <View style={[styles.graphCard, { backgroundColor: k.surfaceLowest }]}>
-          <View style={kStyles.rowBetween}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
-              <Image
-                source={imageMap[activeExerciseObj.id as keyof typeof imageMap]}
-                style={[styles.activeImg, { backgroundColor: k.surfaceHighest }]}
-              />
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{ fontSize: 14, fontWeight: '900', color: k.textMain, textTransform: 'uppercase' }}
-                  numberOfLines={1}
-                >
-                  {activeExerciseObj.name}
-                </Text>
-                <Text style={{ fontSize: 11, color: k.textMuted, fontWeight: '600' }}>
-                  {activeExerciseObj.muscle}
-                </Text>
-              </View>
-            </View>
-
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text style={kStyles.kickerMuted}>RÉCORD PR</Text>
-              <Text style={{ fontSize: 18, fontWeight: '900', fontStyle: 'italic', color: k.lime }}>
-                {exerciseMaxWeight} kg 🏆
-              </Text>
-            </View>
-          </View>
-
-          {exerciseHistory.length > 0 ? (
-            <View style={{ marginTop: 12, alignItems: 'center' }}>
-              <BarChart
-                data={{
-                  labels: exerciseHistory.map((h) => h.shortDate),
-                  datasets: [{ data: exerciseHistory.map((h) => h.maxWeight) }],
+      {/* Selector horizontal rápido de ejercicios de la rutina */}
+      <View style={{ marginBottom: 12 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+          {routineExercises.map((ex) => {
+            const isActive = selectedExerciseId === ex.id;
+            return (
+              <TouchableOpacity
+                key={ex.id}
+                style={[
+                  styles.exChip,
+                  { backgroundColor: isActive ? k.limeBg : k.surfaceLowest },
+                ]}
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  onSelectExercise(ex.id);
                 }}
-                width={width - 84}
-                height={160}
-                yAxisLabel=""
-                yAxisSuffix="k"
-                fromZero={true}
-                showValuesOnTopOfBars={true}
-                chartConfig={{
-                  backgroundColor: k.surfaceLowest,
-                  backgroundGradientFrom: k.surfaceLowest,
-                  backgroundGradientTo: k.surfaceLowest,
-                  decimalPlaces: 0,
-                  color: (opacity = 1) => `rgba(202, 253, 0, ${opacity})`,
-                  labelColor: (opacity = 1) =>
-                    isDark ? `rgba(255, 255, 255, ${opacity})` : `rgba(142, 142, 147, ${opacity})`,
-                  barPercentage: 0.55,
-                  propsForBackgroundLines: { strokeWidth: 0.5, stroke: k.outline },
-                }}
-                style={{ borderRadius: 12, marginLeft: -16 }}
-              />
-            </View>
-          ) : (
-            <Text style={[kStyles.bodyMuted, { textAlign: 'center', marginTop: 14 }]}>
-              Aún no hay series con peso registradas para este ejercicio.
-            </Text>
-          )}
-        </View>
-      )}
-
-      <Text style={[kStyles.kickerMuted, { marginBottom: 8, marginTop: 6 }]}>
-        CAMBIAR EJERCICIO ({routineExercises.length})
-      </Text>
-
-      <ScrollView style={{ maxHeight: 240 }} showsVerticalScrollIndicator={false}>
-        {routineExercises.map((ex) => {
-          const isActive = selectedExerciseId === ex.id;
-          return (
-            <TouchableOpacity
-              key={ex.id}
-              style={[
-                styles.optionRow,
-                { backgroundColor: isActive ? k.surface : k.surfaceLowest },
-                isActive && { borderColor: k.limeBg, borderWidth: 1 },
-              ]}
-              onPress={() => {
-                Haptics.selectionAsync();
-                onSelectExercise(ex.id);
-              }}
-            >
-              <Image
-                source={imageMap[ex.id as keyof typeof imageMap]}
-                style={[styles.optionImg, { backgroundColor: k.surfaceHighest }]}
-              />
-              <View style={{ flex: 1 }}>
+              >
                 <Text
                   style={{
-                    fontSize: 14,
+                    fontSize: 11,
                     fontWeight: isActive ? '900' : '700',
-                    color: isActive ? k.lime : k.textMain,
+                    color: isActive ? '#3a4a00' : k.textMuted,
                   }}
+                  numberOfLines={1}
                 >
                   {ex.name}
                 </Text>
-                <Text style={{ fontSize: 11, color: k.textMuted }}>{ex.muscle}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+        {activeExerciseObj && (
+          <View style={[styles.graphCard, { backgroundColor: k.surfaceLowest }]}>
+            <View style={kStyles.rowBetween}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+                <Image
+                  source={imageMap[activeExerciseObj.id as keyof typeof imageMap]}
+                  style={[styles.activeImg, { backgroundColor: k.surfaceHighest }]}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{ fontSize: 14, fontWeight: '900', color: k.textMain, textTransform: 'uppercase' }}
+                    numberOfLines={1}
+                  >
+                    {activeExerciseObj.name}
+                  </Text>
+                  <Text style={{ fontSize: 11, color: k.textMuted, fontWeight: '600' }}>
+                    {activeExerciseObj.muscle} • {exerciseHistory.length} sesiones
+                  </Text>
+                </View>
               </View>
-              {isActive && <Ionicons name="checkmark-circle" size={22} color={k.lime} />}
-            </TouchableOpacity>
-          );
-        })}
+
+              <View style={{ alignItems: 'flex-end' }}>
+                <Text style={kStyles.kickerMuted}>MEJOR SERIE</Text>
+                <Text style={{ fontSize: 17, fontWeight: '900', fontStyle: 'italic', color: k.lime }}>
+                  {bestWeight > 0 ? `${bestWeight} kg × ${bestReps}` : '--'} 🏆
+                </Text>
+              </View>
+            </View>
+
+            {exerciseHistory.length > 0 ? (
+              <View style={{ marginTop: 12, alignItems: 'center' }}>
+                <BarChart
+                  data={{
+                    labels: exerciseHistory.slice(-7).map((h) => h.shortDate),
+                    datasets: [{ data: exerciseHistory.slice(-7).map((h) => h.maxWeight) }],
+                  }}
+                  width={width - 84}
+                  height={150}
+                  yAxisLabel=""
+                  yAxisSuffix="k"
+                  fromZero={true}
+                  showValuesOnTopOfBars={true}
+                  chartConfig={{
+                    backgroundColor: k.surfaceLowest,
+                    backgroundGradientFrom: k.surfaceLowest,
+                    backgroundGradientTo: k.surfaceLowest,
+                    decimalPlaces: 0,
+                    color: (opacity = 1) => `rgba(202, 253, 0, ${opacity})`,
+                    labelColor: (opacity = 1) =>
+                      isDark ? `rgba(255, 255, 255, ${opacity})` : `rgba(142, 142, 147, ${opacity})`,
+                    barPercentage: 0.55,
+                    propsForBackgroundLines: { strokeWidth: 0.5, stroke: k.outline },
+                  }}
+                  style={{ borderRadius: 12, marginLeft: -16 }}
+                />
+              </View>
+            ) : (
+              <Text style={[kStyles.bodyMuted, { textAlign: 'center', marginTop: 14 }]}>
+                Aún no hay series registradas para este ejercicio.
+              </Text>
+            )}
+          </View>
+        )}
+
+        {/* Desglose Serie por Serie de cada entrenamiento anterior */}
+        {reversedSessions.length > 0 && (
+          <View style={{ gap: 8 }}>
+            <Text style={[kStyles.kickerMuted, { marginBottom: 4 }]}>
+              BITÁCORA SERIE POR SERIE (MÁS RECIENTE PRIMERO)
+            </Text>
+
+            {reversedSessions.map((session, sIdx) => {
+              const prevSession = reversedSessions[sIdx + 1];
+              const diffW = prevSession ? parseFloat((session.maxWeight - prevSession.maxWeight).toFixed(1)) : 0;
+              const diffR = prevSession ? session.bestRepsAtMax - prevSession.bestRepsAtMax : 0;
+
+              return (
+                <View
+                  key={session.date}
+                  style={[styles.sessionCard, { backgroundColor: k.surfaceLowest, borderColor: k.outline }]}
+                >
+                  <View style={[kStyles.rowBetween, { marginBottom: 8 }]}>
+                    <View style={kStyles.rowAlign}>
+                      <Ionicons name="calendar-outline" size={14} color={k.cyan} />
+                      <Text style={{ fontSize: 12, fontWeight: '900', color: k.textMain }}>
+                        {session.fullDateLabel.toUpperCase()}
+                      </Text>
+                    </View>
+
+                    {prevSession && (
+                      <Text
+                        style={{
+                          fontSize: 10,
+                          fontWeight: '900',
+                          color: diffW > 0 ? k.lime : diffW === 0 && diffR > 0 ? k.cyan : k.textMuted,
+                        }}
+                      >
+                        {diffW > 0
+                          ? `↑ +${diffW} kg`
+                          : diffW === 0 && diffR > 0
+                          ? `↑ +${diffR} reps`
+                          : diffW === 0 && diffR === 0
+                          ? '═ Misma marca'
+                          : ''}
+                      </Text>
+                    )}
+                  </View>
+
+                  <View style={styles.setsWrap}>
+                    {session.setsDetail.map((s) => (
+                      <View
+                        key={s.setNumber}
+                        style={[styles.setPill, { backgroundColor: k.surfaceHigh }]}
+                      >
+                        <Text style={{ fontSize: 9, fontWeight: '900', color: k.cyan }}>
+                          S{s.setNumber}
+                        </Text>
+                        <Text style={{ fontSize: 12, fontWeight: '900', color: k.textMain }}>
+                          {s.weight} kg × {s.reps}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
       </ScrollView>
     </GoFitBottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  graphCard: { borderRadius: 16, padding: 14, marginBottom: 12 },
+  exChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 14, maxWidth: 160 },
+  graphCard: { borderRadius: 16, padding: 14, marginBottom: 14 },
   activeImg: { width: 42, height: 42, borderRadius: 8 },
-  optionRow: { flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 14, marginBottom: 8 },
-  optionImg: { width: 38, height: 38, borderRadius: 8, marginRight: 12 },
+  sessionCard: {
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 0.5,
+  },
+  setsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  setPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
 });

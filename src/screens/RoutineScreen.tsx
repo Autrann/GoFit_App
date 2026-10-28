@@ -50,10 +50,7 @@ export default function RoutineScreen() {
 
   const [isCatalogVisible, setCatalogVisible] = useState(false);
   const [previewExercise, setPreviewExercise] = useState<Exercise | null>(null);
-
-  // Estados para el modal de sugerencias ("!")
   const [isSuggestionVisible, setSuggestionVisible] = useState(false);
-  const [suggestionInitialEx, setSuggestionInitialEx] = useState<Exercise | null>(null);
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -122,12 +119,6 @@ export default function RoutineScreen() {
     }
   };
 
-  const openSuggestionModal = (exercise: Exercise | null = null) => {
-    Haptics.selectionAsync();
-    setSuggestionInitialEx(exercise);
-    setSuggestionVisible(true);
-  };
-
   const updateActiveDay = (updates: Partial<DayPlan>) => {
     setRoutine((prev) => ({ ...prev, [activeDay]: { ...prev[activeDay], ...updates } }));
   };
@@ -149,25 +140,39 @@ export default function RoutineScreen() {
     setCatalogVisible(false);
   };
 
+  // --- AGREGAR EJERCICIO CREADO POR EL USUARIO DIRECTO A SU RUTINA Y GUARDAR EN FIRESTORE ---
+  const handleAddCustomExerciseToDay = async (newExercise: Exercise) => {
+    const currentExercises = routine[activeDay].exercises || [];
+    const currentMuscles = routine[activeDay].muscles || [];
+
+    const updatedMuscles = currentMuscles.includes(newExercise.muscle)
+      ? currentMuscles
+      : [...currentMuscles, newExercise.muscle];
+
+    const updatedDayPlan: DayPlan = {
+      ...routine[activeDay],
+      isRest: false,
+      muscles: updatedMuscles,
+      exercises: [...currentExercises, newExercise],
+    };
+
+    const updatedRoutine: Routine = {
+      ...routine,
+      [activeDay]: updatedDayPlan,
+    };
+
+    setRoutine(updatedRoutine);
+
+    const user = auth.currentUser;
+    if (user) {
+      await setDoc(doc(db, 'users', user.uid, 'data', 'routine'), updatedRoutine);
+    }
+  };
+
   const handleRemoveExercise = (exerciseId: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     const current = routine[activeDay].exercises || [];
     updateActiveDay({ exercises: current.filter((e) => e.id !== exerciseId) });
-  };
-
-  // --- REORDENAR EJERCICIOS (SUBIR / BAJAR) ---
-  const handleMoveExercise = (index: number, direction: 'up' | 'down') => {
-    const currentExercises = [...(routine[activeDay].exercises || [])];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-
-    if (targetIndex < 0 || targetIndex >= currentExercises.length) return;
-
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const temp = currentExercises[index];
-    currentExercises[index] = currentExercises[targetIndex];
-    currentExercises[targetIndex] = temp;
-
-    updateActiveDay({ exercises: currentExercises });
   };
 
   const renderMuscleImage = (muscleName: string, size = 18) => {
@@ -203,6 +208,8 @@ export default function RoutineScreen() {
     !currentPlan.isRest &&
     (!currentPlan.exercises || currentPlan.exercises.length === 0);
 
+  const userCustomExercises: Exercise[] = userData?.customExercises || [];
+
   return (
     <SafeAreaView style={kStyles.container}>
       <KineticHeader
@@ -211,25 +218,15 @@ export default function RoutineScreen() {
         brandTitle="GoFit"
         onAvatarPress={() => navigation.navigate('Perfil')}
         rightContent={
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <TouchableOpacity
-              style={[styles.exclamationHeaderBtn, { backgroundColor: 'rgba(245, 206, 83, 0.15)', borderColor: k.gold }]}
-              onPress={() => openSuggestionModal(null)}
-              accessibilityLabel="Sugerir ejercicio o cambio de nombre"
-            >
-              <Text style={{ fontSize: 14, fontWeight: '900', color: k.gold }}>!</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.savePill, { borderColor: k.lime, backgroundColor: isEditing ? k.limeBg : k.surfaceHigh }]}
-              onPress={handleSaveRoutine}
-              disabled={saving}
-            >
-              <Text style={{ fontSize: 11, fontWeight: '900', color: isEditing ? '#3a4a00' : k.lime }}>
-                {saving ? '...' : 'GUARDAR'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={[styles.savePill, { borderColor: k.lime, backgroundColor: isEditing ? k.limeBg : k.surfaceHigh }]}
+            onPress={handleSaveRoutine}
+            disabled={saving}
+          >
+            <Text style={{ fontSize: 11, fontWeight: '900', color: isEditing ? '#3a4a00' : k.lime }}>
+              {saving ? '...' : 'GUARDAR'}
+            </Text>
+          </TouchableOpacity>
         }
       />
 
@@ -391,18 +388,6 @@ export default function RoutineScreen() {
                 <Text style={kStyles.kickerMuted}>
                   DOSSIER DE EJERCICIOS ({currentPlan.exercises?.length || 0})
                 </Text>
-
-                <TouchableOpacity
-                  style={kStyles.rowAlign}
-                  onPress={() => openSuggestionModal(null)}
-                >
-                  <View style={[styles.miniExclamationBadge, { backgroundColor: 'rgba(245, 206, 83, 0.2)' }]}>
-                    <Text style={{ fontSize: 10, fontWeight: '900', color: k.gold }}>!</Text>
-                  </View>
-                  <Text style={{ fontSize: 10, fontWeight: '800', color: k.gold }}>
-                    ¿Nombre raro o falta uno?
-                  </Text>
-                </TouchableOpacity>
               </View>
 
               {/* SI EL DÍA ESTÁ VACÍO: OPCIÓN RÁPIDA PARA COPIAR OTRO DÍA CON INFORMACIÓN */}
@@ -447,93 +432,58 @@ export default function RoutineScreen() {
               )}
 
               <View style={{ gap: 10 }}>
-                {currentPlan.exercises?.map((ex, idx) => {
-                  const totalEx = currentPlan.exercises?.length || 0;
-                  const isFirst = idx === 0;
-                  const isLast = idx === totalEx - 1;
+                {currentPlan.exercises?.map((ex, idx) => (
+                  <View key={`${ex.id}-${idx}`} style={[styles.exRow, { backgroundColor: k.surfaceLowest }]}>
+                    <TouchableOpacity
+                      style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
+                      onPress={() => {
+                        const full = catalog.find((item) => item.id === ex.id) || ex;
+                        setPreviewExercise(full as Exercise);
+                      }}
+                    >
+                      <View style={[styles.orderBadge, { backgroundColor: k.surfaceHighest }]}>
+                        <Text style={{ fontSize: 10, fontWeight: '900', color: k.lime }}>
+                          {(idx + 1).toString().padStart(2, '0')}
+                        </Text>
+                      </View>
 
-                  return (
-                    <View key={`${ex.id}-${idx}`} style={[styles.exRow, { backgroundColor: k.surfaceLowest }]}>
-                      <TouchableOpacity
-                        style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
-                        onPress={() => {
-                          const full = catalog.find((item) => item.id === ex.id) || ex;
-                          setPreviewExercise(full as Exercise);
-                        }}
-                      >
-                        <View style={[styles.orderBadge, { backgroundColor: k.surfaceHighest }]}>
-                          <Text style={{ fontSize: 10, fontWeight: '900', color: k.lime }}>
-                            {(idx + 1).toString().padStart(2, '0')}
-                          </Text>
-                        </View>
+                      {imageMap[ex.id as keyof typeof imageMap] ? (
                         <Image
                           source={imageMap[ex.id as keyof typeof imageMap]}
                           style={[styles.exImg, { backgroundColor: k.surfaceHighest }]}
                         />
-                        <View style={{ flex: 1, marginLeft: 12 }}>
-                          <Text
-                            style={{ fontSize: 13, fontWeight: '900', color: k.textMain, textTransform: 'uppercase' }}
-                            numberOfLines={1}
-                          >
-                            {ex.name}
-                          </Text>
-                          <Text style={{ fontSize: 11, color: k.textMuted }}>{ex.muscle}</Text>
-                        </View>
-                      </TouchableOpacity>
-
-                      {/* Botón pequeño "!" para sugerir otro nombre a este ejercicio */}
-                      <TouchableOpacity
-                        style={[styles.rowExclamationBtn, { backgroundColor: k.surfaceHigh }]}
-                        onPress={() => openSuggestionModal(ex)}
-                        accessibilityLabel="Sugerir cambio de nombre"
-                      >
-                        <Text style={{ fontSize: 13, fontWeight: '900', color: k.gold }}>!</Text>
-                      </TouchableOpacity>
-
-                      {/* Controles de Reordenamiento (Subir / Bajar) y Eliminar en modo Edición */}
-                      {isEditing && (
-                        <View style={styles.editControlsGroup}>
-                          {totalEx > 1 && (
-                            <View style={styles.reorderBtnsCol}>
-                              <TouchableOpacity
-                                style={[
-                                  styles.reorderArrowBtn,
-                                  { backgroundColor: k.surfaceHigh },
-                                  isFirst && { opacity: 0.25 },
-                                ]}
-                                disabled={isFirst}
-                                onPress={() => handleMoveExercise(idx, 'up')}
-                                accessibilityLabel="Subir ejercicio"
-                              >
-                                <Ionicons name="chevron-up" size={14} color={k.cyan} />
-                              </TouchableOpacity>
-
-                              <TouchableOpacity
-                                style={[
-                                  styles.reorderArrowBtn,
-                                  { backgroundColor: k.surfaceHigh },
-                                  isLast && { opacity: 0.25 },
-                                ]}
-                                disabled={isLast}
-                                onPress={() => handleMoveExercise(idx, 'down')}
-                                accessibilityLabel="Bajar ejercicio"
-                              >
-                                <Ionicons name="chevron-down" size={14} color={k.cyan} />
-                              </TouchableOpacity>
-                            </View>
-                          )}
-
-                          <TouchableOpacity
-                            onPress={() => handleRemoveExercise(ex.id)}
-                            style={[styles.deleteBtnBox, { backgroundColor: 'rgba(255, 115, 81, 0.14)' }]}
-                          >
-                            <Ionicons name="trash-outline" size={17} color={k.danger} />
-                          </TouchableOpacity>
+                      ) : (
+                        <View
+                          style={[
+                            styles.exImg,
+                            { backgroundColor: k.surfaceHighest, justifyContent: 'center', alignItems: 'center' },
+                          ]}
+                        >
+                          <Ionicons name="barbell" size={20} color={k.cyan} />
                         </View>
                       )}
-                    </View>
-                  );
-                })}
+
+                      <View style={{ flex: 1, marginLeft: 12 }}>
+                        <Text
+                          style={{ fontSize: 13, fontWeight: '900', color: k.textMain, textTransform: 'uppercase' }}
+                          numberOfLines={1}
+                        >
+                          {ex.name}
+                        </Text>
+                        <Text style={{ fontSize: 11, color: k.textMuted }}>{ex.muscle}</Text>
+                      </View>
+                    </TouchableOpacity>
+
+                    {isEditing && (
+                      <TouchableOpacity
+                        onPress={() => handleRemoveExercise(ex.id)}
+                        style={[styles.deleteBtnBox, { backgroundColor: 'rgba(255, 115, 81, 0.14)' }]}
+                      >
+                        <Ionicons name="trash-outline" size={18} color={k.danger} />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                ))}
               </View>
 
               <TouchableOpacity
@@ -565,11 +515,12 @@ export default function RoutineScreen() {
       <CatalogModal
         visible={isCatalogVisible}
         currentDayExercises={currentPlan.exercises || []}
+        userCustomExercises={userCustomExercises}
         onClose={() => setCatalogVisible(false)}
         onSelectExercise={(ex) => setPreviewExercise(ex)}
-        onSuggestExercise={(ex) => {
+        onOpenMissingExerciseModal={() => {
           setCatalogVisible(false);
-          setTimeout(() => openSuggestionModal(ex || null), 250);
+          setTimeout(() => setSuggestionVisible(true), 250);
         }}
       />
 
@@ -584,28 +535,21 @@ export default function RoutineScreen() {
 
       <ExerciseSuggestionModal
         visible={isSuggestionVisible}
-        initialExercise={suggestionInitialEx}
+        activeDay={activeDay}
+        existingCustomExercises={userCustomExercises}
         onClose={() => setSuggestionVisible(false)}
+        onAddCustomExerciseToDay={handleAddCustomExerciseToDay}
       />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  exclamationHeaderBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   savePill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1 },
   dayTab: { minWidth: 56, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 16, alignItems: 'center', gap: 4, borderWidth: 1 },
   editBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14 },
   editBox: { padding: 14, borderRadius: 16, marginBottom: 14, marginLeft: 4 },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 11, paddingVertical: 6, borderRadius: 14, borderWidth: 1 },
-  miniExclamationBadge: { width: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center' },
   emptyDayContainer: {
     padding: 16,
     borderRadius: 16,
@@ -633,37 +577,13 @@ const styles = StyleSheet.create({
   exRow: { flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 14 },
   orderBadge: { width: 26, height: 26, borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginRight: 10 },
   exImg: { width: 48, height: 48, borderRadius: 10 },
-  rowExclamationBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 6,
-  },
-  editControlsGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginLeft: 6,
-  },
-  reorderBtnsCol: {
-    flexDirection: 'column',
-    gap: 4,
-  },
-  reorderArrowBtn: {
-    width: 26,
-    height: 22,
-    borderRadius: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   deleteBtnBox: {
-    width: 34,
-    height: 48,
+    width: 36,
+    height: 36,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
+    marginLeft: 8,
   },
   addBtn: {
     flexDirection: 'row',

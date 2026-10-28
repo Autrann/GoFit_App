@@ -605,7 +605,7 @@ export default function ProfileScreen() {
                 </TouchableOpacity>
               </View>
 
-              {!isLogging ? (
+           {!isLogging ? (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                   {todayPlan.exercises.map((ex: any, i: number) => (
                     <TouchableOpacity
@@ -634,10 +634,21 @@ export default function ProfileScreen() {
                         ]}
                         onPress={() => openExerciseModal(ex)}
                       >
-                        <Image
-                          source={imageMap[ex.id as keyof typeof imageMap]}
-                          style={[styles.exImg, { backgroundColor: k.surfaceHighest }]}
-                        />
+                        {imageMap[ex.id as keyof typeof imageMap] ? (
+                          <Image
+                            source={imageMap[ex.id as keyof typeof imageMap]}
+                            style={[styles.exImg, { backgroundColor: k.surfaceHighest }]}
+                          />
+                        ) : (
+                          <View
+                            style={[
+                              styles.exImg,
+                              { backgroundColor: k.surfaceHighest, justifyContent: 'center', alignItems: 'center' },
+                            ]}
+                          >
+                            <Ionicons name="barbell" size={20} color={k.cyan} />
+                          </View>
+                        )}
                         <View style={{ flex: 1, marginLeft: 12 }}>
                           <Text style={{ fontSize: 13, fontWeight: '900', color: k.textMain, textTransform: 'uppercase' }}>
                             {ex.name}
