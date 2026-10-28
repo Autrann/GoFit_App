@@ -241,7 +241,7 @@ export default function ExerciseSuggestionModal({
         /* PESTAÑA 1: CREAR EJERCICIO EN LA CUENTA DEL USUARIO + SUGERIR A DEVS */
         <View style={{ gap: 12 }}>
           <Text style={kStyles.bodyMuted}>
-            Crea tu ejercicio para usarlo hoy en tu rutina de <Text style={{ color: k.lime, fontWeight: '800' }}>{activeDay}</Text>. Se guardará en tu cuenta para que nunca se pierda al actualizar la app.
+            Crea tu ejercicio para usarlo hoy en tu rutina de <Text style={{ color: k.lime, fontWeight: '800' }}>{activeDay}</Text>. Se guardará en tu cuenta para que puedas seguir usandolo.
           </Text>
 
           <View>

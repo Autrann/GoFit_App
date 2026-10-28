@@ -331,7 +331,7 @@ export default function ProfileScreen() {
     }
   };
 
-  const saveExerciseLog = async (skipped = false, nextExerciseToOpen: any = null) => {
+const saveExerciseLog = async (skipped = false) => {
     if (!activeExercise) return;
     setSavingExercise(true);
     try {
@@ -351,8 +351,7 @@ export default function ProfileScreen() {
           exercises: { ...workoutLog.exercises, [activeExercise.id]: exerciseData },
         };
         await setDoc(doc(db, 'users', user.uid, 'workout_logs', dateString), updatedLog, { merge: true });
-        if (nextExerciseToOpen) openExerciseModal(nextExerciseToOpen);
-        else setActiveExercise(null);
+        setActiveExercise(null);
       }
     } finally {
       setSavingExercise(false);
@@ -590,7 +589,7 @@ export default function ProfileScreen() {
                 <Ionicons name="timer-outline" size={18} color={k.cyan} />
                 <View>
                   <Text style={kStyles.kickerMuted}>DURACIÓN</Text>
-                  <Text style={{ fontSize: 12, fontWeight: '900', color: k.textMain }}>45 - 60 Min</Text>
+                  <Text style={{ fontSize: 12, fontWeight: '900', color: k.textMain }}>{totalExercisesCount*15} - {totalExercisesCount*15 + 15} Min</Text>
                 </View>
               </View>
             </View>
@@ -849,7 +848,7 @@ export default function ProfileScreen() {
         activeExIndex={activeExIndex}
         totalExercisesCount={totalExercisesCount}
         routineTitle={todayPlan?.title}
-        nextExercise={nextExercise}
+       // nextExercise={nextExercise}
         prevExData={activeExercise ? lastWeekLog?.exercises?.[activeExercise.id] : null}
         tempSetsCount={tempSetsCount}
         tempReps={tempReps}
