@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../context/ThemeContext';
 import { Exercise } from '../../constants/appConstants';
+import { matchesSmartSearch, normalizeSearchText } from '../../utils/searchUtils';
 import catalog from '../../assets/data/catalogo_app.json';
 import { imageMap } from '../../assets/imgs/imageMap';
 import GoFitBottomSheet from '../common/GoFitBottomSheet';
@@ -13,6 +14,7 @@ interface CatalogModalProps {
   currentDayExercises: Exercise[];
   onClose: () => void;
   onSelectExercise: (exercise: Exercise) => void;
+  onSuggestExercise?: (exercise?: Exercise | null) => void;
 }
 
 const catalogMusclesList = ['Todos', ...Array.from(new Set(catalog.map((c) => c.muscle)))];
@@ -22,36 +24,54 @@ export default function CatalogModal({
   currentDayExercises,
   onClose,
   onSelectExercise,
+  onSuggestExercise,
 }: CatalogModalProps) {
   const { colors: k, kStyles } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [muscleFilter, setMuscleFilter] = useState('Todos');
 
+  // Filtrado insensible a acentos y orden de palabras ("militar press" -> "Press Militar")
   const filteredCatalog = catalog.filter((ex) => {
-    const matchesSearch =
-      ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ex.muscle.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesMuscle = muscleFilter === 'Todos' || ex.muscle.toLowerCase() === muscleFilter.toLowerCase();
+    const matchesSearch = matchesSmartSearch(`${ex.name} ${ex.muscle}`, searchQuery);
+    const matchesMuscle =
+      muscleFilter === 'Todos' ||
+      normalizeSearchText(ex.muscle) === normalizeSearchText(muscleFilter);
     return matchesSearch && matchesMuscle;
   });
 
   return (
     <GoFitBottomSheet visible={visible} onClose={onClose} height="86%">
       <View style={[kStyles.rowBetween, { marginBottom: 14 }]}>
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={kStyles.kickerLime}>ARSENAL DE EJERCICIOS GOFIT</Text>
           <Text style={kStyles.sheetTitle}>CATÁLOGO ({filteredCatalog.length})</Text>
         </View>
-        <TouchableOpacity onPress={onClose}>
-          <Ionicons name="close-circle" size={28} color={k.textMuted} />
-        </TouchableOpacity>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          {onSuggestExercise && (
+            <TouchableOpacity
+              style={[styles.suggestTopBtn, { backgroundColor: 'rgba(245, 206, 83, 0.16)', borderColor: k.gold }]}
+              onPress={() => {
+                Haptics.selectionAsync();
+                onSuggestExercise(null);
+              }}
+            >
+              <Text style={{ fontSize: 12, fontWeight: '900', color: k.gold }}>!</Text>
+              <Text style={{ fontSize: 10, fontWeight: '900', color: k.gold }}>SUGERIR</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity onPress={onClose}>
+            <Ionicons name="close-circle" size={28} color={k.textMuted} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={[styles.searchBox, { backgroundColor: k.surfaceLowest, borderColor: k.outline }]}>
         <Ionicons name="search" size={18} color={k.cyan} />
         <TextInput
           style={[styles.searchInput, { color: k.textMain }]}
-          placeholder="Buscar ejercicio o músculo..."
+          placeholder="Ej. militar, press mancuerna, jalon..."
           placeholderTextColor={k.textMuted}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -96,7 +116,26 @@ export default function CatalogModal({
         keyExtractor={(item) => item.id}
         initialNumToRender={12}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingBottom: 40 }}
+        ListEmptyComponent={
+          <View style={styles.emptySearchBox}>
+            <Ionicons name="help-buoy-outline" size={34} color={k.textMuted} />
+            <Text style={[kStyles.bodyMuted, { textAlign: 'center' }]}>
+              No encontramos "{searchQuery}". ¿Tiene otro nombre o quieres que lo agreguemos?
+            </Text>
+            {onSuggestExercise && (
+              <TouchableOpacity
+                style={[styles.emptySuggestBtn, { borderColor: k.gold }]}
+                onPress={() => onSuggestExercise(null)}
+              >
+                <Text style={{ fontSize: 11, fontWeight: '900', color: k.gold }}>
+                  ! SUGERIR ESTE EJERCICIO
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        }
         renderItem={({ item }) => {
           const alreadyAdded = currentDayExercises?.some((e) => e.id === item.id);
           return (
@@ -124,9 +163,9 @@ export default function CatalogModal({
                 </View>
               )}
 
-              <View style={{ flex: 1, marginLeft: 14 }}>
+              <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text
-                  style={{ fontSize: 14, fontWeight: '900', color: k.textMain, textTransform: 'uppercase' }}
+                  style={{ fontSize: 13, fontWeight: '900', color: k.textMain, textTransform: 'uppercase' }}
                   numberOfLines={1}
                 >
                   {item.name}
@@ -135,6 +174,19 @@ export default function CatalogModal({
                   {item.muscle}
                 </Text>
               </View>
+
+              {/* Botón pequeño "!" para sugerir otro nombre a este ejercicio */}
+              {onSuggestExercise && (
+                <TouchableOpacity
+                  style={[styles.itemExclamationBtn, { backgroundColor: k.surfaceHigh }]}
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    onSuggestExercise(item as Exercise);
+                  }}
+                >
+                  <Text style={{ fontSize: 13, fontWeight: '900', color: k.gold }}>!</Text>
+                </TouchableOpacity>
+              )}
 
               {alreadyAdded ? (
                 <View style={[styles.addedBadge, { backgroundColor: k.limeBg }]}>
@@ -165,6 +217,25 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, marginLeft: 10, fontSize: 14, fontWeight: '600' },
   filterPill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14 },
   catalogCard: { flexDirection: 'row', alignItems: 'center', padding: 10, marginBottom: 10, borderRadius: 16 },
-  catalogImg: { width: 56, height: 56, borderRadius: 12 },
+  catalogImg: { width: 52, height: 52, borderRadius: 12 },
   addedBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  suggestTopBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  itemExclamationBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  emptySearchBox: { alignItems: 'center', paddingVertical: 30, gap: 10, paddingHorizontal: 20 },
+  emptySuggestBtn: { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 12, borderWidth: 1, marginTop: 4 },
 });
