@@ -57,7 +57,7 @@ export default function ProfileOptionsModal({
           <View style={[styles.optionRow, { backgroundColor: k.surfaceLowest, marginBottom: 20 }]}>
             <View style={kStyles.rowAlign}>
               <Ionicons name={isDark ? 'moon-outline' : 'sunny-outline'} size={22} color={k.lime} />
-              <Text style={[styles.label, { color: k.textMain }]}>Modo Oscuro (GoFit)</Text>
+              <Text style={[styles.label, { color: k.textMain }]}>Tema</Text>
             </View>
             <TouchableOpacity onPress={toggleTheme} style={{ padding: 4 }}>
               <Ionicons name={isDark ? 'moon' : 'sunny'} size={26} color={isDark ? k.lime : k.warning} />

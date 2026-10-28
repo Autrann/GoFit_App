@@ -128,7 +128,6 @@ export default function ProfileScreen() {
     }
   };
 
-  // --- PERSISTIR HIDRATACIÓN EN FIRESTORE ---
   const handleUpdateWaterLiters = async (newLiters: number) => {
     const user = auth.currentUser;
     if (!user) return;
@@ -208,6 +207,7 @@ export default function ProfileScreen() {
     }
   };
 
+  // --- ABRIR MODAL DE SERIES (REPS SIEMPRE EN BLANCO PARA SERIES PENDIENTES) ---
   const openExerciseModal = (exercise: any) => {
     Haptics.selectionAsync();
     setActiveExercise(exercise);
@@ -216,21 +216,29 @@ export default function ProfileScreen() {
 
     if (existingData && !existingData.skipped) {
       const count = existingData.sets || 3;
+      const savedReps = existingData.reps || Array(count).fill('');
+      const savedWeights = existingData.weights || Array(count).fill('');
       setTempSetsCount(count.toString());
-      setTempReps(existingData.reps || Array(count).fill(''));
-      setTempWeights(existingData.weights || Array(count).fill(''));
+      setTempReps(savedReps);
+      setTempWeights(savedWeights);
       setTempRpes(existingData.rpes || Array(count).fill('8.5'));
-      const firstIncomplete = (existingData.reps || []).findIndex((r: string) => !r || r.trim() === '' || r === '0');
-      setActiveSetIndex(firstIncomplete !== -1 ? firstIncomplete : 0);
+
+      const firstIncomplete = savedReps.findIndex((r: string) => !r || r.trim() === '' || r === '0');
+      const targetIdx = firstIncomplete !== -1 ? firstIncomplete : 0;
+
+      // Si pasamos a una serie pendiente y aún no tiene peso, hereda el peso de la serie anterior
+      if (targetIdx > 0 && (!savedWeights[targetIdx] || savedWeights[targetIdx] === '')) {
+        const inheritedWeights = [...savedWeights];
+        inheritedWeights[targetIdx] = savedWeights[targetIdx - 1] || '';
+        setTempWeights(inheritedWeights);
+      }
+
+      setActiveSetIndex(targetIdx);
     } else {
-      const defaultWeights = [
-        lastWeekEx?.weights?.[0] || '40',
-        lastWeekEx?.weights?.[1] || '40',
-        lastWeekEx?.weights?.[2] || '40',
-      ];
+      const firstWeight = lastWeekEx?.weights?.[0] || '';
       setTempSetsCount('3');
-      setTempReps(['', '', '']);
-      setTempWeights(defaultWeights);
+      setTempReps(['', '', '']); // Reps siempre inicializadas en blanco
+      setTempWeights([firstWeight, firstWeight, firstWeight]);
       setTempRpes(['8', '8.5', '8.5']);
       setActiveSetIndex(0);
     }
@@ -243,9 +251,10 @@ export default function ProfileScreen() {
     const newRpes = [...tempRpes];
 
     if (count > newReps.length) {
+      const lastUsedWeight = newWeights[newWeights.length - 1] || '';
       while (newReps.length < count) {
-        newReps.push('');
-        newWeights.push(newWeights[newWeights.length - 1] || '40');
+        newReps.push(''); // Reps en blanco
+        newWeights.push(lastUsedWeight); // Hereda el peso de la serie anterior
         newRpes.push('8.5');
       }
     } else {
@@ -259,12 +268,43 @@ export default function ProfileScreen() {
     if (activeSetIndex >= count) setActiveSetIndex(Math.max(0, count - 1));
   };
 
+  // --- ACTUALIZAR PESO Y PROPAGARLO A LA SIGUIENTE SERIE PENDIENTE ---
+  const handleUpdateWeightWithCarryOver = (idx: number, val: string) => {
+    const newWeights = [...tempWeights];
+    newWeights[idx] = val;
+
+    // Propagamos el peso a las series posteriores que aún sigan con reps en blanco
+    for (let nextIdx = idx + 1; nextIdx < newWeights.length; nextIdx++) {
+      if (!tempReps[nextIdx] || tempReps[nextIdx].trim() === '') {
+        newWeights[nextIdx] = val;
+      }
+    }
+    setTempWeights(newWeights);
+  };
+
+  // --- COMPLETAR SERIE Y PREPARAR LA SIGUIENTE CON EL MISMO PESO Y REPS EN BLANCO ---
   const commitActiveSet = async () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     const newReps = [...tempReps];
     const newWeights = [...tempWeights];
-    if (!newReps[activeSetIndex] || newReps[activeSetIndex] === '0') newReps[activeSetIndex] = '10';
-    if (!newWeights[activeSetIndex]) newWeights[activeSetIndex] = '40';
+
+    if (!newReps[activeSetIndex] || newReps[activeSetIndex].trim() === '' || newReps[activeSetIndex] === '0') {
+      newReps[activeSetIndex] = '10';
+    }
+    const currentWeightUsed = newWeights[activeSetIndex] || '0';
+    newWeights[activeSetIndex] = currentWeightUsed;
+
+    const totalSets = parseInt(tempSetsCount) || newReps.length;
+    const nextIdx = activeSetIndex + 1;
+
+    // Si hay una siguiente serie y aún no tiene repeticiones registradas, le ponemos el peso recién usado y dejamos sus reps en blanco
+    if (nextIdx < totalSets) {
+      if (!newReps[nextIdx] || newReps[nextIdx].trim() === '') {
+        newWeights[nextIdx] = currentWeightUsed;
+        newReps[nextIdx] = '';
+      }
+    }
+
     setTempReps(newReps);
     setTempWeights(newWeights);
 
@@ -276,7 +316,7 @@ export default function ProfileScreen() {
           ...workoutLog.exercises,
           [activeExercise.id]: {
             skipped: false,
-            sets: parseInt(tempSetsCount) || newReps.length,
+            sets: totalSets,
             reps: newReps,
             weights: newWeights,
             rpes: tempRpes,
@@ -286,11 +326,12 @@ export default function ProfileScreen() {
       await setDoc(doc(db, 'users', user.uid, 'workout_logs', dateString), updatedLog, { merge: true });
     }
 
-    const totalSets = parseInt(tempSetsCount) || newReps.length;
-    if (activeSetIndex < totalSets - 1) setActiveSetIndex(activeSetIndex + 1);
+    if (nextIdx < totalSets) {
+      setActiveSetIndex(nextIdx);
+    }
   };
 
-  const saveExerciseLog = async (skipped = false, nextExerciseToOpen: any = null) => {
+const saveExerciseLog = async (skipped = false) => {
     if (!activeExercise) return;
     setSavingExercise(true);
     try {
@@ -310,8 +351,7 @@ export default function ProfileScreen() {
           exercises: { ...workoutLog.exercises, [activeExercise.id]: exerciseData },
         };
         await setDoc(doc(db, 'users', user.uid, 'workout_logs', dateString), updatedLog, { merge: true });
-        if (nextExerciseToOpen) openExerciseModal(nextExerciseToOpen);
-        else setActiveExercise(null);
+        setActiveExercise(null);
       }
     } finally {
       setSavingExercise(false);
@@ -549,7 +589,7 @@ export default function ProfileScreen() {
                 <Ionicons name="timer-outline" size={18} color={k.cyan} />
                 <View>
                   <Text style={kStyles.kickerMuted}>DURACIÓN</Text>
-                  <Text style={{ fontSize: 12, fontWeight: '900', color: k.textMain }}>45 - 60 Min</Text>
+                  <Text style={{ fontSize: 12, fontWeight: '900', color: k.textMain }}>{totalExercisesCount*15} - {totalExercisesCount*15 + 15} Min</Text>
                 </View>
               </View>
             </View>
@@ -564,7 +604,7 @@ export default function ProfileScreen() {
                 </TouchableOpacity>
               </View>
 
-              {!isLogging ? (
+           {!isLogging ? (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                   {todayPlan.exercises.map((ex: any, i: number) => (
                     <TouchableOpacity
@@ -593,10 +633,21 @@ export default function ProfileScreen() {
                         ]}
                         onPress={() => openExerciseModal(ex)}
                       >
-                        <Image
-                          source={imageMap[ex.id as keyof typeof imageMap]}
-                          style={[styles.exImg, { backgroundColor: k.surfaceHighest }]}
-                        />
+                        {imageMap[ex.id as keyof typeof imageMap] ? (
+                          <Image
+                            source={imageMap[ex.id as keyof typeof imageMap]}
+                            style={[styles.exImg, { backgroundColor: k.surfaceHighest }]}
+                          />
+                        ) : (
+                          <View
+                            style={[
+                              styles.exImg,
+                              { backgroundColor: k.surfaceHighest, justifyContent: 'center', alignItems: 'center' },
+                            ]}
+                          >
+                            <Ionicons name="barbell" size={20} color={k.cyan} />
+                          </View>
+                        )}
                         <View style={{ flex: 1, marginLeft: 12 }}>
                           <Text style={{ fontSize: 13, fontWeight: '900', color: k.textMain, textTransform: 'uppercase' }}>
                             {ex.name}
@@ -797,7 +848,7 @@ export default function ProfileScreen() {
         activeExIndex={activeExIndex}
         totalExercisesCount={totalExercisesCount}
         routineTitle={todayPlan?.title}
-        nextExercise={nextExercise}
+       // nextExercise={nextExercise}
         prevExData={activeExercise ? lastWeekLog?.exercises?.[activeExercise.id] : null}
         tempSetsCount={tempSetsCount}
         tempReps={tempReps}
@@ -805,17 +856,21 @@ export default function ProfileScreen() {
         tempRpes={tempRpes}
         activeSetIndex={activeSetIndex}
         savingExercise={savingExercise}
-        onSelectSetIndex={setActiveSetIndex}
+        onSelectSetIndex={(targetIdx) => {
+          // Si el usuario toca manualmente una serie pendiente sin peso, le copia el peso de la serie anterior
+          if (targetIdx > 0 && (!tempWeights[targetIdx] || tempWeights[targetIdx] === '')) {
+            const w = [...tempWeights];
+            w[targetIdx] = tempWeights[targetIdx - 1] || '';
+            setTempWeights(w);
+          }
+          setActiveSetIndex(targetIdx);
+        }}
         onUpdateRep={(idx, val) => {
           const r = [...tempReps];
           r[idx] = val;
           setTempReps(r);
         }}
-        onUpdateWeight={(idx, val) => {
-          const w = [...tempWeights];
-          w[idx] = val;
-          setTempWeights(w);
-        }}
+        onUpdateWeight={handleUpdateWeightWithCarryOver}
         onUpdateRpe={(idx, val) => {
           const rp = [...tempRpes];
           rp[idx] = val;

@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Switch, ScrollView, Image, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  Switch,
+  ScrollView,
+  Image,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { auth, db } from '../config/firebase';
@@ -24,6 +35,7 @@ import KineticHeader from '../components/common/KineticHeader';
 import KineticButton from '../components/common/KineticButton';
 import CatalogModal from '../components/modals/CatalogModal';
 import ExerciseDetailModal from '../components/modals/ExerciseDetailModal';
+import ExerciseSuggestionModal from '../components/modals/ExerciseSuggestionModal';
 
 export default function RoutineScreen() {
   const { colors: k, kStyles } = useTheme();
@@ -38,6 +50,7 @@ export default function RoutineScreen() {
 
   const [isCatalogVisible, setCatalogVisible] = useState(false);
   const [previewExercise, setPreviewExercise] = useState<Exercise | null>(null);
+  const [isSuggestionVisible, setSuggestionVisible] = useState(false);
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -73,6 +86,39 @@ export default function RoutineScreen() {
     }
   };
 
+  // --- COPIAR RUTINA DE OTRO DÍA QUE YA TENGA INFORMACIÓN ---
+  const handleCopyFromDay = async (sourceDay: string) => {
+    const sourcePlan = routine[sourceDay];
+    if (!sourcePlan) return;
+
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+    const clonedPlan: DayPlan = {
+      isRest: false,
+      title: sourcePlan.title || `Copia de ${sourceDay}`,
+      muscles: [...(sourcePlan.muscles || [])],
+      cardio: !!sourcePlan.cardio,
+      exercises: [...(sourcePlan.exercises || [])],
+    };
+
+    const updatedRoutine: Routine = {
+      ...routine,
+      [activeDay]: clonedPlan,
+    };
+
+    setRoutine(updatedRoutine);
+
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await setDoc(doc(db, 'users', user.uid, 'data', 'routine'), updatedRoutine);
+      }
+    } catch (error) {
+      console.error('Error guardando día copiado:', error);
+      Alert.alert('Error', 'Se copió en pantalla pero hubo un problema al sincronizar.');
+    }
+  };
+
   const updateActiveDay = (updates: Partial<DayPlan>) => {
     setRoutine((prev) => ({ ...prev, [activeDay]: { ...prev[activeDay], ...updates } }));
   };
@@ -92,6 +138,35 @@ export default function RoutineScreen() {
     }
     setPreviewExercise(null);
     setCatalogVisible(false);
+  };
+
+  // --- AGREGAR EJERCICIO CREADO POR EL USUARIO DIRECTO A SU RUTINA Y GUARDAR EN FIRESTORE ---
+  const handleAddCustomExerciseToDay = async (newExercise: Exercise) => {
+    const currentExercises = routine[activeDay].exercises || [];
+    const currentMuscles = routine[activeDay].muscles || [];
+
+    const updatedMuscles = currentMuscles.includes(newExercise.muscle)
+      ? currentMuscles
+      : [...currentMuscles, newExercise.muscle];
+
+    const updatedDayPlan: DayPlan = {
+      ...routine[activeDay],
+      isRest: false,
+      muscles: updatedMuscles,
+      exercises: [...currentExercises, newExercise],
+    };
+
+    const updatedRoutine: Routine = {
+      ...routine,
+      [activeDay]: updatedDayPlan,
+    };
+
+    setRoutine(updatedRoutine);
+
+    const user = auth.currentUser;
+    if (user) {
+      await setDoc(doc(db, 'users', user.uid, 'data', 'routine'), updatedRoutine);
+    }
   };
 
   const handleRemoveExercise = (exerciseId: string) => {
@@ -121,6 +196,19 @@ export default function RoutineScreen() {
   const activeDaysCount = DAYS_FROM_MONDAY.filter(
     (d) => !routine[d]?.isRest && (routine[d]?.exercises?.length || 0) > 0
   ).length;
+
+  const daysWithInfo = DAYS_FROM_MONDAY.filter(
+    (d) =>
+      d !== activeDay &&
+      !routine[d]?.isRest &&
+      ((routine[d]?.exercises?.length || 0) > 0 || (routine[d]?.muscles?.length || 0) > 0 || !!routine[d]?.title)
+  );
+
+  const isCurrentDayEmpty =
+    !currentPlan.isRest &&
+    (!currentPlan.exercises || currentPlan.exercises.length === 0);
+
+  const userCustomExercises: Exercise[] = userData?.customExercises || [];
 
   return (
     <SafeAreaView style={kStyles.container}>
@@ -296,9 +384,52 @@ export default function RoutineScreen() {
 
               <View style={kStyles.divider} />
 
-              <Text style={[kStyles.kickerMuted, { marginBottom: 10 }]}>
-                DOSSIER DE EJERCICIOS ({currentPlan.exercises?.length || 0})
-              </Text>
+              <View style={[kStyles.rowBetween, { marginBottom: 10 }]}>
+                <Text style={kStyles.kickerMuted}>
+                  DOSSIER DE EJERCICIOS ({currentPlan.exercises?.length || 0})
+                </Text>
+              </View>
+
+              {/* SI EL DÍA ESTÁ VACÍO: OPCIÓN RÁPIDA PARA COPIAR OTRO DÍA CON INFORMACIÓN */}
+              {isCurrentDayEmpty && (
+                <View style={[styles.emptyDayContainer, { backgroundColor: k.surfaceLowest, borderColor: k.outline }]}>
+                  <Ionicons name="copy-outline" size={26} color={k.cyan} />
+                  <Text style={{ fontSize: 13, fontWeight: '900', color: k.textMain, textAlign: 'center' }}>
+                    {activeDay.toUpperCase()} ESTÁ VACÍO
+                  </Text>
+
+                  {daysWithInfo.length > 0 ? (
+                    <>
+                      <Text style={[kStyles.bodyMuted, { textAlign: 'center' }]}>
+                        ¿Haces la misma rutina que otro día? Toca un día para clonar sus músculos y ejercicios al instante:
+                      </Text>
+                      <View style={styles.copyPillsWrap}>
+                        {daysWithInfo.map((sourceDay) => (
+                          <TouchableOpacity
+                            key={sourceDay}
+                            style={[styles.copyDayPill, { backgroundColor: k.surfaceHigh, borderColor: k.cyan }]}
+                            onPress={() => handleCopyFromDay(sourceDay)}
+                          >
+                            <Ionicons name="duplicate-outline" size={14} color={k.cyan} />
+                            <View>
+                              <Text style={{ fontSize: 11, fontWeight: '900', color: k.textMain }}>
+                                Copiar {sourceDay}
+                              </Text>
+                              <Text style={{ fontSize: 9, color: k.lime, fontWeight: '700' }} numberOfLines={1}>
+                                {routine[sourceDay]?.title || `${routine[sourceDay]?.exercises?.length || 0} ejercicios`}
+                              </Text>
+                            </View>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </>
+                  ) : (
+                    <Text style={[kStyles.bodyMuted, { textAlign: 'center' }]}>
+                      Explora el catálogo abajo para agregar tus primeros ejercicios de la semana.
+                    </Text>
+                  )}
+                </View>
+              )}
 
               <View style={{ gap: 10 }}>
                 {currentPlan.exercises?.map((ex, idx) => (
@@ -315,10 +446,23 @@ export default function RoutineScreen() {
                           {(idx + 1).toString().padStart(2, '0')}
                         </Text>
                       </View>
-                      <Image
-                        source={imageMap[ex.id as keyof typeof imageMap]}
-                        style={[styles.exImg, { backgroundColor: k.surfaceHighest }]}
-                      />
+
+                      {imageMap[ex.id as keyof typeof imageMap] ? (
+                        <Image
+                          source={imageMap[ex.id as keyof typeof imageMap]}
+                          style={[styles.exImg, { backgroundColor: k.surfaceHighest }]}
+                        />
+                      ) : (
+                        <View
+                          style={[
+                            styles.exImg,
+                            { backgroundColor: k.surfaceHighest, justifyContent: 'center', alignItems: 'center' },
+                          ]}
+                        >
+                          <Ionicons name="barbell" size={20} color={k.cyan} />
+                        </View>
+                      )}
+
                       <View style={{ flex: 1, marginLeft: 12 }}>
                         <Text
                           style={{ fontSize: 13, fontWeight: '900', color: k.textMain, textTransform: 'uppercase' }}
@@ -331,7 +475,10 @@ export default function RoutineScreen() {
                     </TouchableOpacity>
 
                     {isEditing && (
-                      <TouchableOpacity onPress={() => handleRemoveExercise(ex.id)} style={{ padding: 8 }}>
+                      <TouchableOpacity
+                        onPress={() => handleRemoveExercise(ex.id)}
+                        style={[styles.deleteBtnBox, { backgroundColor: 'rgba(255, 115, 81, 0.14)' }]}
+                      >
                         <Ionicons name="trash-outline" size={18} color={k.danger} />
                       </TouchableOpacity>
                     )}
@@ -368,8 +515,13 @@ export default function RoutineScreen() {
       <CatalogModal
         visible={isCatalogVisible}
         currentDayExercises={currentPlan.exercises || []}
+        userCustomExercises={userCustomExercises}
         onClose={() => setCatalogVisible(false)}
         onSelectExercise={(ex) => setPreviewExercise(ex)}
+        onOpenMissingExerciseModal={() => {
+          setCatalogVisible(false);
+          setTimeout(() => setSuggestionVisible(true), 250);
+        }}
       />
 
       <ExerciseDetailModal
@@ -379,6 +531,14 @@ export default function RoutineScreen() {
         onClose={() => setPreviewExercise(null)}
         onAdd={handleAddExercise}
         onRemove={handleRemoveExercise}
+      />
+
+      <ExerciseSuggestionModal
+        visible={isSuggestionVisible}
+        activeDay={activeDay}
+        existingCustomExercises={userCustomExercises}
+        onClose={() => setSuggestionVisible(false)}
+        onAddCustomExerciseToDay={handleAddCustomExerciseToDay}
       />
     </SafeAreaView>
   );
@@ -390,9 +550,41 @@ const styles = StyleSheet.create({
   editBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14 },
   editBox: { padding: 14, borderRadius: 16, marginBottom: 14, marginLeft: 4 },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 11, paddingVertical: 6, borderRadius: 14, borderWidth: 1 },
+  emptyDayContainer: {
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  copyPillsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 6,
+  },
+  copyDayPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
   exRow: { flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 14 },
   orderBadge: { width: 26, height: 26, borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginRight: 10 },
   exImg: { width: 48, height: 48, borderRadius: 10 },
+  deleteBtnBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
   addBtn: {
     flexDirection: 'row',
     alignItems: 'center',

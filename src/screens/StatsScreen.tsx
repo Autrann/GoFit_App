@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  TouchableOpacity,
+  Dimensions,
+  Image,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { auth, db } from '../config/firebase';
@@ -8,11 +17,20 @@ import { useNavigation } from '@react-navigation/native';
 import { LineChart } from 'react-native-chart-kit';
 import * as Haptics from 'expo-haptics';
 
+import catalog from '../assets/data/catalogo_app.json';
+import { imageMap } from '../assets/imgs/imageMap';
 import { useTheme } from '../context/ThemeContext';
-import { DAYS_FROM_SUNDAY, DAYS_SHORT, DAYS_LETTER } from '../constants/appConstants';
-import { buildRealWeightChartData, extractExerciseHistory, WeightEntry } from '../utils/analytics';
+import { DAYS_FROM_SUNDAY, DAYS_SHORT, DAYS_LETTER, Exercise } from '../constants/appConstants';
+import {
+  buildRealWeightChartData,
+  extractExerciseHistory,
+  analyzeExerciseOverload,
+  formatReadableDate,
+  WeightEntry,
+} from '../utils/analytics';
 import KineticHeader from '../components/common/KineticHeader';
 import ExerciseStatsModal from '../components/modals/ExerciseStatsModal';
+import PRLogModal, { CustomPRItem } from '../components/modals/PRLogModal';
 
 const { width } = Dimensions.get('window');
 
@@ -27,12 +45,19 @@ export default function StatsScreen() {
 
   const [weeklyData, setWeeklyData] = useState<any[]>([]);
   const [timeframe, setTimeframe] = useState<'1S' | '1M' | '3M' | '1A'>('3M');
+
+  // Selector de Modo en Sobrecarga Progresiva: Por Ejercicio vs Por Día
+  const [overloadViewMode, setOverloadViewMode] = useState<'by_exercise' | 'by_day'>('by_exercise');
   const [selectedMuscleFilter, setSelectedMuscleFilter] = useState<string>('Todos');
 
   const [routineExercises, setRoutineExercises] = useState<any[]>([]);
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
   const [isExerciseModalVisible, setExerciseModalVisible] = useState(false);
   const [allWorkoutLogs, setAllWorkoutLogs] = useState<any[]>([]);
+
+  // Estados para el módulo aparte de Récords Personales (PRs)
+  const [isPRModalVisible, setPRModalVisible] = useState(false);
+  const [prInitialExercise, setPrInitialExercise] = useState<Exercise | null>(null);
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -88,22 +113,12 @@ export default function StatsScreen() {
         d.setDate(d.getDate() - i);
         const dateStr = d.toISOString().split('T')[0];
         const log = logs.find((l) => l.date === dateStr);
-        let dailyVolume = 0;
-        let rpeSum = 0;
-        let rpeCount = 0;
 
+        let hasTrained = false;
         if (log?.exercises) {
           Object.values(log.exercises).forEach((ex: any) => {
-            if (!ex.skipped && ex.reps && ex.weights) {
-              for (let j = 0; j < ex.sets; j++) {
-                const r = parseInt(ex.reps[j]) || 0;
-                const w = parseFloat(ex.weights[j]) || 1;
-                if (r > 0) dailyVolume += r * w;
-                if (ex.rpes?.[j]) {
-                  rpeSum += parseFloat(ex.rpes[j]);
-                  rpeCount++;
-                }
-              }
+            if (!ex.skipped && ex.reps?.some((r: string) => parseInt(r, 10) > 0)) {
+              hasTrained = true;
             }
           });
         }
@@ -113,9 +128,7 @@ export default function StatsScreen() {
           dayName: i === 0 ? 'Hoy' : DAYS_SHORT[d.getDay()],
           fullDayName: DAYS_FROM_SUNDAY[d.getDay()],
           shortLetter: DAYS_LETTER[d.getDay()],
-          volume: dailyVolume,
-          finished: log?.finished || false,
-          avgRpe: rpeCount > 0 ? (rpeSum / rpeCount).toFixed(1) : '8.5',
+          trained: log?.finished || hasTrained,
         });
       }
       setWeeklyData(tempWeekly);
@@ -147,8 +160,6 @@ export default function StatsScreen() {
       : null;
 
   const targetWeightVal = userData?.targetWeight ? parseFloat(userData.targetWeight) : null;
-  const bestDay = [...weeklyData].sort((a, b) => b.volume - a.volume)[0];
-  const totalWeeklyVolume = weeklyData.reduce((acc, d) => acc + d.volume, 0);
   const muscleCategories = ['Todos', ...Array.from(new Set(routineExercises.map((e) => e.muscle).filter(Boolean)))];
   const filteredExercises =
     selectedMuscleFilter === 'Todos'
@@ -156,8 +167,30 @@ export default function StatsScreen() {
       : routineExercises.filter((e) => e.muscle === selectedMuscleFilter);
 
   const selectedExHistory = selectedExerciseId
-    ? extractExerciseHistory(selectedExerciseId, allWorkoutLogs).slice(-8)
+    ? extractExerciseHistory(selectedExerciseId, allWorkoutLogs)
     : [];
+
+  // Entrenamientos pasados (del más reciente al más antiguo) que tengan al menos 1 ejercicio registrado
+  const pastWorkoutDays = [...allWorkoutLogs]
+    .filter((log) => {
+      if (!log.exercises) return false;
+      return Object.values(log.exercises).some(
+        (ex: any) => !ex.skipped && ex.reps?.some((r: string) => parseInt(r, 10) > 0)
+      );
+    })
+    .reverse()
+    .slice(0, 12);
+
+  // Récords Personales (PRs) guardados aparte por el usuario
+  const customPRsMap: Record<string, CustomPRItem> = userData?.customPRs || {};
+  const customPRsList = Object.values(customPRsMap).sort((a, b) => b.weight - a.weight);
+
+  const getExerciseNameById = (exId: string) => {
+    const fromRoutine = routineExercises.find((e) => e.id === exId);
+    if (fromRoutine) return fromRoutine.name;
+    const fromCatalog = catalog.find((c) => c.id === exId);
+    return fromCatalog ? fromCatalog.name : exId;
+  };
 
   return (
     <SafeAreaView style={kStyles.container}>
@@ -175,49 +208,56 @@ export default function StatsScreen() {
             <Text style={kStyles.intelPillText}>PERFORMANCE INTELLIGENCE</Text>
           </View>
           <Text style={kStyles.mainHeadline}>
-            MÉTRICAS & <Text style={{ color: k.lime }}>EVOLUCIÓN</Text>
+            PROGRESO & <Text style={{ color: k.lime }}>SOBRECARGA</Text>
           </Text>
         </View>
 
-        {/* Racha & Matriz de Consistencia Semanal */}
+        {/* 1. RACHA & CONSTANCIA SEMANAL */}
         <View style={kStyles.card}>
           <View style={kStyles.rowBetween}>
             <View>
-              <Text style={kStyles.kickerMuted}>🔥 RACHA ININTERRUMPIDA</Text>
+              <Text style={kStyles.kickerMuted}>🔥 RACHA DE CONSTANCIA</Text>
               <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
-                <Text style={{ fontSize: 42, fontWeight: '900', fontStyle: 'italic', color: k.lime }}>
+                <Text style={{ fontSize: 40, fontWeight: '900', fontStyle: 'italic', color: k.lime }}>
                   {userData?.streak || 0}
                 </Text>
-                <Text style={{ fontSize: 13, fontWeight: '900', color: k.textMain }}>DÍAS</Text>
+                <Text style={{ fontSize: 13, fontWeight: '900', color: k.textMain }}>DÍAS SEGUIDOS</Text>
               </View>
             </View>
-            <Text style={kStyles.bodyMuted}>
-              {weeklyData.filter((d) => d.finished || d.volume > 0).length}/7 días activos
-            </Text>
+            <View style={[styles.activeDaysPill, { backgroundColor: k.surfaceLowest }]}>
+              <Text style={{ fontSize: 11, fontWeight: '900', color: k.cyan }}>
+                {weeklyData.filter((d) => d.trained).length}/7 días esta sem.
+              </Text>
+            </View>
           </View>
 
           <View style={[kStyles.divider, { marginVertical: 12 }]} />
 
           <View style={kStyles.rowBetween}>
-            {weeklyData.map((day) => {
-              const isBest = bestDay?.volume > 0 && day.date === bestDay.date;
-              const isDone = day.finished || day.volume > 0;
+            {weeklyData.map((day, idx) => {
+              const isToday = idx === 6;
               return (
                 <View key={day.date} style={{ alignItems: 'center', gap: 6 }}>
-                  <Text style={{ fontSize: 9, fontWeight: '800', color: isBest ? k.cyan : k.textMuted }}>
+                  <Text
+                    style={{
+                      fontSize: 9,
+                      fontWeight: '800',
+                      color: isToday ? k.cyan : k.textMuted,
+                    }}
+                  >
                     {day.shortLetter}
                   </Text>
                   <View
                     style={[
                       styles.matrixDot,
                       {
-                        backgroundColor: isBest ? k.cyan : isDone ? k.limeBg : k.surfaceHighest,
+                        backgroundColor: day.trained ? k.limeBg : k.surfaceHighest,
+                        borderWidth: isToday && !day.trained ? 1.5 : 0,
+                        borderColor: k.cyan,
                       },
                     ]}
                   >
-                    {isDone && (
-                      <Ionicons name={isBest ? 'flash' : 'checkmark'} size={12} color="#000" />
-                    )}
+                    {day.trained && <Ionicons name="checkmark" size={13} color="#3a4a00" />}
                   </View>
                 </View>
               );
@@ -225,40 +265,406 @@ export default function StatsScreen() {
           </View>
         </View>
 
-        {/* Mejor Día de la Semana */}
-        <View style={kStyles.surfaceCard}>
-          <View style={kStyles.leftNotch} />
-          <View style={{ paddingLeft: 6, gap: 10 }}>
-            <View style={kStyles.rowBetween}>
-              <View>
-                <Text style={kStyles.kickerCyan}>RENDIMIENTO MÁXIMO</Text>
-                <Text style={{ fontSize: 16, fontWeight: '900', fontStyle: 'italic', color: k.textMain }}>
-                  {bestDay?.volume > 0 ? bestDay.fullDayName.toUpperCase() : 'SIN REGISTROS'}
-                </Text>
-              </View>
-              <Text style={{ fontSize: 11, fontWeight: '800', color: k.cyan }}>
-                {routineData?.[bestDay?.fullDayName]?.title || 'Sesión'}
+        {/* ========================================================================= */}
+        {/* 2. SECCIÓN PRINCIPAL: SOBRECARGA PROGRESIVA (POR EJERCICIO / POR DÍA)      */}
+        {/* ========================================================================= */}
+        <View style={{ gap: 12 }}>
+          <View style={kStyles.rowBetween}>
+            <View>
+              <Text style={kStyles.kickerLime}>AVANCE REAL EN PESOS Y REPS</Text>
+              <Text style={{ fontSize: 19, fontWeight: '900', fontStyle: 'italic', color: k.textMain }}>
+                SOBRECARGA PROGRESIVA
               </Text>
             </View>
+          </View>
 
-            <View style={{ flexDirection: 'row', gap: 10 }}>
-              <View style={[styles.statBox, { backgroundColor: k.surfaceLow }]}>
-                <Text style={kStyles.bodyMuted}>Volumen Pico</Text>
-                <Text style={{ fontSize: 18, fontWeight: '900', color: k.textMain }}>
-                  {Math.round(bestDay?.volume || 0).toLocaleString()} <Text style={{ fontSize: 10, color: k.lime }}>KG</Text>
-                </Text>
+          {/* Selector de Vista: Por Ejercicio vs Por Día */}
+          <View style={[styles.viewToggleContainer, { backgroundColor: k.surfaceHigh }]}>
+            <TouchableOpacity
+              style={[
+                styles.viewToggleBtn,
+                overloadViewMode === 'by_exercise' && { backgroundColor: k.limeBg },
+              ]}
+              onPress={() => {
+                Haptics.selectionAsync();
+                setOverloadViewMode('by_exercise');
+              }}
+            >
+              <Ionicons
+                name="barbell-outline"
+                size={15}
+                color={overloadViewMode === 'by_exercise' ? '#3a4a00' : k.textMuted}
+              />
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '900',
+                  color: overloadViewMode === 'by_exercise' ? '#3a4a00' : k.textMuted,
+                }}
+              >
+                POR EJERCICIO
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.viewToggleBtn,
+                overloadViewMode === 'by_day' && { backgroundColor: k.cyan },
+              ]}
+              onPress={() => {
+                Haptics.selectionAsync();
+                setOverloadViewMode('by_day');
+              }}
+            >
+              <Ionicons
+                name="calendar-outline"
+                size={15}
+                color={overloadViewMode === 'by_day' ? '#00363a' : k.textMuted}
+              />
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '900',
+                  color: overloadViewMode === 'by_day' ? '#00363a' : k.textMuted,
+                }}
+              >
+                POR DÍA (SESIONES)
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {overloadViewMode === 'by_exercise' ? (
+            <>
+              {/* Filtros por Músculo */}
+              {muscleCategories.length > 1 && (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+                  {muscleCategories.map((m) => {
+                    const active = selectedMuscleFilter === m;
+                    return (
+                      <TouchableOpacity
+                        key={m}
+                        style={[styles.filterPill, { backgroundColor: active ? k.limeBg : k.surfaceHigh }]}
+                        onPress={() => {
+                          Haptics.selectionAsync();
+                          setSelectedMuscleFilter(m);
+                        }}
+                      >
+                        <Text style={{ fontSize: 11, fontWeight: '800', color: active ? '#3a4a00' : k.textMuted }}>
+                          {m}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              )}
+
+              {filteredExercises.length === 0 ? (
+                <View style={[kStyles.surfaceCard, { alignItems: 'center', paddingVertical: 24, gap: 8 }]}>
+                  <Ionicons name="barbell-outline" size={32} color={k.textMuted} />
+                  <Text style={[kStyles.bodyMuted, { textAlign: 'center' }]}>
+                    Agrega ejercicios en tu pestaña "Rutina" para ver aquí cómo suben tus pesos y repeticiones.
+                  </Text>
+                </View>
+              ) : (
+                filteredExercises.map((ex) => {
+                  const comp = analyzeExerciseOverload(ex.id, allWorkoutLogs);
+
+                  const badgeColor =
+                    comp.status === 'up_weight'
+                      ? k.lime
+                      : comp.status === 'up_reps'
+                      ? k.cyan
+                      : comp.status === 'down'
+                      ? k.danger
+                      : k.textMuted;
+
+                  return (
+                    <TouchableOpacity
+                      key={ex.id}
+                      style={[kStyles.surfaceCard, { gap: 10 }]}
+                      activeOpacity={0.88}
+                      onPress={() => {
+                        Haptics.selectionAsync();
+                        setSelectedExerciseId(ex.id);
+                        setExerciseModalVisible(true);
+                      }}
+                    >
+                      {/* Cabecera de la tarjeta del ejercicio */}
+                      <View style={kStyles.rowBetween}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+                          <Image
+                            source={imageMap[ex.id as keyof typeof imageMap]}
+                            style={[styles.exThumb, { backgroundColor: k.surfaceHighest }]}
+                          />
+                          <View style={{ flex: 1 }}>
+                            <Text style={kStyles.kickerMuted}>{ex.muscle}</Text>
+                            <Text
+                              style={{ fontSize: 14, fontWeight: '900', color: k.textMain, textTransform: 'uppercase' }}
+                              numberOfLines={1}
+                            >
+                              {ex.name}
+                            </Text>
+                          </View>
+                        </View>
+
+                        {/* Insignia de estado de sobrecarga */}
+                        <View
+                          style={[
+                            styles.overloadStatusPill,
+                            { backgroundColor: k.surfaceLowest, borderColor: badgeColor },
+                          ]}
+                        >
+                          <Text style={{ fontSize: 9, fontWeight: '900', color: badgeColor }}>
+                            {comp.badgeText}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {/* Comparativa Directa: Sesión Anterior vs Última Sesión */}
+                      {comp.latest ? (
+                        <>
+                          <View style={styles.comparisonBoxesRow}>
+                            <View style={[styles.sessionCompareBox, { backgroundColor: k.surfaceLowest }]}>
+                              <Text style={{ fontSize: 9, fontWeight: '800', color: k.textMuted }}>
+                                {comp.previous ? `ANTERIOR (${comp.previous.shortDate})` : 'SESIÓN PREVIA'}
+                              </Text>
+                              <Text style={{ fontSize: 15, fontWeight: '800', color: k.textMuted, marginTop: 2 }}>
+                                {comp.previous
+                                  ? `${comp.previous.maxWeight} kg × ${comp.previous.bestRepsAtMax} reps`
+                                  : 'Sin previa'}
+                              </Text>
+                            </View>
+
+                            <View style={styles.arrowCircle}>
+                              <Ionicons name="arrow-forward" size={14} color={badgeColor} />
+                            </View>
+
+                            <View
+                              style={[
+                                styles.sessionCompareBox,
+                                { backgroundColor: k.surfaceLowest, borderColor: badgeColor, borderWidth: 1 },
+                              ]}
+                            >
+                              <Text style={{ fontSize: 9, fontWeight: '900', color: badgeColor }}>
+                                ÚLTIMA ({comp.latest.shortDate})
+                              </Text>
+                              <Text style={{ fontSize: 16, fontWeight: '900', color: k.textMain, marginTop: 2 }}>
+                                {comp.latest.maxWeight} kg × {comp.latest.bestRepsAtMax} reps
+                              </Text>
+                            </View>
+                          </View>
+
+                          {/* Píldoras con todas las series de la última sesión */}
+                          <View style={[kStyles.rowBetween, { marginTop: 2 }]}>
+                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5, flex: 1 }}>
+                              {comp.latest.setsDetail.map((s) => (
+                                <View
+                                  key={s.setNumber}
+                                  style={[styles.miniSetTag, { backgroundColor: k.surfaceHighest }]}
+                                >
+                                  <Text style={{ fontSize: 10, fontWeight: '800', color: k.textMain }}>
+                                    S{s.setNumber}: {s.weight}kg×{s.reps}
+                                  </Text>
+                                </View>
+                              ))}
+                            </View>
+                            <Text style={{ fontSize: 10, fontWeight: '800', color: k.cyan, marginLeft: 8 }}>
+                              Historial →
+                            </Text>
+                          </View>
+                        </>
+                      ) : (
+                        <Text style={kStyles.bodyMuted}>
+                          Aún no has registrado series de este ejercicio.
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })
+              )}
+            </>
+          ) : (
+            /* VISTA 2: POR DÍA (ENTRENAMIENTOS ANTERIORES) */
+            <View style={{ gap: 12 }}>
+              {pastWorkoutDays.length === 0 ? (
+                <View style={[kStyles.surfaceCard, { alignItems: 'center', paddingVertical: 24, gap: 8 }]}>
+                  <Ionicons name="calendar-outline" size={32} color={k.textMuted} />
+                  <Text style={[kStyles.bodyMuted, { textAlign: 'center' }]}>
+                    Aquí aparecerán tus entrenamientos anteriores por fecha conforme vayas registrando tus días.
+                  </Text>
+                </View>
+              ) : (
+                pastWorkoutDays.map((dayLog) => {
+                  const dObj = new Date(dayLog.date + 'T12:00:00Z');
+                  const dayOfWeekName = DAYS_FROM_SUNDAY[dObj.getDay()];
+                  const splitTitle = routineData?.[dayOfWeekName]?.title || 'Entrenamiento';
+                  const exIds = Object.keys(dayLog.exercises || {}).filter(
+                    (id) =>
+                      !dayLog.exercises[id].skipped &&
+                      dayLog.exercises[id].reps?.some((r: string) => parseInt(r, 10) > 0)
+                  );
+
+                  return (
+                    <View key={dayLog.date} style={[kStyles.surfaceCard, { gap: 10 }]}>
+                      <View style={kStyles.leftNotch} />
+                      <View style={[kStyles.rowBetween, { paddingLeft: 6 }]}>
+                        <View>
+                          <Text style={kStyles.kickerCyan}>
+                            {dayOfWeekName.toUpperCase()} • {formatReadableDate(dayLog.date).toUpperCase()}
+                          </Text>
+                          <Text style={{ fontSize: 16, fontWeight: '900', fontStyle: 'italic', color: k.textMain }}>
+                            {splitTitle.toUpperCase()}
+                          </Text>
+                        </View>
+                        <View style={[styles.activeDaysPill, { backgroundColor: k.surfaceLowest }]}>
+                          <Text style={{ fontSize: 10, fontWeight: '900', color: k.lime }}>
+                            {exIds.length} ejercicios
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={{ gap: 8, paddingLeft: 6 }}>
+                        {exIds.map((exId) => {
+                          const exLog = dayLog.exercises[exId];
+                          const setsCount = exLog.sets || exLog.reps?.length || 0;
+
+                          return (
+                            <TouchableOpacity
+                              key={exId}
+                              style={[styles.dayExItemBox, { backgroundColor: k.surfaceLowest }]}
+                              onPress={() => {
+                                Haptics.selectionAsync();
+                                setSelectedExerciseId(exId);
+                                setExerciseModalVisible(true);
+                              }}
+                            >
+                              <View style={[kStyles.rowBetween, { marginBottom: 6 }]}>
+                                <Text
+                                  style={{ fontSize: 12, fontWeight: '900', color: k.textMain, textTransform: 'uppercase', flex: 1 }}
+                                  numberOfLines={1}
+                                >
+                                  {getExerciseNameById(exId)}
+                                </Text>
+                                <Ionicons name="stats-chart" size={13} color={k.cyan} />
+                              </View>
+
+                              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
+                                {Array.from({ length: setsCount }).map((_, sIdx) => {
+                                  const r = parseInt(exLog.reps?.[sIdx], 10) || 0;
+                                  const w = parseFloat(exLog.weights?.[sIdx]) || 0;
+                                  if (r <= 0) return null;
+                                  return (
+                                    <View
+                                      key={sIdx}
+                                      style={[styles.miniSetTag, { backgroundColor: k.surfaceHigh }]}
+                                    >
+                                      <Text style={{ fontSize: 10, fontWeight: '800', color: k.textMain }}>
+                                        S{sIdx + 1}: <Text style={{ color: k.lime }}>{w}kg</Text> × {r}
+                                      </Text>
+                                    </View>
+                                  );
+                                })}
+                              </View>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  );
+                })
+              )}
+            </View>
+          )}
+        </View>
+
+        {/* ========================================================================= */}
+        {/* 3. SECCIÓN APARTE: MIS RÉCORDS PERSONALES (PRs MANUALES)                  */}
+        {/* ========================================================================= */}
+        <View style={[kStyles.card, { gap: 12 }]}>
+          <View style={kStyles.rowBetween}>
+            <View style={kStyles.rowAlign}>
+              <View style={[styles.trophyIconBox, { backgroundColor: 'rgba(245, 206, 83, 0.16)' }]}>
+                <Ionicons name="trophy" size={18} color={k.gold} />
               </View>
-              <View style={[styles.statBox, { backgroundColor: k.surfaceLow }]}>
-                <Text style={kStyles.bodyMuted}>Intensidad Media</Text>
-                <Text style={{ fontSize: 18, fontWeight: '900', color: k.textMain }}>
-                  RPE {bestDay?.avgRpe || '8.5'}
+              <View>
+                <Text style={{ fontSize: 14, fontWeight: '900', fontStyle: 'italic', color: k.textMain }}>
+                  MIS RÉCORDS PERSONALES (PRs)
+                </Text>
+                <Text style={{ fontSize: 10, color: k.textMuted }}>
+                  Tus cargas máximas registradas aparte
                 </Text>
               </View>
             </View>
+
+            <TouchableOpacity
+              style={[styles.addPrBtn, { backgroundColor: k.limeBg }]}
+              onPress={() => {
+                Haptics.selectionAsync();
+                setPrInitialExercise(null);
+                setPRModalVisible(true);
+              }}
+            >
+              <Ionicons name="add" size={15} color="#3a4a00" />
+              <Text style={{ fontSize: 10, fontWeight: '900', color: '#3a4a00' }}>NUEVO PR</Text>
+            </TouchableOpacity>
           </View>
+
+          {customPRsList.length === 0 ? (
+            <View style={[styles.emptyPrBox, { backgroundColor: k.surfaceLowest }]}>
+              <Text style={[kStyles.bodyMuted, { textAlign: 'center' }]}>
+                ¿Lograste un récord personal en Press de Banca, Sentadilla o tu ejercicio favorito? Regístralo aquí para llevar tu muro de trofeos.
+              </Text>
+            </View>
+          ) : (
+            <View style={{ gap: 8 }}>
+              {customPRsList.map((prItem) => (
+                <TouchableOpacity
+                  key={prItem.exerciseId}
+                  style={[styles.prRowCard, { backgroundColor: k.surfaceLowest, borderColor: k.outline }]}
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    setPrInitialExercise({
+                      id: prItem.exerciseId,
+                      name: prItem.exerciseName,
+                      muscle: prItem.muscle,
+                      image: '',
+                    });
+                    setPRModalVisible(true);
+                  }}
+                >
+                  <Image
+                    source={imageMap[prItem.exerciseId as keyof typeof imageMap]}
+                    style={[styles.prImg, { backgroundColor: k.surfaceHighest }]}
+                  />
+                  <View style={{ flex: 1, marginLeft: 10 }}>
+                    <Text
+                      style={{ fontSize: 13, fontWeight: '900', color: k.textMain, textTransform: 'uppercase' }}
+                      numberOfLines={1}
+                    >
+                      {prItem.exerciseName}
+                    </Text>
+                    <Text style={{ fontSize: 10, color: k.textMuted }}>
+                      {prItem.muscle} • {formatReadableDate(prItem.date)}
+                    </Text>
+                  </View>
+
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={{ fontSize: 18, fontWeight: '900', fontStyle: 'italic', color: k.gold }}>
+                      {prItem.weight} KG
+                    </Text>
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: k.lime }}>
+                      × {prItem.reps} {prItem.reps === 1 ? 'REP (1RM)' : 'REPS'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
-        {/* Evolución REAL de Peso Corporal */}
+        {/* ========================================================================= */}
+        {/* 4. EVOLUCIÓN REAL DE PESO CORPORAL                                        */}
+        {/* ========================================================================= */}
         <View style={kStyles.surfaceCard}>
           <View style={kStyles.rowBetween}>
             <View>
@@ -364,94 +770,6 @@ export default function StatsScreen() {
             </Text>
           )}
         </View>
-
-        {/* Sobrecarga Progresiva por Ejercicio */}
-        <View style={{ gap: 10 }}>
-          <View style={kStyles.rowBetween}>
-            <View>
-              <Text style={kStyles.kickerLime}>FUERZA REAL</Text>
-              <Text style={{ fontSize: 18, fontWeight: '900', fontStyle: 'italic', color: k.textMain }}>
-                SOBRECARGA PROGRESIVA
-              </Text>
-            </View>
-            <TouchableOpacity onPress={() => setExerciseModalVisible(true)}>
-              <Text style={{ fontSize: 11, fontWeight: '900', color: k.cyan }}>COMPARADOR →</Text>
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-            {muscleCategories.map((m) => {
-              const active = selectedMuscleFilter === m;
-              return (
-                <TouchableOpacity
-                  key={m}
-                  style={[styles.filterPill, { backgroundColor: active ? k.limeBg : k.surfaceHigh }]}
-                  onPress={() => setSelectedMuscleFilter(m)}
-                >
-                  <Text style={{ fontSize: 11, fontWeight: '800', color: active ? '#3a4a00' : k.textMuted }}>
-                    {m}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-
-          {filteredExercises.map((ex, idx) => {
-            const hist = extractExerciseHistory(ex.id, allWorkoutLogs);
-            const latest = hist[hist.length - 1];
-            const max1RM = hist.length > 0 ? Math.max(...hist.map((h) => h.est1RM)) : 0;
-            const accent = idx % 2 === 0 ? k.lime : k.cyan;
-
-            return (
-              <TouchableOpacity
-                key={ex.id}
-                style={kStyles.surfaceCard}
-                onPress={() => {
-                  Haptics.selectionAsync();
-                  setSelectedExerciseId(ex.id);
-                  setExerciseModalVisible(true);
-                }}
-              >
-                <View style={kStyles.rowBetween}>
-                  <View style={{ flex: 1, paddingRight: 10 }}>
-                    <Text style={kStyles.kickerMuted}>
-                      {ex.muscle} • {hist.length} SESIONES
-                    </Text>
-                    <Text
-                      style={{ fontSize: 14, fontWeight: '900', color: k.textMain, textTransform: 'uppercase', marginTop: 2 }}
-                    >
-                      {ex.name}
-                    </Text>
-                    <Text style={kStyles.bodyMuted}>
-                      {latest
-                        ? `Última: ${latest.lastSetsCount}x${latest.bestReps} @ ${latest.maxWeight} kg`
-                        : 'Toca para ver detalle'}
-                    </Text>
-                  </View>
-                  <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={kStyles.kickerMuted}>EST. 1RM</Text>
-                    <Text style={{ fontSize: 22, fontWeight: '900', fontStyle: 'italic', color: accent }}>
-                      {max1RM > 0 ? `${max1RM} kg` : '--'}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* Píldora de Tonelaje Semanal */}
-        <View style={[kStyles.card, kStyles.rowBetween, { padding: 14 }]}>
-          <View style={kStyles.rowAlign}>
-            <Ionicons name="pulse" size={20} color={k.cyan} />
-            <View>
-              <Text style={kStyles.kickerMuted}>VOLUMEN SEMANAL ACUMULADO</Text>
-              <Text style={{ fontSize: 13, fontWeight: '900', color: k.textMain }}>
-                {Math.round(totalWeeklyVolume).toLocaleString()} kg • <Text style={{ color: k.cyan }}>SNC Óptimo</Text>
-              </Text>
-            </View>
-          </View>
-        </View>
       </ScrollView>
 
       <ExerciseStatsModal
@@ -462,15 +780,103 @@ export default function StatsScreen() {
         onClose={() => setExerciseModalVisible(false)}
         onSelectExercise={setSelectedExerciseId}
       />
+
+      <PRLogModal
+        visible={isPRModalVisible}
+        existingPRs={customPRsMap}
+        initialExercise={prInitialExercise}
+        onClose={() => setPRModalVisible(false)}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  activeDaysPill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12 },
   matrixDot: { width: 26, height: 26, borderRadius: 13, justifyContent: 'center', alignItems: 'center' },
-  statBox: { flex: 1, padding: 10, borderRadius: 10 },
+  viewToggleContainer: {
+    flexDirection: 'row',
+    padding: 4,
+    borderRadius: 14,
+    gap: 6,
+  },
+  viewToggleBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  filterPill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
+  exThumb: { width: 42, height: 42, borderRadius: 10 },
+  overloadStatusPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  comparisonBoxesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  sessionCompareBox: {
+    flex: 1,
+    padding: 10,
+    borderRadius: 12,
+  },
+  arrowCircle: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  miniSetTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  dayExItemBox: {
+    padding: 10,
+    borderRadius: 12,
+  },
+  trophyIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addPrBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 14,
+  },
+  emptyPrBox: {
+    padding: 14,
+    borderRadius: 12,
+  },
+  prRowCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 14,
+    borderWidth: 0.5,
+  },
+  prImg: { width: 42, height: 42, borderRadius: 8 },
   tfRow: { flexDirection: 'row', padding: 3, borderRadius: 18, gap: 2 },
   tfBtn: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 },
-  deltaBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 12 },
-  filterPill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
+  deltaBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
 });
