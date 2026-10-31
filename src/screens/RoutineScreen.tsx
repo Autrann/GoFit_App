@@ -320,7 +320,7 @@ export default function RoutineScreen() {
                   <Text style={[kStyles.kickerMuted, { marginTop: 12, marginBottom: 6 }]}>TÍTULO DE LA SESIÓN</Text>
                   <TextInput
                     style={kStyles.kineticInput}
-                    placeholder="Ej. Torso Pesado, Pierna..."
+                    placeholder="Ej. Push, Pull..."
                     placeholderTextColor={k.textMuted}
                     value={currentPlan.title}
                     onChangeText={(val) => updateActiveDay({ title: val })}

@@ -36,13 +36,18 @@ export default function SlideToFinish({
   const glowAnim = useRef(new Animated.Value(0)).current;
   const maxSlideRef = useRef(0);
 
+  // CLAVE: Referencia siempre actualizada para evitar Stale Closure en PanResponder
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
   const onTrackLayout = (e: LayoutChangeEvent) => {
     const width = e.nativeEvent.layout.width;
     setTrackWidth(width);
     maxSlideRef.current = Math.max(0, width - THUMB_SIZE - PADDING * 2);
   };
 
-  // Animación de pulso brillante cuando el usuario completó todas sus series
   useEffect(() => {
     let loop: Animated.CompositeAnimation | null = null;
     if (isGlowing) {
@@ -69,7 +74,6 @@ export default function SlideToFinish({
     };
   }, [isGlowing]);
 
-  // Reiniciar posición si el modal se vuelve a abrir
   useEffect(() => {
     if (!loading) {
       translateX.setValue(0);
@@ -94,7 +98,6 @@ export default function SlideToFinish({
         const max = maxSlideRef.current;
         if (max <= 0) return;
 
-        // Si deslizó más del 75% del recorrido, confirmamos el cierre
         if (gesture.dx >= max * 0.75) {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           Animated.spring(translateX, {
@@ -102,10 +105,10 @@ export default function SlideToFinish({
             useNativeDriver: false,
             bounciness: 0,
           }).start(() => {
-            onComplete();
+            // Ejecutamos la referencia actualizada con el estado real de las series
+            onCompleteRef.current();
           });
         } else {
-          // Regresa suavemente al inicio si lo soltó antes
           Animated.spring(translateX, {
             toValue: 0,
             useNativeDriver: false,
@@ -154,7 +157,6 @@ export default function SlideToFinish({
         },
       ]}
     >
-      {/* Relleno que acompaña al dedo al deslizar */}
       <Animated.View
         style={[
           styles.fillTrack,
@@ -165,7 +167,6 @@ export default function SlideToFinish({
         ]}
       />
 
-      {/* Texto central estilo "Deslizar para desbloquear" */}
       <Animated.View style={[styles.labelContainer, { opacity: textOpacity }]} pointerEvents="none">
         <Text
           style={[
@@ -178,7 +179,6 @@ export default function SlideToFinish({
         </Text>
       </Animated.View>
 
-      {/* Botón deslizable (Thumb) */}
       <Animated.View
         {...panResponder.panHandlers}
         style={[

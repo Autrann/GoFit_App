@@ -337,19 +337,42 @@ const saveExerciseLog = async (skipped = false) => {
     try {
       const user = auth.currentUser;
       if (user) {
+        const finalReps = [...tempReps];
+        const finalWeights = [...tempWeights];
+
+        // Si no se omitió y el usuario deslizó para cerrar en la serie activa sin darle a "Completar Serie",
+        // confirmamos automáticamente la serie en foco si ya estaban listas las anteriores.
+        if (!skipped) {
+          const allPreviousCompleted = finalReps
+            .slice(0, activeSetIndex)
+            .every((r) => r && r.trim() !== '' && r.trim() !== '0');
+
+          if (
+            allPreviousCompleted &&
+            (!finalReps[activeSetIndex] || finalReps[activeSetIndex].trim() === '' || finalReps[activeSetIndex] === '0')
+          ) {
+            finalReps[activeSetIndex] = '10';
+            if (!finalWeights[activeSetIndex] || finalWeights[activeSetIndex].trim() === '') {
+              finalWeights[activeSetIndex] = finalWeights[activeSetIndex - 1] || '40';
+            }
+          }
+        }
+
         const exerciseData = skipped
           ? { skipped: true }
           : {
               skipped: false,
-              sets: parseInt(tempSetsCount),
-              reps: tempReps,
-              weights: tempWeights,
+              sets: parseInt(tempSetsCount) || finalReps.length,
+              reps: finalReps,
+              weights: finalWeights,
               rpes: tempRpes,
             };
+
         const updatedLog = {
           ...workoutLog,
           exercises: { ...workoutLog.exercises, [activeExercise.id]: exerciseData },
         };
+
         await setDoc(doc(db, 'users', user.uid, 'workout_logs', dateString), updatedLog, { merge: true });
         setActiveExercise(null);
       }
@@ -493,7 +516,7 @@ const saveExerciseLog = async (skipped = false) => {
           <Text style={kStyles.mainHeadline}>
             ¡HOLA, {getFirstName(userData?.name || auth.currentUser?.displayName)}!
           </Text>
-          <Text style={kStyles.bodyMuted}>Preparado para romper límites hoy. La sobrecarga no perdona.</Text>
+          <Text style={kStyles.bodyMuted}>Preparate para romper limites hoy.</Text>
         </View>
 
         {/* HERO CARD: RUTINA DE HOY */}
@@ -709,7 +732,7 @@ const saveExerciseLog = async (skipped = false) => {
             >
               <Ionicons name={isWeightInputOpen ? 'close' : 'add'} size={14} color={k.lime} />
               <Text style={{ fontSize: 10, fontWeight: '900', color: k.lime }}>
-                {isWeightInputOpen ? 'CERRAR' : 'ACTUALIZAR'}
+                {isWeightInputOpen ? 'CERRAR' : 'ACTUALIZA'}
               </Text>
             </TouchableOpacity>
           </View>
