@@ -20,8 +20,16 @@ export const muscleToImageKey: Record<string, keyof typeof imageMap> = {
 };
 
 export const profileAvatars: Record<string, any> = {
-  'avatar1': require('../assets/profiles/lion.webp'),
-  'avatar2': require('../assets/profiles/zebra.webp'),
+  'avatar1': require('../assets/profiles/bear.png'),
+  'avatar2': require('../assets/profiles/cat.png'),
+  'avatar3': require('../assets/profiles/chicken.png'),
+  'avatar4': require('../assets/profiles/duck.png'),
+  'avatar5': require('../assets/profiles/meerkat.png'),
+  'avatar6': require('../assets/profiles/penguin.png'),
+  'avatar7': require('../assets/profiles/panda.png'),
+  'avatar8': require('../assets/profiles/rabbit.png'),
+  'avatar9': require('../assets/profiles/sea-lion.png'),
+  'avatar10': require('../assets/profiles/sloth.png'),
 };
 
 export const RPE_OPTIONS = [

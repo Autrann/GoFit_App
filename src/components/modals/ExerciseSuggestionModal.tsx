@@ -179,7 +179,7 @@ export default function ExerciseSuggestionModal({
     <GoFitBottomSheet visible={visible} onClose={onClose} maxHeight="92%">
       <View style={[kStyles.rowBetween, { marginBottom: 12 }]}>
         <View>
-          <Text style={kStyles.kickerLime}>PERSONALIZACIÓN GOFIT</Text>
+          <Text style={kStyles.kickerLime}>PERSONALIZACIÓN</Text>
           <Text style={kStyles.sheetTitle}>¿NO ENCUENTRAS TU EJERCICIO?</Text>
         </View>
         <TouchableOpacity onPress={onClose}>

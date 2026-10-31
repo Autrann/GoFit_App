@@ -271,7 +271,7 @@ export default function StatsScreen() {
         <View style={{ gap: 12 }}>
           <View style={kStyles.rowBetween}>
             <View>
-              <Text style={kStyles.kickerLime}>AVANCE REAL EN PESOS Y REPS</Text>
+              <Text style={kStyles.kickerLime}>Tu avance día con día</Text>
               <Text style={{ fontSize: 19, fontWeight: '900', fontStyle: 'italic', color: k.textMain }}>
                 SOBRECARGA PROGRESIVA
               </Text>
@@ -362,7 +362,7 @@ export default function StatsScreen() {
                 <View style={[kStyles.surfaceCard, { alignItems: 'center', paddingVertical: 24, gap: 8 }]}>
                   <Ionicons name="barbell-outline" size={32} color={k.textMuted} />
                   <Text style={[kStyles.bodyMuted, { textAlign: 'center' }]}>
-                    Agrega ejercicios en tu pestaña "Rutina" para ver aquí cómo suben tus pesos y repeticiones.
+                    Agrega ejercicios en tu pestaña "Rutina" para ver aquí tus pesos y repeticiones.
                   </Text>
                 </View>
               ) : (
@@ -605,7 +605,7 @@ export default function StatsScreen() {
               }}
             >
               <Ionicons name="add" size={15} color="#3a4a00" />
-              <Text style={{ fontSize: 10, fontWeight: '900', color: '#3a4a00' }}>NUEVO PR</Text>
+              <Text style={{ fontSize: 10, fontWeight: '900', color: '#3a4a00' }}>NUEVO</Text>
             </TouchableOpacity>
           </View>
 
@@ -668,7 +668,7 @@ export default function StatsScreen() {
         <View style={kStyles.surfaceCard}>
           <View style={kStyles.rowBetween}>
             <View>
-              <Text style={kStyles.kickerMuted}>HISTORIAL BIOMÉTRICO REAL</Text>
+              <Text style={kStyles.kickerMuted}>HISTORIAL BIOMÉTRICO </Text>
               <Text style={{ fontSize: 15, fontWeight: '900', color: k.textMain }}>PESO CORPORAL</Text>
             </View>
             <View style={[styles.tfRow, { backgroundColor: k.surfaceLowest }]}>
