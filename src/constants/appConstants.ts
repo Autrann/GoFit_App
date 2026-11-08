@@ -1,4 +1,12 @@
+import { ImageSourcePropType } from 'react-native';
 import { imageMap } from '../assets/imgs/imageMap';
+import { Exercise, DayPlan, Routine } from '../types';
+
+export type { Exercise, DayPlan, Routine };
+
+export const KG_TO_LBS = 2.20462;
+
+export const MONTHS_SHORT = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
 export const DAYS_FROM_SUNDAY = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 export const DAYS_FROM_MONDAY = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
@@ -8,28 +16,28 @@ export const DAYS_LETTER = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
 export const MUSCLE_GROUPS = ['Pecho', 'Espalda', 'Hombro', 'Tríceps', 'Bíceps', 'Antebrazo', 'Pierna', 'Glúteo', 'Abdomen'];
 
 export const muscleToImageKey: Record<string, keyof typeof imageMap> = {
-  'Pecho': 'pectoralis-major.webp',
-  'Espalda': 'trapezius.webp',
-  'Hombro': 'lateral-deltoid.webp',
-  'Tríceps': 'triceps-brachii.webp',
-  'Bíceps': 'biceps-brachii.webp',
-  'Antebrazo': 'forearm-flexors.webp',
-  'Pierna': 'quadriceps.webp',
-  'Glúteo': 'gluteus-maximus.webp',
-  'Abdomen': 'rectus-abdominis.webp'
+  Pecho: 'pectoralis-major.webp',
+  Espalda: 'trapezius.webp',
+  Hombro: 'lateral-deltoid.webp',
+  Tríceps: 'triceps-brachii.webp',
+  Bíceps: 'biceps-brachii.webp',
+  Antebrazo: 'forearm-flexors.webp',
+  Pierna: 'quadriceps.webp',
+  Glúteo: 'gluteus-maximus.webp',
+  Abdomen: 'rectus-abdominis.webp',
 };
 
-export const profileAvatars: Record<string, any> = {
-  'avatar1': require('../assets/profiles/bear.png'),
-  'avatar2': require('../assets/profiles/cat.png'),
-  'avatar3': require('../assets/profiles/chicken.png'),
-  'avatar4': require('../assets/profiles/duck.png'),
-  'avatar5': require('../assets/profiles/meerkat.png'),
-  'avatar6': require('../assets/profiles/penguin.png'),
-  'avatar7': require('../assets/profiles/panda.png'),
-  'avatar8': require('../assets/profiles/rabbit.png'),
-  'avatar9': require('../assets/profiles/sea-lion.png'),
-  'avatar10': require('../assets/profiles/sloth.png'),
+export const profileAvatars: Record<string, ImageSourcePropType> = {
+  avatar1: require('../assets/profiles/bear.png'),
+  avatar2: require('../assets/profiles/cat.png'),
+  avatar3: require('../assets/profiles/chicken.png'),
+  avatar4: require('../assets/profiles/duck.png'),
+  avatar5: require('../assets/profiles/meerkat.png'),
+  avatar6: require('../assets/profiles/penguin.png'),
+  avatar7: require('../assets/profiles/panda.png'),
+  avatar8: require('../assets/profiles/rabbit.png'),
+  avatar9: require('../assets/profiles/sea-lion.png'),
+  avatar10: require('../assets/profiles/sloth.png'),
 };
 
 export const RPE_OPTIONS = [
@@ -41,25 +49,6 @@ export const RPE_OPTIONS = [
   { val: '9.5', label: '9.5 • Tal vez 1' },
   { val: '10', label: '10 • Fallo muscular' },
 ];
-
-export type Exercise = {
-  id: string;
-  name: string;
-  muscle: string;
-  image: string;
-  instructions?: string[];
-  muscleImage?: string;
-};
-
-export type DayPlan = {
-  isRest: boolean;
-  title: string;
-  muscles: string[];
-  cardio: boolean;
-  exercises: Exercise[];
-};
-
-export type Routine = { [key: string]: DayPlan };
 
 export const defaultDayPlan: DayPlan = {
   isRest: false,
@@ -74,5 +63,5 @@ export const initialRoutine: Routine = DAYS_FROM_MONDAY.reduce(
   {} as Routine
 );
 
-export const getFirstName = (fullName?: string | null) =>
+export const getFirstName = (fullName?: string | null): string =>
   fullName ? fullName.split(' ')[0] : 'Atleta';
