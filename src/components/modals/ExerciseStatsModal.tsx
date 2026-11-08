@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BarChart } from 'react-native-chart-kit';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../context/ThemeContext';
-import { ExerciseSessionEntry } from '../../utils/analytics';
+import { Exercise, ExerciseSessionEntry } from '../../types';
 import { imageMap } from '../../assets/imgs/imageMap';
 import GoFitBottomSheet from '../common/GoFitBottomSheet';
 
@@ -12,7 +12,7 @@ const { width } = Dimensions.get('window');
 
 interface ExerciseStatsModalProps {
   visible: boolean;
-  routineExercises: any[];
+  routineExercises: Exercise[];
   selectedExerciseId: string | null;
   exerciseHistory: ExerciseSessionEntry[];
   onClose: () => void;

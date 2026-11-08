@@ -3,9 +3,10 @@ import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
 import { profileAvatars, getFirstName } from '../../constants/appConstants';
+import { UserData } from '../../types';
 
 interface KineticHeaderProps {
-  userData?: any;
+  userData?: UserData | null;
   fallbackName?: string | null;
   brandTitle?: string;
   onAvatarPress?: () => void;
