@@ -104,29 +104,56 @@ export function useSetLoggingSession({
     setActiveSetIndex(targetIdx);
   };
 
-  const commitActiveSet = async () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  const commitActiveSet = async (targetIndex?: number) => {
+    const idx = typeof targetIndex === 'number' ? targetIndex : activeSetIndex;
     const newReps = [...tempReps];
     const newWeights = [...tempWeights];
-
-    if (!newReps[activeSetIndex] || newReps[activeSetIndex].trim() === '' || newReps[activeSetIndex] === '0') {
-      newReps[activeSetIndex] = '10';
-    }
-    const currentWeightUsed = newWeights[activeSetIndex] || '0';
-    newWeights[activeSetIndex] = currentWeightUsed;
-
     const totalSets = parseInt(tempSetsCount, 10) || newReps.length;
-    const nextIdx = activeSetIndex + 1;
 
-    if (nextIdx < totalSets) {
-      if (!newReps[nextIdx] || newReps[nextIdx].trim() === '') {
-        newWeights[nextIdx] = currentWeightUsed;
-        newReps[nextIdx] = '';
+    const isCurrentlyCompleted = Boolean(newReps[idx] && newReps[idx].trim() !== '' && newReps[idx] !== '0');
+
+    // Si el usuario toca el check de una serie que NO es la activa y ya estaba completada, la desmarca
+    if (typeof targetIndex === 'number' && isCurrentlyCompleted && targetIndex !== activeSetIndex) {
+      Haptics.selectionAsync();
+      newReps[idx] = '';
+      setTempReps(newReps);
+      setActiveSetIndex(idx);
+    } else {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      const lastWeekEx = activeExercise ? lastWeekLog?.exercises?.[activeExercise.id] : null;
+      const fallbackRep = lastWeekEx?.reps?.[idx] || lastWeekEx?.reps?.[0] || '10';
+
+      if (!newReps[idx] || newReps[idx].trim() === '' || newReps[idx] === '0') {
+        newReps[idx] = fallbackRep;
+      }
+
+      const fallbackWeight =
+        (idx > 0 ? newWeights[idx - 1] : '') ||
+        lastWeekEx?.weights?.[idx] ||
+        lastWeekEx?.weights?.[0] ||
+        '0';
+      const currentWeightUsed = newWeights[idx] && newWeights[idx].trim() !== '' ? newWeights[idx] : fallbackWeight;
+      newWeights[idx] = currentWeightUsed;
+
+      const nextIdx = idx + 1;
+      if (nextIdx < totalSets) {
+        if (!newReps[nextIdx] || newReps[nextIdx].trim() === '') {
+          if (!newWeights[nextIdx] || newWeights[nextIdx].trim() === '') {
+            newWeights[nextIdx] = currentWeightUsed;
+          }
+        }
+      }
+
+      setTempReps(newReps);
+      setTempWeights(newWeights);
+
+      const nextIncomplete = newReps.findIndex((r, i) => i > idx && (!r || r.trim() === '' || r === '0'));
+      if (nextIncomplete !== -1) {
+        setActiveSetIndex(nextIncomplete);
+      } else if (nextIdx < totalSets) {
+        setActiveSetIndex(nextIdx);
       }
     }
-
-    setTempReps(newReps);
-    setTempWeights(newWeights);
 
     const user = auth.currentUser;
     if (user && activeExercise) {
@@ -145,10 +172,6 @@ export function useSetLoggingSession({
       };
       await setDoc(doc(db, 'users', user.uid, 'workout_logs', dateString), updatedLog, { merge: true });
     }
-
-    if (nextIdx < totalSets) {
-      setActiveSetIndex(nextIdx);
-    }
   };
 
   const saveExerciseLog = async (skipped = false) => {
@@ -159,22 +182,6 @@ export function useSetLoggingSession({
       if (user) {
         const finalReps = [...tempReps];
         const finalWeights = [...tempWeights];
-
-        if (!skipped) {
-          const allPreviousCompleted = finalReps
-            .slice(0, activeSetIndex)
-            .every((r) => r && r.trim() !== '' && r.trim() !== '0');
-
-          if (
-            allPreviousCompleted &&
-            (!finalReps[activeSetIndex] || finalReps[activeSetIndex].trim() === '' || finalReps[activeSetIndex] === '0')
-          ) {
-            finalReps[activeSetIndex] = '10';
-            if (!finalWeights[activeSetIndex] || finalWeights[activeSetIndex].trim() === '') {
-              finalWeights[activeSetIndex] = finalWeights[activeSetIndex - 1] || '40';
-            }
-          }
-        }
 
         const exerciseData = skipped
           ? { skipped: true }

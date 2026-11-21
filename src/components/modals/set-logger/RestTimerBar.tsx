@@ -19,62 +19,67 @@ export default function RestTimerBar({
   onReset,
   onToggleRunning,
 }: RestTimerBarProps) {
-  const { colors: k, kStyles } = useTheme();
+  const { colors: k } = useTheme();
 
   return (
-    <View style={styles.topArea}>
-      <View style={[styles.restTimerBar, { backgroundColor: k.surfaceHighest }]}>
-        <View style={kStyles.rowAlign}>
-          <View style={styles.timerIconCircle}>
-            <Ionicons name="timer-outline" size={18} color={k.cyan} />
-          </View>
-          <View>
-            <Text style={kStyles.kickerMuted}>DESCANSO</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
-              <Text style={[styles.timerCountdown, { color: k.cyan }]}>
-                {formatSecondsToMMSS(restSeconds)}
-              </Text>
-              <Text style={{ fontSize: 10, color: k.textMuted, fontWeight: '600' }}>/ 02:00</Text>
-            </View>
-          </View>
-        </View>
+    <View style={styles.wrapper}>
+      <View
+        style={[
+          styles.bar,
+          {
+            backgroundColor: timerRunning ? 'rgba(0, 244, 254, 0.1)' : k.surface,
+            borderColor: timerRunning ? k.cyan : k.outline,
+          },
+        ]}
+      >
+        <TouchableOpacity
+          style={styles.leftTouch}
+          onPress={onToggleRunning}
+          activeOpacity={0.75}
+        >
+          <Ionicons
+            name={timerRunning ? 'timer' : 'timer-outline'}
+            size={16}
+            color={timerRunning ? k.cyan : k.textMuted}
+          />
+          <Text style={[styles.label, { color: timerRunning ? k.cyan : k.textMuted }]}>
+            {timerRunning ? 'Descansando' : 'Descanso'}
+          </Text>
+          <Text style={[styles.timeText, { color: k.textMain }]}>
+            {formatSecondsToMMSS(restSeconds)}
+          </Text>
+        </TouchableOpacity>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+        <View style={styles.controls}>
           <TouchableOpacity
-            style={[styles.timerBtn, { backgroundColor: k.surfaceBright }]}
-            onPress={() => onAdjust(-30)}
+            style={[styles.stepPill, { backgroundColor: k.surfaceHighest }]}
+            onPress={() => onAdjust(-15)}
           >
-            <Text style={{ fontSize: 11, fontWeight: '800', color: k.textMain }}>-30s</Text>
+            <Text style={[styles.stepText, { color: k.textMuted }]}>-15s</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.timerBtn, { backgroundColor: k.surfaceBright }]}
-            onPress={() => onAdjust(30)}
+            style={[styles.stepPill, { backgroundColor: k.surfaceHighest }]}
+            onPress={() => onAdjust(15)}
           >
-            <Text style={{ fontSize: 11, fontWeight: '800', color: k.textMain }}>+30s</Text>
+            <Text style={[styles.stepText, { color: k.textMuted }]}>+15s</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.timerIconBtn, { backgroundColor: k.surfaceBright }]}
-            onPress={onReset}
-            accessibilityLabel="Reiniciar cronómetro"
-          >
-            <Ionicons name="refresh" size={15} color={k.cyan} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.timerIconBtn,
-              { backgroundColor: timerRunning ? k.limeBg : k.surfaceBright },
-            ]}
-            onPress={onToggleRunning}
-          >
-            <Ionicons
-              name={timerRunning ? 'pause' : 'play'}
-              size={15}
-              color={timerRunning ? '#3a4a00' : k.textMain}
-            />
-          </TouchableOpacity>
+          {timerRunning ? (
+            <TouchableOpacity
+              style={[styles.actionPill, { backgroundColor: k.surfaceHighest }]}
+              onPress={onReset}
+            >
+              <Text style={[styles.actionText, { color: k.cyan }]}>Saltar</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.actionPill, { backgroundColor: k.surfaceHighest }]}
+              onPress={onToggleRunning}
+            >
+              <Ionicons name="play" size={12} color={k.cyan} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </View>
@@ -82,25 +87,56 @@ export default function RestTimerBar({
 }
 
 const styles = StyleSheet.create({
-  topArea: { paddingHorizontal: 18, paddingBottom: 6, alignItems: 'center' },
-  restTimerBar: {
-    width: '100%',
-    borderRadius: 16,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
+  wrapper: {
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+  },
+  bar: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
   },
-  timerIconCircle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: 'rgba(0, 244, 254, 0.15)',
+  leftTouch: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  timeText: {
+    fontSize: 14,
+    fontWeight: '800',
+    marginLeft: 2,
+  },
+  controls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  stepPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  stepText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  actionPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  timerCountdown: { fontSize: 17, fontWeight: '900' },
-  timerBtn: { height: 32, paddingHorizontal: 9, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-  timerIconBtn: { width: 32, height: 32, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
+  actionText: {
+    fontSize: 11,
+    fontWeight: '800',
+  },
 });

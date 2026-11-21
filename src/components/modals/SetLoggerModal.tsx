@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../context/ThemeContext';
 import { Exercise, WorkoutExerciseLog } from '../../types';
 import { useSetLoggerModal } from '../../hooks/useSetLoggerModal';
 import GoFitBottomSheet from '../common/GoFitBottomSheet';
-import SlideToFinish from '../common/SlideToFinish';
+import KineticButton from '../common/KineticButton';
 import RestTimerBar from './set-logger/RestTimerBar';
 import SetLoggerHeader from './set-logger/SetLoggerHeader';
 import ActiveSetCard from './set-logger/ActiveSetCard';
@@ -30,7 +31,7 @@ interface SetLoggerModalProps {
   onUpdateRpe: (index: number, val: string) => void;
   onAddExtraSet: () => void;
   onRemoveLastSet: () => void;
-  onCommitActiveSet: () => void;
+  onCommitActiveSet: (targetIndex?: number) => void;
   onSaveExercise: (skipped?: boolean) => void;
 }
 
@@ -56,37 +57,46 @@ export default function SetLoggerModal({
   onCommitActiveSet,
   onSaveExercise,
 }: SetLoggerModalProps) {
-  const { colors: k, kStyles } = useTheme();
+  const { colors: k } = useTheme();
   const {
     restSeconds,
     timerRunning,
-    showRpeHelp,
-    setShowRpeHelp,
+    showRpePicker,
+    setShowRpePicker,
     weightUnit,
-    localWeightInput,
+    localWeights,
     completedSetsCount,
     allSetsCompleted,
-    quickIncrements,
     mainStepDelta,
     formatDisplayWeight,
     toggleWeightUnit,
     adjustTimer,
     resetTimer,
     toggleTimer,
-    stepWeightInActiveUnit,
-    handleWeightTextChange,
-    stepReps,
-    handleCommitSet,
+    handleWeightTextChangeForSet,
+    stepWeightForSet,
+    stepRepsForSet,
+    handleToggleOrCommitSet,
   } = useSetLoggerModal({
     visible,
     activeExercise,
     tempReps,
     tempWeights,
     activeSetIndex,
+    onSelectSetIndex,
     onUpdateRep,
     onUpdateWeight,
     onCommitActiveSet,
   });
+
+  const handleApplyPreviousToSet = (idx: number, prevW: string, prevR: string) => {
+    if (prevW !== '--') {
+      handleWeightTextChangeForSet(idx, prevW);
+    }
+    if (prevR !== '--') {
+      onUpdateRep(idx, prevR);
+    }
+  };
 
   return (
     <GoFitBottomSheet
@@ -95,14 +105,6 @@ export default function SetLoggerModal({
       backgroundColor={k.surfaceLow}
       noPadding={true}
     >
-      <RestTimerBar
-        restSeconds={restSeconds}
-        timerRunning={timerRunning}
-        onAdjust={adjustTimer}
-        onReset={resetTimer}
-        onToggleRunning={toggleTimer}
-      />
-
       <SetLoggerHeader
         activeExercise={activeExercise}
         activeExIndex={activeExIndex}
@@ -111,19 +113,33 @@ export default function SetLoggerModal({
         prevExData={prevExData}
         weightUnit={weightUnit}
         formatDisplayWeight={formatDisplayWeight}
-        onSkipToday={() => onSaveExercise(true)}
+        onToggleWeightUnit={toggleWeightUnit}
+        onClose={() => onSaveExercise(false)}
       />
 
-      <ScrollView style={{ paddingHorizontal: 18 }} showsVerticalScrollIndicator={false}>
+      <RestTimerBar
+        restSeconds={restSeconds}
+        timerRunning={timerRunning}
+        onAdjust={adjustTimer}
+        onReset={resetTimer}
+        onToggleRunning={toggleTimer}
+      />
+
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Encabezado limpio de 5 columnas */}
         <View style={styles.tableHeadRow}>
-          <Text style={[styles.thText, { flex: 1.5, color: k.textMuted }]}>SERIE</Text>
-          <Text style={[styles.thText, { flex: 2.5, color: k.textMuted }]}>ANTERIOR</Text>
-          <Text style={[styles.thText, { flex: 1.5, textAlign: 'center', color: k.textMuted }]}>
-            {weightUnit.toUpperCase()}
+          <Text style={[styles.thText, styles.colSerie, { color: k.textMuted }]}>SERIE</Text>
+          <Text style={[styles.thText, styles.colPrev, { color: k.textMuted }]}>ANTERIOR</Text>
+          <Text style={[styles.thText, styles.colInput, { color: k.textMuted }]}>
+            PESO ({weightUnit.toUpperCase()})
           </Text>
-          <Text style={[styles.thText, { flex: 1.5, textAlign: 'center', color: k.textMuted }]}>REPS</Text>
-          <Text style={[styles.thText, { flex: 1.2, textAlign: 'center', color: k.textMuted }]}>RPE</Text>
-          <Text style={[styles.thText, { flex: 1.5, textAlign: 'right', color: k.textMuted }]}>ESTADO</Text>
+          <Text style={[styles.thText, styles.colInput, { color: k.textMuted }]}>REPS</Text>
+          <Text style={[styles.thText, styles.colCheck, { color: k.textMuted }]}>LISTO</Text>
         </View>
 
         {tempReps.map((rep, idx) => {
@@ -132,29 +148,30 @@ export default function SetLoggerModal({
           const rawPrevW = prevExData?.weights?.[idx] || prevExData?.weights?.[0];
           const prevW = rawPrevW ? formatDisplayWeight(rawPrevW) : '--';
           const prevR = prevExData?.reps?.[idx] || prevExData?.reps?.[0] || '--';
+          const fallbackRepNum = parseInt(prevR, 10) || 10;
 
           if (isFocused) {
             return (
               <ActiveSetCard
                 key={`set-${idx}`}
                 setIndex={idx}
+                isCompleted={isCompleted}
                 repValue={rep}
                 rpeValue={tempRpes[idx] || '8.5'}
-                localWeightInput={localWeightInput}
+                weightValue={localWeights[idx] ?? ''}
                 weightUnit={weightUnit}
                 prevWeightLabel={prevW}
                 prevRepsLabel={prevR}
                 mainStepDelta={mainStepDelta}
-                quickIncrements={quickIncrements}
-                showRpeHelp={showRpeHelp}
-                onToggleRpeHelp={() => setShowRpeHelp(!showRpeHelp)}
-                onToggleWeightUnit={toggleWeightUnit}
-                onStepWeight={stepWeightInActiveUnit}
-                onWeightTextChange={handleWeightTextChange}
-                onStepReps={stepReps}
+                showRpePicker={showRpePicker}
+                onToggleRpePicker={() => setShowRpePicker(!showRpePicker)}
+                onStepWeight={(delta) => stepWeightForSet(idx, delta)}
+                onWeightTextChange={(text) => handleWeightTextChangeForSet(idx, text)}
+                onStepReps={(delta) => stepRepsForSet(idx, delta, fallbackRepNum)}
                 onRepTextChange={(val) => onUpdateRep(idx, val)}
                 onSelectRpe={(val) => onUpdateRpe(idx, val)}
-                onCommitSet={handleCommitSet}
+                onApplyPrevious={() => handleApplyPreviousToSet(idx, prevW, prevR)}
+                onCommitSet={() => handleToggleOrCommitSet(idx)}
               />
             );
           }
@@ -166,83 +183,141 @@ export default function SetLoggerModal({
               isCompleted={isCompleted}
               prevWeightLabel={prevW}
               prevRepsLabel={prevR}
-              displayWeight={tempWeights[idx] ? formatDisplayWeight(tempWeights[idx]) : '--'}
+              weightValue={localWeights[idx] ?? ''}
               repValue={rep}
-              rpeValue={tempRpes[idx] || '8.5'}
-              onSelect={() => onSelectSetIndex(idx)}
+              onFocusRow={() => onSelectSetIndex(idx)}
+              onWeightChange={(text) => handleWeightTextChangeForSet(idx, text)}
+              onRepChange={(val) => onUpdateRep(idx, val)}
+              onApplyPrevious={() => handleApplyPreviousToSet(idx, prevW, prevR)}
+              onToggleComplete={() => handleToggleOrCommitSet(idx)}
             />
           );
         })}
 
-        {/* Modificadores de Series (Añadir / Quitar) */}
-        <View style={{ flexDirection: 'row', gap: 8, marginTop: 4, marginBottom: 16 }}>
-          <TouchableOpacity style={[styles.modBtn, { backgroundColor: k.surface }]} onPress={onAddExtraSet}>
-            <Ionicons name="add" size={16} color={k.lime} />
-            <Text style={{ fontSize: 10, fontWeight: '800', color: k.textMain }}>AÑADIR SERIE</Text>
+        {/* Controles ligeros para Añadir / Quitar serie */}
+        <View style={styles.setModRow}>
+          <TouchableOpacity
+            style={[styles.modBtn, { backgroundColor: k.surface }]}
+            onPress={() => {
+              Haptics.selectionAsync();
+              onAddExtraSet();
+            }}
+          >
+            <Ionicons name="add" size={16} color={k.cyan} />
+            <Text style={[styles.modBtnText, { color: k.textMain }]}>Añadir serie</Text>
           </TouchableOpacity>
 
           {parseInt(tempSetsCount, 10) > 1 && (
-            <TouchableOpacity style={[styles.modBtn, { backgroundColor: k.surface }]} onPress={onRemoveLastSet}>
+            <TouchableOpacity
+              style={[styles.modBtn, { backgroundColor: k.surface }]}
+              onPress={() => {
+                Haptics.selectionAsync();
+                onRemoveLastSet();
+              }}
+            >
               <Ionicons name="remove" size={16} color={k.textMuted} />
-              <Text style={{ fontSize: 10, fontWeight: '800', color: k.textMuted }}>QUITAR SERIE</Text>
+              <Text style={[styles.modBtnText, { color: k.textMuted }]}>Quitar serie</Text>
             </TouchableOpacity>
           )}
         </View>
       </ScrollView>
 
-      {/* Footer Único con Slider Deslizable */}
+      {/* Footer limpio con botón directo de 1 toque y opción discreta de omitir */}
       <View style={[styles.footer, { backgroundColor: k.surface, borderTopColor: k.outline }]}>
-        <View style={kStyles.rowBetween}>
-          <View style={kStyles.rowAlign}>
-            <View
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: allSetsCompleted ? k.lime : k.cyan,
-              }}
-            />
-            <Text style={{ fontSize: 11, color: k.textMuted, fontWeight: '700' }}>
-              Progreso de este ejercicio:
-            </Text>
-          </View>
-          <Text
-            style={{
-              fontSize: 12,
-              fontWeight: '900',
-              color: allSetsCompleted ? k.lime : k.textMain,
-            }}
-          >
-            {completedSetsCount} de {tempReps.length} series listas
-          </Text>
-        </View>
-
-        <SlideToFinish
-          isGlowing={allSetsCompleted}
-          loading={savingExercise}
-          label={
+        <KineticButton
+          title={
             allSetsCompleted
-              ? '¡SERIES LISTAS! DESLIZA PARA CERRAR'
-              : 'DESLIZA PARA CERRAR REGISTRO'
+              ? `GUARDAR EJERCICIO (${completedSetsCount}/${tempReps.length}) ✓`
+              : completedSetsCount > 0
+              ? `GUARDAR PROGRESO (${completedSetsCount}/${tempReps.length})`
+              : 'LISTO'
           }
-          onComplete={() => onSaveExercise(false)}
+          icon="checkmark-circle"
+          loading={savingExercise}
+          onPress={() => onSaveExercise(false)}
         />
+
+        <TouchableOpacity
+          style={styles.skipLink}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            onSaveExercise(true);
+          }}
+        >
+          <Text style={[styles.skipLinkText, { color: k.textMuted }]}>
+            Omitir este ejercicio hoy
+          </Text>
+        </TouchableOpacity>
       </View>
     </GoFitBottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  tableHeadRow: { flexDirection: 'row', paddingHorizontal: 10, paddingVertical: 6 },
-  thText: { fontSize: 9, fontWeight: '800', letterSpacing: 0.6 },
+  scrollArea: {
+    paddingHorizontal: 18,
+  },
+  scrollContent: {
+    paddingBottom: 12,
+  },
+  tableHeadRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingBottom: 6,
+  },
+  thText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+  },
+  colSerie: {
+    width: 38,
+  },
+  colPrev: {
+    flex: 1.1,
+  },
+  colInput: {
+    flex: 1.15,
+    textAlign: 'center',
+  },
+  colCheck: {
+    width: 44,
+    textAlign: 'right',
+  },
+  setModRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+    marginBottom: 8,
+  },
   modBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: 5,
     paddingVertical: 10,
     borderRadius: 12,
   },
-  footer: { paddingHorizontal: 18, paddingTop: 12, paddingBottom: 28, gap: 10, borderTopWidth: 1 },
+  modBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  footer: {
+    paddingHorizontal: 18,
+    paddingTop: 12,
+    paddingBottom: 24,
+    gap: 8,
+    borderTopWidth: 1,
+  },
+  skipLink: {
+    alignSelf: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+  },
+  skipLinkText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
 });
