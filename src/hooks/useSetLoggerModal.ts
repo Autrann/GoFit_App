@@ -9,9 +9,10 @@ interface UseSetLoggerModalParams {
   tempReps: string[];
   tempWeights: string[];
   activeSetIndex: number;
+  onSelectSetIndex: (index: number) => void;
   onUpdateRep: (index: number, val: string) => void;
   onUpdateWeight: (index: number, val: string) => void;
-  onCommitActiveSet: () => void;
+  onCommitActiveSet: (targetIndex?: number) => void;
 }
 
 export function useSetLoggerModal({
@@ -20,26 +21,41 @@ export function useSetLoggerModal({
   tempReps,
   tempWeights,
   activeSetIndex,
+  onSelectSetIndex,
   onUpdateRep,
   onUpdateWeight,
   onCommitActiveSet,
 }: UseSetLoggerModalParams) {
   const [restSeconds, setRestSeconds] = useState(120);
   const [timerRunning, setTimerRunning] = useState(false);
-  const [showRpeHelp, setShowRpeHelp] = useState(false);
+  const [showRpePicker, setShowRpePicker] = useState(false);
 
   const [weightUnit, setWeightUnit] = useState<WeightUnit>('kg');
-  const [localWeightInput, setLocalWeightInput] = useState('');
+  const [localWeights, setLocalWeights] = useState<string[]>([]);
 
   const formatDisplayWeight = useCallback(
     (kgStr?: string) => formatKgToUnit(kgStr, weightUnit),
     [weightUnit]
   );
 
-  // Sincronizar el input visible cada vez que cambia la serie activa o la unidad (KG/LBS)
+  // Sincronizar los inputs locales cuando cambian las series, el ejercicio o la unidad (KG/LBS)
   useEffect(() => {
-    setLocalWeightInput(formatDisplayWeight(tempWeights[activeSetIndex]));
-  }, [activeSetIndex, weightUnit, tempWeights[activeSetIndex], visible, formatDisplayWeight]);
+    setLocalWeights((prev) =>
+      tempWeights.map((kgVal, idx) => {
+        const formatted = formatDisplayWeight(kgVal);
+        const currentLocal = prev[idx];
+        // Preservar punto decimal mientras el usuario escribe en la serie activa
+        if (
+          currentLocal !== undefined &&
+          currentLocal.endsWith('.') &&
+          parseFloat(currentLocal) === parseFloat(formatted)
+        ) {
+          return currentLocal;
+        }
+        return formatted;
+      })
+    );
+  }, [tempWeights, weightUnit, visible, formatDisplayWeight]);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
@@ -55,7 +71,10 @@ export function useSetLoggerModal({
   }, [visible, timerRunning, restSeconds]);
 
   useEffect(() => {
-    if (!visible) setShowRpeHelp(false);
+    if (!visible) {
+      setShowRpePicker(false);
+      setTimerRunning(false);
+    }
   }, [visible, activeExercise]);
 
   const toggleWeightUnit = () => {
@@ -69,68 +88,99 @@ export function useSetLoggerModal({
   };
 
   const resetTimer = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setRestSeconds(120);
     setTimerRunning(false);
   };
 
   const toggleTimer = () => {
     Haptics.selectionAsync();
+    if (!timerRunning && restSeconds === 0) {
+      setRestSeconds(120);
+    }
     setTimerRunning((prev) => !prev);
   };
 
-  const stepWeightInActiveUnit = (deltaInActiveUnit: number) => {
+  const handleWeightTextChangeForSet = (setIdx: number, text: string) => {
+    const cleaned = text.replace(',', '.').replace(/[^0-9.]/g, '');
+    setLocalWeights((prev) => {
+      const next = [...prev];
+      next[setIdx] = cleaned;
+      for (let i = setIdx + 1; i < next.length; i++) {
+        if (!tempReps[i] || tempReps[i].trim() === '') {
+          next[i] = cleaned;
+        }
+      }
+      return next;
+    });
+    onUpdateWeight(setIdx, convertUnitToKgString(cleaned, weightUnit));
+  };
+
+  const stepWeightForSet = (setIdx: number, deltaInActiveUnit: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const currentDisplay = parseFloat(localWeightInput) || 0;
+    const currentDisplay = parseFloat(localWeights[setIdx] || '0') || 0;
     const nextDisplay = Math.max(0, parseFloat((currentDisplay + deltaInActiveUnit).toFixed(2)));
     const nextDisplayStr = nextDisplay.toString();
-    setLocalWeightInput(nextDisplayStr);
-    onUpdateWeight(activeSetIndex, convertUnitToKgString(nextDisplayStr, weightUnit));
+    handleWeightTextChangeForSet(setIdx, nextDisplayStr);
   };
 
-  const handleWeightTextChange = (text: string) => {
-    const cleaned = text.replace(/[^0-9.]/g, '');
-    setLocalWeightInput(cleaned);
-    onUpdateWeight(activeSetIndex, convertUnitToKgString(cleaned, weightUnit));
-  };
-
-  const stepReps = (delta: number) => {
+  const stepRepsForSet = (setIdx: number, delta: number, fallbackRep = 10) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const current = parseInt(tempReps[activeSetIndex], 10) || 10;
+    const current = parseInt(tempReps[setIdx], 10) || fallbackRep;
     const next = Math.max(1, current + delta);
-    onUpdateRep(activeSetIndex, next.toString());
+    onUpdateRep(setIdx, next.toString());
   };
 
-  const handleCommitSet = () => {
+  const handleToggleOrCommitSet = (setIdx: number) => {
+    const isAlreadyCompleted = Boolean(
+      tempReps[setIdx] && tempReps[setIdx].trim() !== '' && tempReps[setIdx] !== '0'
+    );
+
+    if (isAlreadyCompleted && setIdx !== activeSetIndex) {
+      // Desmarcar serie ya completada si la vuelve a tocar
+      onCommitActiveSet(setIdx);
+      return;
+    }
+
+    if (isAlreadyCompleted && setIdx === activeSetIndex) {
+      // Si ya tenía reps escritas manualmente pero toca el check para confirmar y avanzar
+      const nextIncomplete = tempReps.findIndex((r, i) => i !== setIdx && (!r || r.trim() === '' || r === '0'));
+      setRestSeconds(120);
+      setTimerRunning(true);
+      if (nextIncomplete !== -1) {
+        onSelectSetIndex(nextIncomplete);
+      }
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      return;
+    }
+
     setRestSeconds(120);
     setTimerRunning(true);
-    onCommitActiveSet();
+    onCommitActiveSet(setIdx);
   };
 
   const completedSetsCount = tempReps.filter((r) => r && r.trim() !== '' && r.trim() !== '0').length;
   const allSetsCompleted = tempReps.length > 0 && completedSetsCount === tempReps.length;
-  const quickIncrements = weightUnit === 'kg' ? [1.25, 2.5, 5] : [2.5, 5, 10];
   const mainStepDelta = weightUnit === 'kg' ? 2.5 : 5;
 
   return {
     restSeconds,
     timerRunning,
-    showRpeHelp,
-    setShowRpeHelp,
+    showRpePicker,
+    setShowRpePicker,
     weightUnit,
-    localWeightInput,
+    localWeights,
     completedSetsCount,
     allSetsCompleted,
-    quickIncrements,
     mainStepDelta,
     formatDisplayWeight,
     toggleWeightUnit,
     adjustTimer,
     resetTimer,
     toggleTimer,
-    stepWeightInActiveUnit,
-    handleWeightTextChange,
-    stepReps,
-    handleCommitSet,
+    handleWeightTextChangeForSet,
+    stepWeightForSet,
+    stepRepsForSet,
+    handleToggleOrCommitSet,
   };
 }

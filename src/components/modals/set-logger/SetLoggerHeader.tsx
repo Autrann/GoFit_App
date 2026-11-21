@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../../context/ThemeContext';
 import { Exercise, WorkoutExerciseLog, WeightUnit } from '../../../types';
 
@@ -13,7 +12,8 @@ interface SetLoggerHeaderProps {
   prevExData?: WorkoutExerciseLog | null;
   weightUnit: WeightUnit;
   formatDisplayWeight: (kgStr?: string) => string;
-  onSkipToday: () => void;
+  onToggleWeightUnit: () => void;
+  onClose: () => void;
 }
 
 export default function SetLoggerHeader({
@@ -24,75 +24,138 @@ export default function SetLoggerHeader({
   prevExData,
   weightUnit,
   formatDisplayWeight,
-  onSkipToday,
+  onToggleWeightUnit,
+  onClose,
 }: SetLoggerHeaderProps) {
   const { colors: k } = useTheme();
+  const hasPrev = Boolean(prevExData?.weights?.[0]);
 
   return (
-    <View style={styles.dossierHeader}>
-      <View style={{ flex: 1 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <View style={[styles.exOrderBadge, { backgroundColor: k.surfaceHighest }]}>
-            <Text style={{ fontSize: 9, fontWeight: '900', color: k.lime }}>
-              EJERCICIO {activeExIndex + 1} DE {totalExercisesCount || 1}
+    <View style={styles.container}>
+      <View style={styles.topRow}>
+        <View style={styles.metaRow}>
+          <View style={[styles.counterPill, { backgroundColor: k.surfaceHighest }]}>
+            <Text style={[styles.counterText, { color: k.cyan }]}>
+              {activeExIndex + 1} / {totalExercisesCount || 1}
             </Text>
           </View>
-          <Text style={{ fontSize: 11, fontWeight: '600', color: k.textMuted }}>
+          <Text style={[styles.muscleText, { color: k.textMuted }]}>
             {activeExercise?.muscle || routineTitle}
           </Text>
         </View>
 
-        <Text style={[styles.dossierTitle, { color: k.textMain }]} numberOfLines={1}>
-          {activeExercise?.name}
-        </Text>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 }}>
-          <Ionicons name="time-outline" size={14} color={k.gold} />
-          <Text style={{ fontSize: 11, color: k.textMuted }}>
-            Registro previo:{' '}
-            <Text style={{ fontWeight: '800', color: k.textMain }}>
-              {prevExData?.weights?.[0]
-                ? `${formatDisplayWeight(prevExData.weights[0])} ${weightUnit} × ${prevExData.reps?.[0] || 10} reps`
-                : 'Sin registro previo'}
+        <View style={styles.actionsRow}>
+          <TouchableOpacity
+            style={[
+              styles.unitToggleBtn,
+              {
+                backgroundColor: k.surfaceHighest,
+                borderColor: weightUnit === 'lbs' ? k.cyan : k.outline,
+              },
+            ]}
+            onPress={onToggleWeightUnit}
+            activeOpacity={0.75}
+          >
+            <Ionicons name="swap-horizontal" size={13} color={k.cyan} />
+            <Text style={[styles.unitToggleText, { color: k.textMain }]}>
+              {weightUnit.toUpperCase()}
             </Text>
-          </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.closeBtn, { backgroundColor: k.surfaceHighest }]}
+            onPress={onClose}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="close" size={18} color={k.textMuted} />
+          </TouchableOpacity>
         </View>
       </View>
 
-      <TouchableOpacity
-        style={[styles.skipExercisePill, { borderColor: 'rgba(255, 115, 81, 0.4)' }]}
-        onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          onSkipToday();
-        }}
-      >
-        <Ionicons name="ban-outline" size={14} color={k.danger} />
-        <Text style={[styles.skipExercisePillText, { color: k.danger }]}>Omitir hoy</Text>
-      </TouchableOpacity>
+      <Text style={[styles.title, { color: k.textMain }]} numberOfLines={2}>
+        {activeExercise?.name}
+      </Text>
+
+      {hasPrev && (
+        <View style={styles.prevRow}>
+          <Ionicons name="time-outline" size={13} color={k.textMuted} />
+          <Text style={[styles.prevText, { color: k.textMuted }]}>
+            Última vez:{' '}
+            <Text style={{ fontWeight: '700', color: k.textMain }}>
+              {formatDisplayWeight(prevExData?.weights?.[0])} {weightUnit} × {prevExData?.reps?.[0] || 10} reps
+            </Text>
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  dossierHeader: {
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: 10,
+  container: {
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+    gap: 6,
   },
-  exOrderBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
-  dossierTitle: { fontSize: 20, fontWeight: '900', textTransform: 'uppercase' },
-  skipExercisePill: {
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  counterPill: {
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  counterText: {
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  muscleText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  unitToggleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  unitToggleText: {
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  closeBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  prevRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: 'rgba(255, 115, 81, 0.14)',
-    paddingHorizontal: 11,
-    paddingVertical: 8,
-    borderRadius: 12,
-    borderWidth: 1,
   },
-  skipExercisePillText: { fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.4 },
+  prevText: {
+    fontSize: 12,
+  },
 });
